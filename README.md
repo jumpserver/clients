@@ -1,0 +1,26 @@
+# CloudRouse
+
+## Install
+
+### Windows
+
+下载winClient/rdp中的文件，双击install.reg，然后将CloudRouse.exe文件放入C:\\Windows\System32文件夹中。
+
+### Mac
+
+下载macClient/rdp中的文件，安装CloudRouse.dmg并将CloudRouse.app放入Applications中，双击打开CloudRouse.app完成自定义协议。
+
+## Uninstall
+
+### Windows
+
+双击uninstall.reg
+
+### Mac
+
+移除CloudRouse.app
+
+## 测试
+
+url link: cdr://ZnVsbCBhZGRyZXNzOnM6eXkuZml0MmNsb3VkLmNvbTozMzM4OQp1c2VybmFtZTpzOmZlbmdxaWFuZ3xTNEY2RUZzTVo3TjZVTVBZcFRWdzJQSFVSZ3dKVkpNcHAzZEYKc2NyZWVuIG1vZGUgaWQ6aTowCnVzZSBtdWx0aW1vbjppOjEKc2Vzc2lvbiBicHA6aTozMgphdWRpb21vZGU6aTowCmRpc2FibGUgd2FsbHBhcGVyOmk6MApkaXNhYmxlIGZ1bGwgd2luZG93IGRyYWc6aTowCmRpc2FibGUgbWVudSBhbmltczppOjAKZGlzYWJsZSB0aGVtZXM6aTowCmFsdGVybmF0ZSBzaGVsbDpzOgpzaGVsbCB3b3JraW5nIGRpcmVjdG9yeTpzOgphdXRoZW50aWNhdGlvbiBsZXZlbDppOjIKY29ubmVjdCB0byBjb25zb2xlOmk6MApkaXNhYmxlIGN1cnNvciBzZXR0aW5nOmk6MAphbGxvdyBmb250IHNtb290aGluZzppOjEKYWxsb3cgZGVza3RvcCBjb21wb3NpdGlvbjppOjEKcmVkaXJlY3RwcmludGVyczppOjAKcHJvbXB0IGZvciBjcmVkZW50aWFscyBvbiBjbGllbnQ6aTowCmF1dG9yZWNvbm5lY3Rpb24gZW5hYmxlZDppOjEKYm9va21hcmt0eXBlOmk6Mwp1c2UgcmVkaXJlY3Rpb24gc2VydmVyIG5hbWU6aTowCnNtYXJ0IHNpemluZzppOjE=
+
