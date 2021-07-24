@@ -1,14 +1,14 @@
-# CloudRouse
+# Apps
 
 ## Install
 
-### Windows
+### Win
 
-下载win安装包，双击JMS.msi 文件（需要等待10几秒钟）。
+下载Win安装包，双击JumpServer.msi 文件（需要等待10几秒钟）。
 
 ### Mac
 
-下载mac安装包，安装Jms.dmg并将jms.app放入Applications中，双击打开jms.app完成自定义协议。
+下载Mac安装包，安装JumpServer.dmg并将JumpServer.app放入Applications中，双击打开JumpServer.app完成自定义协议。
 
 ## Uninstall
 
@@ -18,7 +18,7 @@
 
 ### Mac
 
-移除jms.app。
+移除JumpServer.app。
 
 ## 测试
 
