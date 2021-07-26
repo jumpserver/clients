@@ -1,6 +1,6 @@
 # Apps
 
-## Install
+## 安装
 
 ### Mac
 
@@ -10,7 +10,7 @@
 
 下载Win安装包，双击JumpServer.msi 文件（需要等待10几秒钟）。
 
-## Uninstall
+## 卸载
 
 ### Windows
 
@@ -24,7 +24,7 @@
 
 url link: jms://eyJwcm90b2NvbCI6ICJyZHAiLCAidXNlcm5hbWUiOiAibGFvZ3VhbmciLCAidG9rZW4iOiAieHh4IiwgImNvbmZpZyI6ICJmdWxsIGFkZHJlc3M6czp5eS5maXQyY2xvdWQuY29tOjMzMzg5XG51c2VybmFtZTpzOmZlbmdxaWFuZ3xTNEY2RUZzTVo3TjZVTVBZcFRWdzJQSFVSZ3dKVkpNcHAzZEZcbnNjcmVlbiBtb2RlIGlkOmk6MFxudXNlIG11bHRpbW9uOmk6MVxuc2Vzc2lvbiBicHA6aTozMlxuYXVkaW9tb2RlOmk6MFxuZGlzYWJsZSB3YWxscGFwZXI6aTowXG5kaXNhYmxlIGZ1bGwgd2luZG93IGRyYWc6aTowXG5kaXNhYmxlIG1lbnUgYW5pbXM6aTowXG5kaXNhYmxlIHRoZW1lczppOjBcbmFsdGVybmF0ZSBzaGVsbDpzOlxuc2hlbGwgd29ya2luZyBkaXJlY3Rvcnk6czpcbmF1dGhlbnRpY2F0aW9uIGxldmVsOmk6MlxuY29ubmVjdCB0byBjb25zb2xlOmk6MFxuZGlzYWJsZSBjdXJzb3Igc2V0dGluZzppOjBcbmFsbG93IGZvbnQgc21vb3RoaW5nOmk6MVxuYWxsb3cgZGVza3RvcCBjb21wb3NpdGlvbjppOjFcbnJlZGlyZWN0cHJpbnRlcnM6aTowXG5wcm9tcHQgZm9yIGNyZWRlbnRpYWxzIG9uIGNsaWVudDppOjBcbmF1dG9yZWNvbm5lY3Rpb24gZW5hYmxlZDppOjFcbmJvb2ttYXJrdHlwZTppOjNcbnVzZSByZWRpcmVjdGlvbiBzZXJ2ZXIgbmFtZTppOjBcbnNtYXJ0IHNpemluZzppOjEifQ==
 
-## Packaging
+## 打包
 
 ### Mac
 
@@ -78,4 +78,7 @@ url link: jms://eyJwcm90b2NvbCI6ICJyZHAiLCAidXNlcm5hbWUiOiAibGFvZ3VhbmciLCAidG9r
 - 双击build<img src="https://github.com/jumpserver/apps/blob/master/static/img/win5.png" alt="win5" style="zoom:50%;" />
 
 - Win目录下的JMS.aip 为Windows打包的配置文件（可直接用打包工具打开进行打包）
+
+## 参考
+https://github.com/liuzheng/jumpClient 
 
