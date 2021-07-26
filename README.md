@@ -26,10 +26,9 @@ url link: jms://eyJwcm90b2NvbCI6ICJyZHAiLCAidXNlcm5hbWUiOiAibGFvZ3VhbmciLCAidG9r
 
 ## 打包
 
-https://github.com/jumpserver/apps/blob/master/README_PACK.md
+- [Win Mac打包方法](https://github.com/jumpserver/apps/blob/master/README_PACK.md)
 
 ## 参考
 - [浏览器拉起app原理](https://juejin.cn/post/6844903989155217421)
 - [刘正的JumpClient](https://github.com/liuzheng/jumpClient)
-
 
