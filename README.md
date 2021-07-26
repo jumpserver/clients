@@ -61,5 +61,21 @@ url link: jms://eyJwcm90b2NvbCI6ICJyZHAiLCAidXNlcm5hbWUiOiAibGFvZ3VhbmciLCAidG9r
 
 ###  Windows
 
+- 打包JumpServer.py成exe文件（具体查找Python Pyinstaller模块用法）。
 
+  ```python
+  '''
+  pip install pyinstaller tinyaes
+  '''
+  pyinstaller -F -w --key=*** --clean CloudRouse.py
+  ```
+
+- 下载并安装Advanced Installer Windows软件安装程序制作工具。
+- 打开advanced installer软件<img src="https://github.com/jumpserver/apps/blob/master/static/img/win1.png" alt="win1" style="zoom:50%;" />
+- 选中Product Details<img src="https://github.com/jumpserver/apps/blob/master/static/img/win2.png" alt="win2" style="zoom:50%;" />
+- 选中Files and Folders-->选中Application Folder-->右击，选择Add Folder-->选中所需要打包的目录<img src="https://github.com/jumpserver/apps/blob/master/static/img/win3.png" alt="win3" style="zoom:50%;" />
+- 添加注册表等信息：选中Registry --> 选中HKEY_CLASSES_ROOT --> 右击，选择 New key --> 添加对应的key value<img src="https://github.com/jumpserver/apps/blob/master/static/img/win4.png" alt="win4" style="zoom:50%;" />
+- 双击build<img src="https://github.com/jumpserver/apps/blob/master/static/img/win5.png" alt="win5" style="zoom:50%;" />
+
+- Win目录下的JMS.aip 为Windows打包的配置文件（可直接用打包工具打开进行打包）
 
