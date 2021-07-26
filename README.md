@@ -30,7 +30,7 @@ url link: jms://eyJwcm90b2NvbCI6ICJyZHAiLCAidXNlcm5hbWUiOiAibGFvZ3VhbmciLCAidG9r
 
 - 双击打开JumpServer.scpt文件。
 
-- 点击 文件 --> 导出（导出为应用程序）![image-20210726112425650](/Users/fengqiang/Desktop/mac-app.png) 
+- 点击 文件 --> 导出（导出为应用程序）<img src="https://github.com/jumpserver/apps/blob/master/static/img/mac-app.png" alt="app" style="zoom:50%;" />
 
 - 当前目录上会生成一个JumpServer.app 应用程序。（打开JumpServer.app包 前往 Contents --> Resources 去更换applet.icns图标）。
 
@@ -52,9 +52,9 @@ url link: jms://eyJwcm90b2NvbCI6ICJyZHAiLCAidXNlcm5hbWUiOiAibGFvZ3VhbmciLCAidG9r
     </array>
   ```
 
-- 选择Mac自带的磁盘工具 选择文件 --> 新建映像 --> 空白映像 存储。<img src="/Users/fengqiang/Desktop/browser-tool/static/img/空白映像.png" alt="空白映像" style="zoom:50%;" />
+- 选择Mac自带的磁盘工具 选择文件 --> 新建映像 --> 空白映像 存储。<img src="https://github.com/jumpserver/apps/blob/master/static/img/%E7%A9%BA%E7%99%BD%E6%98%A0%E5%83%8F.png" alt="空白映像" style="zoom:50%;" />
 
-- 打开映盘文件 将app文件及Applications的快捷方式放入（可修改背景）。<img src="/Users/fengqiang/Desktop/browser-tool/static/img/打包dmg.png" alt="打包dmg" style="zoom:50%;" />
+- 打开映盘文件 将app文件及Applications的快捷方式放入（可修改背景）。<img src="https://github.com/jumpserver/apps/blob/master/static/img/%E6%89%93%E5%8C%85dmg.png" alt="打包dmg" style="zoom:50%;" />
 
 - 推出磁盘映像。
 - 最后通过磁盘工具 选择 映像 --> 转换 --> 选取文件后 --> 映像格式选压缩 --> 点击转换。（完成）
