@@ -1,4 +1,6 @@
-# Apps
+# Jumpserve Clients
+
+JumpServer 客户端，目前仅 支持 RDP 的本地拉起，下一步计划，支持拉起 ssh 
 
 ## 安装
 
