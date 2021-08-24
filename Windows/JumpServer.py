@@ -4,6 +4,7 @@ import sys
 import json
 import base64
 import platform
+import subprocess
 
 '''
 {
@@ -29,9 +30,9 @@ class Rouse(object):
         with open(file_path, 'w') as f:
             f.write(self.config)
         if platform.system().lower() == 'windows':
-            os.system('mstsc.exe {0}'.format(file_path))
+            subprocess.call('mstsc.exe {0}'.format(file_path), shell=True)
         else:
-            os.system('open {0}'.format(file_path))
+            subprocess.call('open {0}'.format(file_path), shell=True)
 
     def run(self):
         getattr(self, 'handle_' + self.protocol)()
