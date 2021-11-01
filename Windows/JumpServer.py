@@ -7,6 +7,13 @@ import base64
 import platform
 import subprocess
 
+# 兼容python 2, 3
+try:
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+except Exception:
+    pass
+
 '''
 {
     "filename": "{}-{}-jumpserver".format(username, name),
@@ -23,7 +30,7 @@ def remove_current_rdp_file():
     re_rdp_file = re.compile(r'.*\.rdp$')
     for filename in os.listdir(BASE_DIR):
         if re_rdp_file.search(filename):
-            os.remove(os.path.join(filename))
+            os.remove(os.path.join(BASE_DIR, filename))
 
 
 class Rouse(object):
