@@ -49,7 +49,7 @@ class Rouse(object):
     def get_filename(data):
         filename = data.get('filename', 'jms')
         if platform.system().lower() == 'windows':
-            filename = re.sub(r'[<>/\\|:"*?]*', '', filename)
+            filename = re.sub(r'[<>/\\|:"*? ]*', '', filename)
         return filename
 
     def handle_ssh(self):
@@ -72,6 +72,8 @@ if __name__ == '__main__':
     args = sys.argv
     if len(args) != 1:
         d = args[1].replace('jms://', '')
+        if platform.system().lower() == 'windows' and d[-1] == '/':
+            d = d[:-1]
         d = json.loads(base64.b64decode(d).decode())
         remove_current_rdp_file()
         instance = Rouse(d)
