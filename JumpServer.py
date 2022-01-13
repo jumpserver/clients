@@ -48,8 +48,7 @@ class Rouse(object):
     @staticmethod
     def get_filename(data):
         filename = data.get('filename', 'jms')
-        if platform.system().lower() == 'windows':
-            filename = re.sub(r'[<>/\\|:"*? ]*', '', filename)
+        filename = re.sub(r'[<>/\\|:"*? ]*', '', filename)
         return filename
 
     def handle_ssh(self):
