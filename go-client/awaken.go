@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
 )
 
 var cmd *exec.Cmd
@@ -46,6 +47,7 @@ type Info struct {
 	Protocol string `json:"protocol"`
 	UserName string `json:"username"`
 	Token    string `json:"token"`
+	Command  string `json:"command"`
 	Config   string `json:"config"`
 }
 
@@ -94,11 +96,37 @@ func (r *Rouse) HandleSSH() {
 			fmt.Sprintf(`tell application "Terminal" to do script "%s"`, sshCmd),
 		)
 	}
-	if err := cmd.Run(); err != nil {
-		fmt.Println("Error: ", err)
-	}
+	cmd.Run()
 }
 
+func (r *Rouse) HandleMysql() {
+	if _, err := exec.LookPath("mysql"); err != nil {
+		NotFound := exec.ErrNotFound.Error()
+		ErrSlice := strings.Split(err.Error(), ":")
+		if strings.TrimSpace(ErrSlice[len(ErrSlice) -1]) == NotFound {
+			if r.SysType == "windows" {
+				fmt.Println("err ---windows---")
+			} else {
+				exec.Command(
+					"osascript",
+					"-s", "h", "-e",
+					fmt.Sprintf(`tell application "Terminal" to do script "echo mysql %s"`, NotFound),
+				).Run()
+			}
+			return
+		}
+	}
+	if r.SysType == "windows" {
+		fmt.Println("---windows---")
+	} else {
+		cmd = exec.Command(
+			"osascript",
+			"-s", "h", "-e",
+			fmt.Sprintf(`tell application "Terminal" to do script "%s"`, r.Command),
+		)
+	}
+	cmd.Run()
+}
 func (r *Rouse) Run() {
 	protocol := r.Info.Protocol
 	switch protocol {
@@ -106,6 +134,8 @@ func (r *Rouse) Run() {
 		r.HandleRDP()
 	case "ssh":
 		r.HandleSSH()
+	case "mysql":
+		r.HandleMysql()
 	default:
 		r.HandleRDP()
 	}
