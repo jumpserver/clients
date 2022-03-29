@@ -68,7 +68,7 @@ func (r *Rouse) HandleRDP() {
 		cmd = exec.Command("open", filePath)
 	}
 
-	if _, err = cmd.Output(); err != nil {
+	if err = cmd.Run(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
@@ -78,15 +78,23 @@ func (r *Rouse) HandleSSH() {
 	t := &Token{}
 	json.Unmarshal([]byte(r.Token), t)
 	filePath := filepath.Join(filepath.Dir(os.Args[0]), "client")
-	sshCmd := fmt.Sprintf(
-		"%s ssh %s@%s -p %s -P %s", filePath, t.UserName, t.Ip, t.Port, t.Password,
-	)
-	c := exec.Command(
-		"osascript",
-		"-s", "h", "-e",
-		fmt.Sprintf(`tell application "Terminal" to do script "%s"`, sshCmd),
-	)
-	if err := c.Run(); err != nil {
+	if r.SysType == "windows" {
+		cmd = exec.Command(
+			// TODO putty.exe 路径还没想好怎么获取
+			"putty.exe", "-ssh",
+			fmt.Sprintf("%s@%s", t.UserName, t.Ip), "-P", t.Port, "-pw", t.Password,
+		)
+	} else {
+		sshCmd := fmt.Sprintf(
+			"%s ssh %s@%s -p %s -P %s", filePath, t.UserName, t.Ip, t.Port, t.Password,
+		)
+		cmd = exec.Command(
+			"osascript",
+			"-s", "h", "-e",
+			fmt.Sprintf(`tell application "Terminal" to do script "%s"`, sshCmd),
+		)
+	}
+	if err := cmd.Run(); err != nil {
 		fmt.Println("Error: ", err)
 	}
 }
