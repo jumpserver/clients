@@ -91,8 +91,7 @@ func (r *Rouse) HandleSSH() {
 			"%s ssh %s@%s -p %s -P %s", filePath, t.UserName, t.Ip, t.Port, t.Password,
 		)
 		cmd = exec.Command(
-			"osascript",
-			"-s", "h", "-e",
+			"osascript", "-s", "h", "-e",
 			fmt.Sprintf(`tell application "Terminal" to do script "%s"`, sshCmd),
 		)
 	}
@@ -103,25 +102,27 @@ func (r *Rouse) HandleMysql() {
 	if _, err := exec.LookPath("mysql"); err != nil {
 		NotFound := exec.ErrNotFound.Error()
 		ErrSlice := strings.Split(err.Error(), ":")
-		if strings.TrimSpace(ErrSlice[len(ErrSlice) -1]) == NotFound {
+		if strings.TrimSpace(ErrSlice[len(ErrSlice)-1]) == NotFound {
 			if r.SysType == "windows" {
-				fmt.Println("err ---windows---")
+				cmd = exec.Command(
+					"cmd", "/c",
+					fmt.Sprintf("start cmd /k echo mysql %s", NotFound),
+				)
 			} else {
-				exec.Command(
-					"osascript",
-					"-s", "h", "-e",
+				cmd = exec.Command(
+					"osascript", "-s", "h", "-e",
 					fmt.Sprintf(`tell application "Terminal" to do script "echo mysql %s"`, NotFound),
-				).Run()
+				)
 			}
+			cmd.Run()
 			return
 		}
 	}
 	if r.SysType == "windows" {
-		fmt.Println("---windows---")
+		cmd = exec.Command("cmd", "/c", "start cmd /k "+r.Command)
 	} else {
 		cmd = exec.Command(
-			"osascript",
-			"-s", "h", "-e",
+			"osascript", "-s", "h", "-e",
 			fmt.Sprintf(`tell application "Terminal" to do script "%s"`, r.Command),
 		)
 	}
