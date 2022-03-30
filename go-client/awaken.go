@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"strings"
 )
 
 var cmd *exec.Cmd
@@ -99,25 +98,26 @@ func (r *Rouse) HandleSSH() {
 }
 
 func (r *Rouse) HandleMysql() {
-	if _, err := exec.LookPath("mysql"); err != nil {
-		NotFound := exec.ErrNotFound.Error()
-		ErrSlice := strings.Split(err.Error(), ":")
-		if strings.TrimSpace(ErrSlice[len(ErrSlice)-1]) == NotFound {
-			if r.SysType == "windows" {
-				cmd = exec.Command(
-					"cmd", "/c",
-					fmt.Sprintf("start cmd /k echo mysql %s", NotFound),
-				)
-			} else {
-				cmd = exec.Command(
-					"osascript", "-s", "h", "-e",
-					fmt.Sprintf(`tell application "Terminal" to do script "echo mysql %s"`, NotFound),
-				)
-			}
-			cmd.Run()
-			return
-		}
-	}
+	// TODO 判断不准确 待优化
+	//if _, err := exec.LookPath("mysql"); err != nil {
+	//	NotFound := exec.ErrNotFound.Error()
+	//	ErrSlice := strings.Split(err.Error(), ":")
+	//	if strings.TrimSpace(ErrSlice[len(ErrSlice)-1]) == NotFound {
+	//		if r.SysType == "windows" {
+	//			cmd = exec.Command(
+	//				"cmd", "/c",
+	//				fmt.Sprintf("start cmd /k echo mysql %s", NotFound),
+	//			)
+	//		} else {
+	//			cmd = exec.Command(
+	//				"osascript", "-s", "h", "-e",
+	//				fmt.Sprintf(`tell application "Terminal" to do script "echo mysql %s"`, NotFound),
+	//			)
+	//		}
+	//		cmd.Run()
+	//		return
+	//	}
+	//}
 	if r.SysType == "windows" {
 		cmd = exec.Command("cmd", "/c", "start cmd /k "+r.Command)
 	} else {
