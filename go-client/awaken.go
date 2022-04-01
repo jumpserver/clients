@@ -97,7 +97,7 @@ func (r *Rouse) HandleSSH() {
 	cmd.Run()
 }
 
-func (r *Rouse) HandleMysql() {
+func (r *Rouse) HandleDB() {
 	// TODO 判断不准确 待优化
 	//if _, err := exec.LookPath("mysql"); err != nil {
 	//	NotFound := exec.ErrNotFound.Error()
@@ -135,10 +135,9 @@ func (r *Rouse) Run() {
 		r.HandleRDP()
 	case "ssh":
 		r.HandleSSH()
-	case "mysql":
-		r.HandleMysql()
 	default:
-		r.HandleRDP()
+		// 找不到默认走DB
+		r.HandleDB()
 	}
 }
 
