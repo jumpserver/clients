@@ -81,7 +81,6 @@ func (r *Rouse) HandleSSH() {
 	filePath := filepath.Join(filepath.Dir(os.Args[0]), "client")
 	if r.SysType == "windows" {
 		cmd = exec.Command(
-			// TODO putty.exe 路径还没想好怎么获取
 			"putty.exe", "-ssh",
 			fmt.Sprintf("%s@%s", t.UserName, t.Ip), "-P", t.Port, "-pw", t.Password,
 		)
