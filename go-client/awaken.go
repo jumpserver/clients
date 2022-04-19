@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
 )
 
 var cmd *exec.Cmd
@@ -33,6 +34,30 @@ func RemoveCurRdpFile() {
 		}
 	}
 }
+func StructureMacCommand(command string) string {
+	command = strings.Trim(strings.ReplaceAll(command, "psql ", ""), `"`)
+	psql := &PostgresqlInfo{}
+	for _, v := range strings.Split(command, " ") {
+		tp, val := strings.Split(v, "=")[0], strings.Split(v, "=")[1]
+		switch tp {
+		case "user":
+			psql.User = val
+		case "password":
+			psql.Password = val
+		case "host":
+			psql.Host = val
+		case "port":
+			psql.Port = val
+		case "dbname":
+			psql.DBName = val
+		}
+	}
+	macCommand := fmt.Sprintf(
+		"PGPASSWORD=%s psql -U %s -h %s -p %s -d %s",
+		psql.Password, psql.User, psql.Host, psql.Port, psql.DBName,
+	)
+	return macCommand
+}
 
 type Token struct {
 	Ip       string `json:"ip"`
@@ -48,6 +73,14 @@ type Info struct {
 	Token    string `json:"token"`
 	Command  string `json:"command"`
 	Config   string `json:"config"`
+}
+
+type PostgresqlInfo struct {
+	User     string `json:"user"`
+	Password string `json:"password"`
+	Host     string `json:"host"`
+	Port     string `json:"port"`
+	DBName   string `json:"dbname"`
 }
 
 type Rouse struct {
@@ -118,11 +151,16 @@ func (r *Rouse) HandleDB() {
 	//	}
 	//}
 	if r.SysType == "windows" {
-		cmd = exec.Command("cmd", "/c", "start cmd /k "+r.Command)
+		cmd = exec.Command("cmd")
+		//cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CmdLine: `/c start cmd /k ` + r.Command}
 	} else {
+		command := r.Command
+		if r.Protocol == "postgresql" {
+			command = StructureMacCommand(command)
+		}
 		cmd = exec.Command(
 			"osascript", "-s", "h", "-e",
-			fmt.Sprintf(`tell application "Terminal" to do script "%s"`, r.Command),
+			fmt.Sprintf(`tell application "Terminal" to do script "%s"`, command),
 		)
 	}
 	cmd.Run()
