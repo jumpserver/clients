@@ -111,13 +111,18 @@ func (r *Rouse) HandleRDP() {
 func (r *Rouse) HandleSSH() {
 	t := &Token{}
 	json.Unmarshal([]byte(r.Token), t)
-	filePath := filepath.Join(filepath.Dir(os.Args[0]), "client")
+
 	if r.SysType == "windows" {
+		puttyPath := "putty.exe"
+		if _, err := exec.LookPath("putty.exe"); err != nil {
+			puttyPath = filepath.Join(filepath.Dir(os.Args[0]), "putty.exe")
+		}
 		cmd = exec.Command(
-			"putty.exe", "-ssh",
+			puttyPath, "-ssh",
 			fmt.Sprintf("%s@%s", t.UserName, t.Ip), "-P", t.Port, "-pw", t.Password,
 		)
 	} else {
+		filePath := filepath.Join(filepath.Dir(os.Args[0]), "client")
 		sshCmd := fmt.Sprintf(
 			"%s ssh %s@%s -p %s -P %s", filePath, t.UserName, t.Ip, t.Port, t.Password,
 		)
@@ -130,26 +135,6 @@ func (r *Rouse) HandleSSH() {
 }
 
 func (r *Rouse) HandleDB() {
-	// TODO 判断不准确 待优化
-	//if _, err := exec.LookPath("mysql"); err != nil {
-	//	NotFound := exec.ErrNotFound.Error()
-	//	ErrSlice := strings.Split(err.Error(), ":")
-	//	if strings.TrimSpace(ErrSlice[len(ErrSlice)-1]) == NotFound {
-	//		if r.SysType == "windows" {
-	//			cmd = exec.Command(
-	//				"cmd", "/c",
-	//				fmt.Sprintf("start cmd /k echo mysql %s", NotFound),
-	//			)
-	//		} else {
-	//			cmd = exec.Command(
-	//				"osascript", "-s", "h", "-e",
-	//				fmt.Sprintf(`tell application "Terminal" to do script "echo mysql %s"`, NotFound),
-	//			)
-	//		}
-	//		cmd.Run()
-	//		return
-	//	}
-	//}
 	if r.SysType == "windows" {
 		cmd = exec.Command("cmd")
 		//cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CmdLine: `/c start cmd /k ` + r.Command}
