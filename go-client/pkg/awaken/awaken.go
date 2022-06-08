@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 /*{
@@ -33,7 +34,7 @@ type Info struct {
 	Config   string `json:"config"`
 }
 
-type PostgresqlInfo struct {
+type DBCommand struct {
 	User     string `json:"user"`
 	Password string `json:"password"`
 	Host     string `json:"host"`
@@ -78,8 +79,64 @@ func (r *Rouse) HandleSSH() {
 	cmd.Run()
 }
 
+func StructureMySQLCommand(command string) string {
+	command = strings.ReplaceAll(command, "mysql ", "")
+	db := &DBCommand{}
+	paramSlice := strings.Split(command, " ")
+	for i, v := range paramSlice {
+		if strings.HasPrefix(v, "-p") {
+			db.Password = paramSlice[i][2:]
+			continue
+		}
+		switch v {
+		case "-u":
+			db.User = paramSlice[i+1]
+		case "-h":
+			db.Host = paramSlice[i+1]
+		case "-P":
+			db.Port = paramSlice[i+1]
+		}
+	}
+	db.DBName = paramSlice[len(paramSlice)-1]
+	command = fmt.Sprintf(
+		"mysql -u %s -p%s -h %s -P %s %s",
+		db.User, db.Password, db.Host, db.Port, db.DBName,
+	)
+	return command
+}
+
+func StructureRedisCommand(command string) string {
+	command = strings.ReplaceAll(command, "redis-cli ", "")
+	db := &DBCommand{}
+	paramSlice := strings.Split(command, " ")
+	for i, v := range paramSlice {
+		switch v {
+		case "-a":
+			db.Password = paramSlice[i+1]
+		case "-h":
+			db.Host = paramSlice[i+1]
+		case "-p":
+			db.Port = paramSlice[i+1]
+		}
+	}
+	cmd := fmt.Sprintf(
+		"redis-cli -h %s -p %s -a %s",
+		db.Host, db.Port, db.Password,
+	)
+	return cmd
+}
+
 func (r *Rouse) HandleDB() {
-	cmd := handleDB(r.Protocol, r.Command)
+	command := r.Command
+	switch r.Protocol {
+	case "mysql", "mariadb":
+		command = StructureMySQLCommand(command)
+	case "postgresql":
+		command = StructurePostgreSQLCommand(command)
+	case "redis":
+		command = StructureRedisCommand(command)
+	}
+	cmd := handleDB(command)
 	cmd.Run()
 }
 func (r *Rouse) Run() {
@@ -89,8 +146,7 @@ func (r *Rouse) Run() {
 		r.HandleRDP()
 	case "ssh":
 		r.HandleSSH()
-	default:
-		// 找不到默认走DB
+	case "mysql", "mariadb", "postgresql", "redis", "oracle", "sqlserver":
 		r.HandleDB()
 	}
 }

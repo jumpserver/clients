@@ -24,35 +24,32 @@ func handleSSH(t *Token, currentPath string) *exec.Cmd {
 	return cmd
 }
 
-func structurePostgreSQLCommand(command string) string {
+func StructurePostgreSQLCommand(command string) string {
 	command = strings.Trim(strings.ReplaceAll(command, "psql ", ""), `"`)
-	psql := &PostgresqlInfo{}
+	db := &DBCommand{}
 	for _, v := range strings.Split(command, " ") {
 		tp, val := strings.Split(v, "=")[0], strings.Split(v, "=")[1]
 		switch tp {
 		case "user":
-			psql.User = val
+			db.User = val
 		case "password":
-			psql.Password = val
+			db.Password = val
 		case "host":
-			psql.Host = val
+			db.Host = val
 		case "port":
-			psql.Port = val
+			db.Port = val
 		case "dbname":
-			psql.DBName = val
+			db.DBName = val
 		}
 	}
-	macCommand := fmt.Sprintf(
+	command = fmt.Sprintf(
 		"PGPASSWORD=%s psql -U %s -h %s -p %s -d %s",
-		psql.Password, psql.User, psql.Host, psql.Port, psql.DBName,
+		db.Password, db.User, db.Host, db.Port, db.DBName,
 	)
-	return macCommand
+	return command
 }
 
-func handleDB(protocol, command string) *exec.Cmd {
-	if protocol == "postgresql" {
-		command = structurePostgreSQLCommand(command)
-	}
+func handleDB(command string) *exec.Cmd {
 	cmd := awakenCommand(command)
 	return cmd
 }
