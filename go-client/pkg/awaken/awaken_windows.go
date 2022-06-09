@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
-	"syscall"
 	"strings"
+	"syscall"
 )
 
 func handleRDP(filePath string) *exec.Cmd {
@@ -25,7 +25,7 @@ func handleSSH(t *Token, currentPath string) *exec.Cmd {
 	return cmd
 }
 
-func StructurePostgreSQLCommand(command string) string {
+func structurePostgreSQLCommand(command string) string {
 	command = strings.Trim(strings.ReplaceAll(command, "psql ", ""), `"`)
 	db := &DBCommand{}
 	for _, v := range strings.Split(command, " ") {

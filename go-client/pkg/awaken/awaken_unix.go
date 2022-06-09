@@ -11,7 +11,7 @@ import (
 )
 
 func handleRDP(filePath string) *exec.Cmd {
-	cmd := exec.Command("open", filePath)
+	cmd := awakenRDPCommand(filePath)
 	return cmd
 }
 
@@ -24,7 +24,7 @@ func handleSSH(t *Token, currentPath string) *exec.Cmd {
 	return cmd
 }
 
-func StructurePostgreSQLCommand(command string) string {
+func structurePostgreSQLCommand(command string) string {
 	command = strings.Trim(strings.ReplaceAll(command, "psql ", ""), `"`)
 	db := &DBCommand{}
 	for _, v := range strings.Split(command, " ") {

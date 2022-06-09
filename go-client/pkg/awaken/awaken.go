@@ -79,7 +79,7 @@ func (r *Rouse) HandleSSH() {
 	cmd.Run()
 }
 
-func StructureMySQLCommand(command string) string {
+func structureMySQLCommand(command string) string {
 	command = strings.ReplaceAll(command, "mysql ", "")
 	db := &DBCommand{}
 	paramSlice := strings.Split(command, " ")
@@ -105,7 +105,7 @@ func StructureMySQLCommand(command string) string {
 	return command
 }
 
-func StructureRedisCommand(command string) string {
+func structureRedisCommand(command string) string {
 	command = strings.ReplaceAll(command, "redis-cli ", "")
 	db := &DBCommand{}
 	paramSlice := strings.Split(command, " ")
@@ -130,11 +130,11 @@ func (r *Rouse) HandleDB() {
 	command := r.Command
 	switch r.Protocol {
 	case "mysql", "mariadb":
-		command = StructureMySQLCommand(command)
+		command = structureMySQLCommand(command)
 	case "postgresql":
-		command = StructurePostgreSQLCommand(command)
+		command = structurePostgreSQLCommand(command)
 	case "redis":
-		command = StructureRedisCommand(command)
+		command = structureRedisCommand(command)
 	}
 	cmd := handleDB(command)
 	cmd.Run()
