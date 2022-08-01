@@ -3,7 +3,10 @@ package main
 import (
 	"encoding/base64"
 	"encoding/json"
+	"go-client/global"
 	"go-client/pkg/awaken"
+	"go-client/pkg/logger"
+	"go.uber.org/zap"
 	"net/url"
 	"os"
 	"runtime"
@@ -12,6 +15,8 @@ import (
 func main() {
 	p := &awaken.Info{}
 	if len(os.Args) != 1 {
+		global.LOG = logger.InitLogger()
+		zap.ReplaceGlobals(global.LOG)
 		u, _ := url.Parse(os.Args[1])
 		base64String := u.Hostname()
 		decoded, _ := base64.StdEncoding.DecodeString(base64String)
