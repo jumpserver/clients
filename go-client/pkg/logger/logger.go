@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -46,7 +45,6 @@ func getEncoder() zapcore.Encoder {
 
 func getLogWriter() zapcore.WriteSyncer {
 	filePath := filepath.Join(filepath.Dir(os.Args[0]), "client.log")
-	fmt.Println("filePath:", filePath)
 	file, _ := os.Create(filePath)
 	//ws := io.MultiWriter(file, os.Stdout)
 	return zapcore.AddSync(file)
