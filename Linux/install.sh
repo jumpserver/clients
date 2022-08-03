@@ -1,5 +1,5 @@
 #!/bin/bash
-# apt install remmina gnome-terminal -y
+# apt install remmina gnome-terminal deepin-terminal -y
 
 NAME='JumpServerClient'
 INSTALLDIR=$HOME/$NAME
@@ -17,14 +17,16 @@ chmod 777 $INSTALLDIR/
 chmod 777 $INSTALLDIR/JumpServerClient
 chmod 777 $INSTALLDIR/client
 
+mkdir -p $HOME/.local/share/applications/
+
 echo "[Desktop Entry]
 Name=jms
 Exec=$INSTALLDIR/JumpServerClient %u
 Type=Application
 Terminal=false
-MimeType=x-scheme-handler/jms;" > ~/.local/share/applications/jms.desktop
-echo x-scheme-handler/jms=jms.desktop >> ~/.local/share/applications/mimeapps.list
-update-desktop-database ~/.local/share/applications
+MimeType=x-scheme-handler/jms;" > $HOME/.local/share/applications/jms.desktop
+echo x-scheme-handler/jms=jms.desktop >> $HOME/.local/share/applications/mimeapps.list
+update-desktop-database $HOME/.local/share/applications
 
 rm $NAME.tar.gz
 

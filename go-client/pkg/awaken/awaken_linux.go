@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go-client/global"
 	"os/exec"
+	"strings"
 )
 
 func awakenRDPCommand(filePath string) *exec.Cmd {
@@ -13,9 +14,20 @@ func awakenRDPCommand(filePath string) *exec.Cmd {
 }
 
 func awakenCommand(command string) *exec.Cmd {
-	cmd := exec.Command(
-		"gnome-terminal", "--", "bash", "-c",
-		fmt.Sprintf("%s; exec bash -i", command),
-	)
+	cmd := new(exec.Cmd)
+	out, _ := exec.Command("bash", "-c", "echo $XDG_CURRENT_DESKTOP").CombinedOutput()
+	currentDesktop := strings.ToLower(strings.Trim(string(out), " "))
+
+	switch currentDesktop {
+	case "gnome":
+		cmd = exec.Command(
+			"gnome-terminal", "--", "bash", "-c",
+			fmt.Sprintf("%s; exec bash -i", command),
+		)
+	case "deepin":
+		cmd = exec.Command("deepin-terminal", "-C", command)
+	default:
+		global.LOG.Debug(fmt.Sprintf("Not yet supported %s desktop system", currentDesktop))
+	}
 	return cmd
 }
