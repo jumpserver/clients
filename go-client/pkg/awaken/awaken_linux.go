@@ -16,7 +16,7 @@ func awakenRDPCommand(filePath string) *exec.Cmd {
 func awakenCommand(command string) *exec.Cmd {
 	cmd := new(exec.Cmd)
 	out, _ := exec.Command("bash", "-c", "echo $XDG_CURRENT_DESKTOP").CombinedOutput()
-	currentDesktop := strings.ToLower(strings.Trim(string(out), " "))
+	currentDesktop := strings.ToLower(strings.Trim(string(out), "\n"))
 
 	switch currentDesktop {
 	case "gnome":
@@ -27,7 +27,8 @@ func awakenCommand(command string) *exec.Cmd {
 	case "deepin":
 		cmd = exec.Command("deepin-terminal", "-C", command)
 	default:
-		global.LOG.Debug(fmt.Sprintf("Not yet supported %s desktop system", currentDesktop))
+		msg := fmt.Sprintf("Not yet supported %s desktop system", currentDesktop)
+		global.LOG.Info(msg)
 	}
 	return cmd
 }
