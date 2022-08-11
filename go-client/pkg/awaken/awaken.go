@@ -3,6 +3,7 @@ package awaken
 import (
 	"encoding/json"
 	"fmt"
+	"go-client/global"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -63,10 +64,9 @@ func (r *Rouse) HandleRDP() {
 	filePath := filepath.Join(filepath.Dir(os.Args[0]), r.Info.FileName+".rdp")
 	err := ioutil.WriteFile(filePath, []byte(r.Info.Config), os.ModePerm)
 	if err != nil {
-		fmt.Println("write file failed, err:", err)
+		global.LOG.Error(err.Error())
 		return
 	}
-
 	cmd := handleRDP(filePath)
 	cmd.Run()
 }
