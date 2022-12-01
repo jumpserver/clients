@@ -15,11 +15,9 @@ func handleRDP(filePath string) *exec.Cmd {
 	return cmd
 }
 
-func handleSSH(t *Token, currentPath string) *exec.Cmd {
+func handleSSH(c string, secret string, currentPath string) *exec.Cmd {
 	clientPath := filepath.Join(currentPath, "client")
-	command := fmt.Sprintf(
-		"%s ssh %s@%s -p %s -P %s", clientPath, t.UserName, t.Ip, t.Port, t.Password,
-	)
+	command := fmt.Sprintf("%s %s -P %s", clientPath, c, secret)
 	cmd := awakenCommand(command)
 	return cmd
 }

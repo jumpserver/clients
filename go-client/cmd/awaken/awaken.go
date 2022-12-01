@@ -9,7 +9,6 @@ import (
 	"go.uber.org/zap"
 	"net/url"
 	"os"
-	"runtime"
 )
 
 func main() {
@@ -23,7 +22,7 @@ func main() {
 		infoJson := string(decoded)
 		json.Unmarshal([]byte(infoJson), p)
 		r := awaken.Rouse{
-			SysType: runtime.GOOS,
+			//SysType: runtime.GOOS,
 			Info:    *p,
 		}
 		r.Run()
