@@ -1,7 +1,6 @@
 package awaken
 
 import (
-	"encoding/json"
 	"fmt"
 	"go-client/global"
 	"io/ioutil"
@@ -12,27 +11,27 @@ import (
 )
 
 /*{
-	"filename": "{}-{}-jumpserver".format(username, name),
+	"id": "f",
+	"value": "q",
 	"protocol": "ssh",
-	"username": "laoguang",
-	"token": "xxx",
-	"config": "full address:s:rdjumpserver.fit2cloud.com:33390"
+	"command": "xxx"
+	"file": {
+		"name": "name",
+		"content": "content",
+	}
 }*/
 
-type Token struct {
-	Ip       string `json:"ip"`
-	Port     string `json:"port"`
-	UserName string `json:"username"`
-	Password string `json:"password"`
+type File struct {
+	Name    string `json:"name"`
+	Content string `json:"content"`
 }
 
 type Info struct {
-	FileName string `json:"filename"`
+	ID       string `json:"id"`
+	Value    string `json:"value"`
 	Protocol string `json:"protocol"`
-	UserName string `json:"username"`
-	Token    string `json:"token"`
 	Command  string `json:"command"`
-	Config   string `json:"config"`
+	File     `json:"file"`
 }
 
 type DBCommand struct {
@@ -44,7 +43,6 @@ type DBCommand struct {
 }
 
 type Rouse struct {
-	SysType string
 	Info
 }
 
@@ -61,8 +59,8 @@ func removeCurRdpFile() {
 
 func (r *Rouse) HandleRDP() {
 	removeCurRdpFile()
-	filePath := filepath.Join(filepath.Dir(os.Args[0]), r.Info.FileName+".rdp")
-	err := ioutil.WriteFile(filePath, []byte(r.Info.Config), os.ModePerm)
+	filePath := filepath.Join(filepath.Dir(os.Args[0]), r.Name+".rdp")
+	err := ioutil.WriteFile(filePath, []byte(r.Content), os.ModePerm)
 	if err != nil {
 		global.LOG.Error(err.Error())
 		return
@@ -72,10 +70,8 @@ func (r *Rouse) HandleRDP() {
 }
 
 func (r *Rouse) HandleSSH() {
-	t := &Token{}
-	json.Unmarshal([]byte(r.Token), t)
 	currentPath := filepath.Dir(os.Args[0])
-	cmd := handleSSH(t, currentPath)
+	cmd := handleSSH(r.Command, r.Value, currentPath)
 	cmd.Run()
 }
 
@@ -140,7 +136,7 @@ func (r *Rouse) HandleDB() {
 	cmd.Run()
 }
 func (r *Rouse) Run() {
-	protocol := r.Info.Protocol
+	protocol := r.Protocol
 	switch protocol {
 	case "rdp":
 		r.HandleRDP()

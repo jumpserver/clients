@@ -2,6 +2,7 @@ package awaken
 
 import (
 	"fmt"
+	"go-client/global"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -13,16 +14,29 @@ func handleRDP(filePath string) *exec.Cmd {
 	return cmd
 }
 
-func handleSSH(t *Token, currentPath string) *exec.Cmd {
+func handleSSH(c string, secret string, currentPath string) *exec.Cmd {
+	command := ""
+	if strings.HasPrefix(c, "putty.exe") {
+		command = puttySSH(c, secret, currentPath)
+	} else if strings.HasPrefix(c, "xshell.exe") {
+		command = xshellSSH(c)
+	} else {
+		global.LOG.Error("Type not supported")
+	}
+	return exec.Command(command)
+}
+
+func puttySSH(c string, secret string, currentPath string) string {
+	c = strings.TrimPrefix(c, "putty.exe ")
 	puttyPath := "putty.exe"
 	if _, err := exec.LookPath("putty.exe"); err != nil {
 		puttyPath = filepath.Join(currentPath, "putty.exe")
 	}
-	cmd := exec.Command(
-		puttyPath, "-ssh",
-		fmt.Sprintf("%s@%s", t.UserName, t.Ip), "-P", t.Port, "-pw", t.Password,
-	)
-	return cmd
+	return fmt.Sprintf("%s %s -pw %s", puttyPath, c, secret)
+}
+
+func xshellSSH(c string) string {
+	return c
 }
 
 func structurePostgreSQLCommand(command string) string {
