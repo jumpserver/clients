@@ -2,7 +2,6 @@ package awaken
 
 import (
 	"fmt"
-	"go-client/global"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -15,28 +14,14 @@ func handleRDP(filePath string) *exec.Cmd {
 }
 
 func handleSSH(c string, secret string, currentPath string) *exec.Cmd {
-	command := ""
-	if strings.HasPrefix(c, "putty.exe") {
-		command = puttySSH(c, secret, currentPath)
-	} else if strings.HasPrefix(c, "xshell.exe") {
-		command = xshellSSH(c)
-	} else {
-		global.LOG.Error("Type not supported")
-	}
-	return exec.Command(command)
-}
-
-func puttySSH(c string, secret string, currentPath string) string {
-	c = strings.TrimPrefix(c, "putty.exe ")
 	puttyPath := "putty.exe"
 	if _, err := exec.LookPath("putty.exe"); err != nil {
 		puttyPath = filepath.Join(currentPath, "putty.exe")
 	}
-	return fmt.Sprintf("%s %s -pw %s", puttyPath, c, secret)
-}
-
-func xshellSSH(c string) string {
-	return c
+	c = strings.Replace(c, " -p ", " -P ", 1)
+	c = fmt.Sprintf("-%s -pw %s", c, secret)
+	command := strings.Split(c, " ")
+	return exec.Command(puttyPath, command...)
 }
 
 func structurePostgreSQLCommand(command string) string {
@@ -63,6 +48,7 @@ func structurePostgreSQLCommand(command string) string {
 	)
 	return command
 }
+
 func handleDB(command string) *exec.Cmd {
 	cmd := exec.Command("cmd")
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CmdLine: `/c start cmd /k ` + command}
