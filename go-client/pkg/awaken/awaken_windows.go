@@ -18,6 +18,12 @@ func handleSSH(c string, secret string, currentPath string) *exec.Cmd {
 	if _, err := exec.LookPath("putty.exe"); err != nil {
 		puttyPath = filepath.Join(currentPath, "putty.exe")
 	}
+
+	//TODO core api 有时判断系统会判断错 导致返回无putty
+	if strings.HasPrefix(c, "putty.exe") {
+		c = strings.Replace(c, "putty.exe -", "", 1)
+	}
+
 	c = strings.Replace(c, " -p ", " -P ", 1)
 	c = fmt.Sprintf("-%s -pw %s", c, secret)
 	command := strings.Split(c, " ")
