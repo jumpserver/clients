@@ -1,3 +1,4 @@
 .DS_Store
 .idea/
 /go-client/test.go
+/go-client/build
