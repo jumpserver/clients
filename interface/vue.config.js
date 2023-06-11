@@ -12,7 +12,6 @@ module.exports = {
         .set('@', resolve('src/renderer'))
         .set('~', resolve('src'))
         .set('root', resolve('./'))
-        .set('#', resolve('src/universal'))
   },
   pluginOptions: {
     electronBuilder: {
@@ -67,6 +66,15 @@ module.exports = {
         snap: {
           publish: ['github']
         }
+      },
+      chainWebpackMainProcess: (config) => {
+        config.output.filename((file) => {
+          if (file.chunk.name === 'index') {
+            return 'background.js';
+          } else {
+            return '[name].js';
+          }
+        });
       }
     }
   }
