@@ -16,8 +16,10 @@ module.exports = {
   pluginOptions: {
     electronBuilder: {
       removeElectronJunk: false,
+      nodeIntegration:true,
       builderOptions: {
         productName: 'JumpServer Clients',
+        appId: 'com.jumpserver.client',
         dmg: {
           contents: [
             {

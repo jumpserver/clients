@@ -1,135 +1,186 @@
 <template>
-  <el-container class="layout-container-demo" style="height: 500px">
-    <el-aside width="200px">
-      <el-scrollbar>
-        <el-menu :default-openeds="['1', '3']">
-          <el-sub-menu index="1">
-            <template #title>
-              <el-icon><message /></el-icon>Navigator One
-            </template>
-            <el-menu-item-group>
-              <template #title>Group 1</template>
-              <el-menu-item index="1-1">Option 1</el-menu-item>
-              <el-menu-item index="1-2">Option 2</el-menu-item>
-            </el-menu-item-group>
-            <el-menu-item-group title="Group 2">
-              <el-menu-item index="1-3">Option 3</el-menu-item>
-            </el-menu-item-group>
-            <el-sub-menu index="1-4">
-              <template #title>Option4</template>
-              <el-menu-item index="1-4-1">Option 4-1</el-menu-item>
-            </el-sub-menu>
-          </el-sub-menu>
-          <el-sub-menu index="2">
-            <template #title>
-              <el-icon><icon-menu /></el-icon>Navigator Two
-            </template>
-            <el-menu-item-group>
-              <template #title>Group 1</template>
-              <el-menu-item index="2-1">Option 1</el-menu-item>
-              <el-menu-item index="2-2">Option 2</el-menu-item>
-            </el-menu-item-group>
-            <el-menu-item-group title="Group 2">
-              <el-menu-item index="2-3">Option 3</el-menu-item>
-            </el-menu-item-group>
-            <el-sub-menu index="2-4">
-              <template #title>Option 4</template>
-              <el-menu-item index="2-4-1">Option 4-1</el-menu-item>
-            </el-sub-menu>
-          </el-sub-menu>
-          <el-sub-menu index="3">
-            <template #title>
-              <el-icon><setting /></el-icon>Navigator Three
-            </template>
-            <el-menu-item-group>
-              <template #title>Group 1</template>
-              <el-menu-item index="3-1">Option 1</el-menu-item>
-              <el-menu-item index="3-2">Option 2</el-menu-item>
-            </el-menu-item-group>
-            <el-menu-item-group title="Group 2">
-              <el-menu-item index="3-3">Option 3</el-menu-item>
-            </el-menu-item-group>
-            <el-sub-menu index="3-4">
-              <template #title>Option 4</template>
-              <el-menu-item index="3-4-1">Option 4-1</el-menu-item>
-            </el-sub-menu>
-          </el-sub-menu>
+  <div id="main-page">
+    <div
+      class="fake-title-bar"
+      :class="{ 'darwin': os === 'darwin' }"
+    >
+      <div class="fake-title-bar__title">
+        本地客户端配置工具
+      </div>
+    </div>
+    <el-row class="main-content">
+      <el-col :span="5" class="side-bar-menu">
+        <el-menu
+          :default-active="defaultActive"
+          @select="handleSelect"
+        >
+          <el-menu-item index="sshPage">
+            <el-icon>
+              <i class="fa fa-terminal" aria-hidden="true"></i>
+            </el-icon>
+            <span>远程终端</span>
+          </el-menu-item>
+          <el-menu-item index="remotePage">
+            <el-icon>
+              <i class="fa fa-desktop" aria-hidden="true"></i>
+            </el-icon>
+            <span>远程桌面</span>
+          </el-menu-item>
+          <el-menu-item index="databasesPage">
+            <el-icon>
+              <i class="fa fa-database" aria-hidden="true"></i>
+            </el-icon>
+            <span>数据库工具</span>
+          </el-menu-item>
+          <el-menu-item index="aboutPage">
+            <el-icon>
+              <i class="fa fa-telegram" aria-hidden="true"></i>
+            </el-icon>
+            <span>关于我们</span>
+          </el-menu-item>
         </el-menu>
-      </el-scrollbar>
-    </el-aside>
-
-    <el-container>
-      <el-header style="text-align: right; font-size: 12px">
-        <div class="toolbar">
-          <el-dropdown>
-            <el-icon style="margin-right: 8px; margin-top: 1px"
-            ><setting
-            /></el-icon>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item>View</el-dropdown-item>
-                <el-dropdown-item>Add</el-dropdown-item>
-                <el-dropdown-item>Delete</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-          <span>Tom</span>
-        </div>
-      </el-header>
-
-      <el-main>
-        <el-scrollbar>
-          <el-table :data="tableData">
-            <el-table-column prop="date" label="Date" width="140" />
-            <el-table-column prop="name" label="Name" width="120" />
-            <el-table-column prop="address" label="Address" />
-          </el-table>
-        </el-scrollbar>
-      </el-main>
-    </el-container>
-  </el-container>
+      </el-col>
+      <el-col
+        :span="19"
+        class="main-wrapper"
+      >
+        <section class="app-main">
+          <router-view :key="key" :activeItems="activeItems"/>
+        </section>
+      </el-col>
+    </el-row>
+  </div>
 </template>
 
 <script>
-const item = {
-  date: '2016-05-02',
-  name: 'Tom',
-  address: 'No. 189, Grove St, Los Angeles',
-}
+import {ipcRenderer} from 'electron'
+import {computed, getCurrentInstance, onBeforeMount, onBeforeUnmount, ref} from "vue";
+import {useRouter} from 'vue-router'
 
 export default {
   name: 'MainPage',
   components: {},
-  data () {
-    return {
-      tableData: Array.from({ length: 20 }).fill(item)
+  setup() {
+    const defaultActive = ref('sshPage')
+    let activeItems = ref()
+    const os = ref('')
+
+    const {proxy} = getCurrentInstance();
+    let key = computed(() => {
+      return proxy.$route.path
+    })
+
+    onBeforeMount(() => {
+      os.value = process.platform
+      ipcRenderer.on('config-reply-get', ipcEventHandler)
+    })
+    onBeforeUnmount(() => {
+      ipcRenderer.removeListener('config-reply-get', ipcEventHandler)
+    })
+
+    let config
+    let ipcEventHandler = (evt, code, arg) => {
+      config = JSON.parse(arg);
+      get_type_config()
     }
+
+    let get_type_config = () => {
+      let appItems
+      if (process.platform === "darwin") {
+        appItems = config['windows']
+      } else if (process.platform === "darwins") {
+        appItems = config['macos']
+      } else {
+        appItems = config['linux']
+      }
+
+      switch (defaultActive.value) {
+        case 'sshPage':
+          activeItems.value = appItems['terminal']
+          break
+        case 'remotePage':
+          activeItems.value = appItems['remotedesktop']
+          break
+        case 'databasesPage':
+          activeItems.value = appItems['databases']
+          break
+      }
+    }
+    const router = new useRouter()
+    let handleSelect = (item) => {
+      defaultActive.value = item
+      get_type_config()
+      router.push({
+        name: item
+      })
+    }
+    ipcRenderer.send('config-get')
+    return {os, defaultActive, key, activeItems, handleSelect}
   }
 }
 </script>
 
+<style lang="scss" scoped>
 
-<style scoped>
-.layout-container-demo .el-header {
-  position: relative;
-  background-color: var(--el-color-primary-light-7);
-  color: var(--el-text-color-primary);
+.fake-title-bar {
+  -webkit-app-region: drag;
+  height: 22px;
+  width: 100%;
+  text-align: center;
+  color: #eee;
+  font-size: 12px;
+  line-height: 22px;
+  background: #0000008e;
+
+  &__title {
+    margin-left: 167px;
+  }
 }
-.layout-container-demo .el-aside {
-  color: var(--el-text-color-primary);
-  background: var(--el-color-primary-light-8);
+
+.main-content {
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: #0000008e;
+
+  .side-bar-menu {
+    height: calc(100vh - 22px);
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    .el-menu {
+      border-right: none;
+      background: transparent;
+
+      &-item {
+        color: #eee;
+
+        &:hover {
+          color: #fff;
+          background: transparent;
+        }
+
+        &.is-active {
+          color: #409EFF;
+        }
+      }
+    }
+  }
 }
-.layout-container-demo .el-menu {
-  border-right: none;
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
-.layout-container-demo .el-main {
-  padding: 0;
+
+*::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: #5f5f5f;
 }
-.layout-container-demo .toolbar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  right: 20px;
+
+*::-webkit-scrollbar-track {
+  background-color: transparent;
 }
+
+
 </style>
