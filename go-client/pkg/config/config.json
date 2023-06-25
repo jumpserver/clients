@@ -1,0 +1,111 @@
+{
+  "filename": "Jumpserve Clients Config",
+  "windows": {
+    "terminal": [
+      {
+        "name": "xshell",
+        "display_name": "XShell",
+        "protocol": [
+          "ssh",
+          "telnet"
+        ],
+        "comment": "XShell是一个强大的安全终端模拟软件，它支持SSH、TELNET协议。",
+        "type": "linux",
+        "path": "",
+        "arg_format": "{exe} -newtab {name} -url {protocol}://{username}:{password}@{host}:{port}",
+        "is_internal": false,
+        "is_default": true,
+        "is_set": false
+      },
+      {
+        "name": "putty",
+        "display_name": "PuTTY",
+        "protocol": [
+          "ssh",
+          "telnet"
+        ],
+        "comment": "PuTTY是一个Telnet、SSH、rlogin纯TCP以及串行阜连线软件。",
+        "type": "linux",
+        "path": "putty.exe",
+        "arg_format": "{exe} -{protocol} {host} -P {port} -l {username} -pw {password}",
+        "is_internal": true,
+        "is_default": false,
+        "is_set": true
+      },
+      {
+        "name": "winscp",
+        "display_name": "WinSCP",
+        "protocol": [
+          "sftp"
+        ],
+        "comment": "WinSCP是一个Windows环境下使用SSH的开源图形化SFTP客户端，同时支持SCP协议。",
+        "type": "linux",
+        "path": "",
+        "arg_format": "{exe} {protocol}://{username}:{password}@{host}:{port}",
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      }
+    ],
+    "remotedesktop": [
+      {
+        "name": "mstsc",
+        "display_name": "Microsoft Remote Desktop",
+        "protocol": [
+          "rdp"
+        ],
+        "comment": "Microsoft Remote Desktop是一款强大的微软远程连接工具，可以从几乎任何地方连接到远程PC和您的工作资源。",
+        "type": "windows",
+        "path": "mstsc.exe",
+        "arg_format": "",
+        "is_internal": true,
+        "is_default": true,
+        "is_set": true
+      }
+    ],
+    "databases": [
+      {
+        "name": "plsql",
+        "display_name": "PL/SQL Developer",
+        "protocol": [
+          "oracle"
+        ],
+        "comment": "PL/SQL Developer是一个集成开发环境，由Allround Automations公司开发，专门面向Oracle数据库存储的程序单元的开发。",
+        "type": "databases",
+        "path": "",
+        "arg_format": "{exe} userid={username}/{password}@//{host}:{port}/{db_name}",
+        "is_internal": false,
+        "is_default": true,
+        "is_set": false
+      },
+      {
+        "name": "dbeaver",
+        "display_name": "DBeaver Community",
+        "protocol": [
+          "oracle",
+          "mysql",
+          "postgresql",
+          "mariadb",
+          "oracle"
+        ],
+        "comment": "DBeaver Community是一个通用的数据库管理工具和SQL客户端，支持MySQL、PostgreSQL、Oracle以及其他兼容JDBC的数据库。",
+        "type": "databases",
+        "path": "",
+        "arg_format": "{exe} -con name={name}|driver={protocol}|\"user={username}\"|password={password}|database={db_name}|host={host}|port={port}|save=false|connect=true",
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      }
+    ]
+  },
+  "macos": {
+    "terminal": [],
+    "remotedesktop": [],
+    "databases": []
+  },
+  "linux": {
+    "terminal": [],
+    "remotedesktop": [],
+    "databases": []
+  }
+}

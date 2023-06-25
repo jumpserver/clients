@@ -3,6 +3,7 @@ package awaken
 import (
 	"fmt"
 	"go-client/global"
+	"go-client/pkg/config"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -137,6 +138,17 @@ func (r *Rouse) HandleDB() {
 }
 func (r *Rouse) Run() {
 	protocol := r.Protocol
+
+	appConfig := config.GetConf()
+	appsClients := appConfig.Apps
+	for _, v := range appsClients {
+		for _, pro := range v.Protocol {
+			if protocol == pro && v.IsActive() {
+				fmt.Println("error format: ", v)
+			}
+		}
+	}
+
 	switch protocol {
 	case "rdp":
 		r.HandleRDP()
