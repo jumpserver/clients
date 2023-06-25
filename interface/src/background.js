@@ -7,7 +7,7 @@ import fse from 'fs-extra'
 const isDevelopment = process.env.NODE_ENV !== "production";
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
-    {scheme: "jms", privileges: {secure: true, standard: true}},
+    {scheme: "app", privileges: {secure: true, standard: true}},
 ]);
 
 async function createWindow() {
@@ -18,18 +18,18 @@ async function createWindow() {
         center: true,
         fullscreenable: false,
         resizable: false,
-        backgroundColor: '#00000000',
+        backgroundColor: '#0000008e',
         frame: false,
         titleBarStyle: 'hidden',
         titleBarOverlay: {
-            color: "#0000008e",
+            color: "#00000000",
             symbolColor: "#fff",
         },
         webPreferences: {
             // Use pluginOptions.nodeIntegration, leave this alone
             // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
-            nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
-            contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION,
+            nodeIntegration: true,
+            contextIsolation: false,
         },
     });
 
@@ -38,7 +38,7 @@ async function createWindow() {
         await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
         // if (!process.env.IS_TEST) win.webContents.openDevTools()
     } else {
-        createProtocol("jms");
+        createProtocol("app");
         // Load the index.html when not in development
         win.loadURL("app://./index.html");
     }
