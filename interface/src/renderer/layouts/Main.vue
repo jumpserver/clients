@@ -56,6 +56,7 @@
 import {ipcRenderer} from 'electron'
 import {computed, getCurrentInstance, onBeforeMount, onBeforeUnmount, ref} from "vue";
 import {useRouter} from 'vue-router'
+import { ElMessage } from 'element-plus'
 
 export default {
   name: 'MainPage',
@@ -80,15 +81,23 @@ export default {
 
     let config
     let ipcEventHandler = (evt, code, arg) => {
-      config = JSON.parse(arg);
-      get_type_config()
+      if(code === 200){
+        config = JSON.parse(arg);
+        get_type_config()
+      }else {
+        ElMessage.error(arg)
+      }
     }
 
     let get_type_config = () => {
+      if(config === undefined || config===null){
+        return
+      }
+
       let appItems
-      if (process.platform === "darwin") {
+      if (process.platform === "win32") {
         appItems = config['windows']
-      } else if (process.platform === "darwins") {
+      } else if (process.platform === "darwin") {
         appItems = config['macos']
       } else {
         appItems = config['linux']
@@ -124,12 +133,12 @@ export default {
 
 .fake-title-bar {
   -webkit-app-region: drag;
-  height: 22px;
+  height: 25px;
   width: 100%;
   text-align: center;
   color: #eee;
-  font-size: 12px;
-  line-height: 22px;
+  font-size: 14px;
+  line-height: 25px;
   background: #0000008e;
 
   &__title {
@@ -144,7 +153,7 @@ export default {
   background: #0000008e;
 
   .side-bar-menu {
-    height: calc(100vh - 22px);
+    height: calc(100vh - 25px);
     overflow-x: hidden;
     overflow-y: auto;
 

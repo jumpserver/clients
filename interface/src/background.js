@@ -36,7 +36,7 @@ async function createWindow() {
     if (process.env.WEBPACK_DEV_SERVER_URL) {
         // Load the url of the dev server if in development mode
         await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
-        if (!process.env.IS_TEST) win.webContents.openDevTools()
+        // if (!process.env.IS_TEST) win.webContents.openDevTools()
     } else {
         createProtocol("jms");
         // Load the index.html when not in development
@@ -114,7 +114,7 @@ ipcMain.on('config-get', function (event) {
     // 传给渲染进程数据
     fse.readFile(configFilePath, "utf8", (err, data) => {
         if (err) {
-            event.sender.send(callBackUrlName, 500, "读取失败");
+            event.sender.send(callBackUrlName, 500, "读取 config.json 文件失败");
         } else {
             event.sender.send(callBackUrlName, 200, data);
         }
@@ -131,9 +131,9 @@ ipcMain.on('config-set', function (event, type, value) {
         } else {
             let config = JSON.parse(data);
             let platform
-            if (process.platform === "darwin") {
+            if (process.platform === "win32") {
                 platform = "windows"
-            } else if (process.platform === "darwins") {
+            } else if (process.platform === "darwin") {
                 platform = "macos"
             } else {
                 platform = "linux"
