@@ -2,7 +2,6 @@
   <div id="main-page">
     <div
       class="fake-title-bar"
-      :class="{ 'darwin': os === 'darwin' }"
     >
       <div class="fake-title-bar__title">
         本地客户端配置工具
