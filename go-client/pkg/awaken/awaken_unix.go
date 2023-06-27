@@ -22,6 +22,53 @@ func handleSSH(c string, secret string, currentPath string) *exec.Cmd {
 	return cmd
 }
 
+func structureMySQLCommand(command string) string {
+	command = strings.ReplaceAll(command, "mysql ", "")
+	db := &DBCommand{}
+	paramSlice := strings.Split(command, " ")
+	for i, v := range paramSlice {
+		if strings.HasPrefix(v, "-p") {
+			db.Password = paramSlice[i][2:]
+			continue
+		}
+		switch v {
+		case "-u":
+			db.User = paramSlice[i+1]
+		case "-h":
+			db.Host = paramSlice[i+1]
+		case "-P":
+			db.Port = paramSlice[i+1]
+		}
+	}
+	db.DBName = paramSlice[len(paramSlice)-1]
+	command = fmt.Sprintf(
+		"mysql -u %s -p%s -h %s -P %s %s",
+		db.User, db.Password, db.Host, db.Port, db.DBName,
+	)
+	return command
+}
+
+func structureRedisCommand(command string) string {
+	command = strings.ReplaceAll(command, "redis-cli ", "")
+	db := &DBCommand{}
+	paramSlice := strings.Split(command, " ")
+	for i, v := range paramSlice {
+		switch v {
+		case "-a":
+			db.Password = paramSlice[i+1]
+		case "-h":
+			db.Host = paramSlice[i+1]
+		case "-p":
+			db.Port = paramSlice[i+1]
+		}
+	}
+	cmd := fmt.Sprintf(
+		"redis-cli -h %s -p %s -a %s",
+		db.Host, db.Port, db.Password,
+	)
+	return cmd
+}
+
 func structurePostgreSQLCommand(command string) string {
 	command = strings.Trim(strings.ReplaceAll(command, "psql ", ""), `"`)
 	db := &DBCommand{}

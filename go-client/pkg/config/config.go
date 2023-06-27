@@ -2,18 +2,22 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
+	"go-client/global"
 	"os"
 	"path/filepath"
 )
 
 type AppConfig struct {
-	FileName string    `json:"filename"`
-	windows  []AppItem `json:"app_items"`
-	macos  []AppItem `json:"app_items"`
-	linux  []AppItem `json:"app_items"`
+	FileName string  `json:"filename"`
+	Windows  AppType `json:"windows"`
+	MacOS    AppType `json:"macos"`
+	Linux    AppType `json:"linux"`
+}
 
+type AppType struct {
+	Terminal      []AppItem `json:"terminal"`
+	RemoteDesktop []AppItem `json:"remotedesktop"`
+	Databases     []AppItem `json:"databases"`
 }
 
 type AppItem struct {
@@ -36,6 +40,15 @@ func (a *AppItem) IsActive() bool {
 	return false
 }
 
+func (a *AppItem) IsSupportProtocol(protocol string) bool {
+	for _, p := range a.Protocol {
+		if p == protocol {
+			return true
+		}
+	}
+	return false
+}
+
 func GetConf() AppConfig {
 	if GlobalConfig == nil {
 		return getDefaultConfig()
@@ -46,16 +59,21 @@ func GetConf() AppConfig {
 var GlobalConfig *AppConfig
 
 func getDefaultConfig() AppConfig {
-	filePath := filepath.Join("config.json")
+	filePath := filepath.Join(filepath.Dir(os.Args[0]), "config.json")
 	jsonFile, err := os.Open(filePath)
 	if err != nil {
-		log.Fatalln("Cannot open config file", err)
+		global.LOG.Error(err.Error())
 	}
-	defer jsonFile.Close()
+	defer func(jsonFile *os.File) {
+		err := jsonFile.Close()
+		if err != nil {
+			global.LOG.Error(err.Error())
+		}
+	}(jsonFile)
 	decoder := json.NewDecoder(jsonFile)
 	err = decoder.Decode(&GlobalConfig)
 	if err != nil {
-		fmt.Println("Cannot get configuration from file")
+		global.LOG.Error(err.Error())
 		return AppConfig{}
 	}
 	return *GlobalConfig
