@@ -38,6 +38,14 @@ type Info struct {
 	File     `json:"file"`
 }
 
+type DBCommand struct {
+	User     string `json:"user"`
+	Password string `json:"password"`
+	Host     string `json:"host"`
+	Port     string `json:"port"`
+	DBName   string `json:"dbname"`
+}
+
 type Rouse struct {
 	Info
 }

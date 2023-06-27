@@ -5,19 +5,20 @@ package awaken
 
 import (
 	"fmt"
+	"go-client/pkg/config"
 	"os/exec"
 	"path/filepath"
 	"strings"
 )
 
-func handleRDP(filePath string) *exec.Cmd {
+func handleRDP(r *Rouse, filePath string, cfg *config.AppConfig) *exec.Cmd {
 	cmd := awakenRDPCommand(filePath)
 	return cmd
 }
 
-func handleSSH(c string, secret string, currentPath string) *exec.Cmd {
+func handleSSH(r *Rouse, currentPath string, cfg *config.AppConfig) *exec.Cmd {
 	clientPath := filepath.Join(currentPath, "client")
-	command := fmt.Sprintf("%s %s -P %s", clientPath, c, secret)
+	command := fmt.Sprintf("%s %s -P %s", clientPath, r.Command, r.Value)
 	cmd := awakenCommand(command)
 	return cmd
 }
@@ -94,7 +95,7 @@ func structurePostgreSQLCommand(command string) string {
 	return command
 }
 
-func handleDB(command string) *exec.Cmd {
+func handleDB(r *Rouse, command string, cfg *config.AppConfig) *exec.Cmd {
 	cmd := awakenCommand(command)
 	return cmd
 }
