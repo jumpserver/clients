@@ -3,7 +3,10 @@
   <SettingDialog
     v-model="dialogVisible"
     :destroy-on-close="true"
-    :title="title" v-bind="$attrs"
+    :title="title"
+    :showConfirm="false"
+    v-bind="$attrs"
+
     @cancel="onCancelItem"
     @save="onSaveItem"
     @confirm="onConfirmItem"
@@ -93,12 +96,6 @@ export default {
       this.clearSelectItem()
     },
     onConfirmItem() {
-      // this.$refs['item-form'].validate((valid) => {
-      //   if (valid) {
-      //   } else {
-      //     return false;
-      //   }
-      // });
       this.selectItem.is_default = true
       this.selectItem.is_set = this.selectItem.path !== ''
       this.writeSelectItem()
