@@ -31,7 +31,7 @@ type Info struct {
 	Value    string `json:"value"`
 	Protocol string `json:"protocol"`
 	Host     string `json:"host"`
-	Port     string `json:"port"`
+	Port     int    `json:"port"`
 	Username string `json:"username"`
 	Command  string `json:"command"`
 	DBName   string `json:"dbname"`

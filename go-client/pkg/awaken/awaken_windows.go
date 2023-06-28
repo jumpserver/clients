@@ -4,6 +4,7 @@ import (
 	"go-client/pkg/config"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -44,7 +45,7 @@ func handleSSH(r *Rouse, currentPath string, cfg *config.AppConfig) *exec.Cmd {
 		"username": r.Username,
 		"value":    r.Value,
 		"host":     r.Host,
-		"port":     r.Port,
+		"port":     strconv.Itoa(r.Port),
 	}
 	commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
 	return exec.Command(appPath, strings.Split(commands, " ")...)
@@ -66,7 +67,7 @@ func handleDB(r *Rouse, command string, cfg *config.AppConfig) *exec.Cmd {
 	var appItem *config.AppItem
 	appLst := cfg.Windows.Databases
 	for _, app := range appLst {
-		if app.IsActive() && app.IsSupportProtocol(r.Protocol) {
+		if app.IsSet && app.IsSupportProtocol(r.Protocol) {
 			appItem = &app
 			break
 		}
@@ -81,7 +82,7 @@ func handleDB(r *Rouse, command string, cfg *config.AppConfig) *exec.Cmd {
 		"username": r.Username,
 		"value":    r.Value,
 		"host":     r.Host,
-		"port":     r.Port,
+		"port":     strconv.Itoa(r.Port),
 		"dbname":   r.DBName,
 	}
 	commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
