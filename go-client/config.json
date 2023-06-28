@@ -73,7 +73,7 @@
         "comment": "PL/SQL Developer是一个集成开发环境，由Allround Automations公司开发，专门面向Oracle数据库存储的程序单元的开发。",
         "type": "databases",
         "path": "",
-        "arg_format": "userid={username}/{value}@//{host}:{port}/{dbname}",
+        "arg_format": "userid={username}/{value}@{host}:{port}/{dbname}",
         "is_internal": false,
         "is_default": false,
         "is_set": false
@@ -91,10 +91,24 @@
         "comment": "DBeaver Community是一个通用的数据库管理工具和SQL客户端，支持MySQL、PostgreSQL、Oracle以及其他兼容JDBC的数据库。",
         "type": "databases",
         "path": "",
-        "arg_format": "-con name={name}|driver={protocol}|\"user={username}\"|password={value}|database={dbname}|host={host}|port={port}|save=false|connect=true",
+        "arg_format": "-con name={name}|driver={protocol}|user={username}|password={value}|database={dbname}|host={host}|port={port}|save=false|connect=true",
         "is_internal": false,
         "is_default": true,
         "is_set": true
+      },
+      {
+        "name": "resp",
+        "display_name": "Redis Desktop Manager",
+        "protocol": [
+          "redis"
+        ],
+        "comment": "Redis Desktop Manager 是一款能够跨平台使用的开源 Redis 可视化工具，主要针对 Redis 开发设计。",
+        "type": "databases",
+        "path": "",
+        "arg_format": "--settings-dir {config_file}",
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
       }
     ]
   },
