@@ -116,9 +116,9 @@ func handleDB(r *Rouse, command string, cfg *config.AppConfig) *exec.Cmd {
 
 		bjson, _ := json.Marshal(conList)
 		currentPath := filepath.Dir(os.Args[0])
-		rdm_path := filepath.Join(currentPath, ".rdm")
-		EnsureDirExist(rdm_path)
-		filePath := filepath.Join(rdm_path, "connections.json")
+		rdmPath := filepath.Join(currentPath, ".rdm")
+		EnsureDirExist(rdmPath)
+		filePath := filepath.Join(rdmPath, "connections.json")
 		global.LOG.Error(filePath)
 		err := ioutil.WriteFile(filePath, bjson, os.ModePerm)
 		if err != nil {
