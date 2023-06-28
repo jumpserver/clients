@@ -12,6 +12,15 @@ import (
 	"strings"
 )
 
+func EnsureDirExist(path string) {
+	if fi, err := os.Stat(path); err == nil && fi.IsDir() {
+		return
+	}
+	if err := os.MkdirAll(path, os.ModePerm); err != nil {
+		global.LOG.Error(err.Error())
+	}
+}
+
 func getCommandFromArgs(connectInfo map[string]string, argFormat string) string {
 	for key, value := range connectInfo {
 		argFormat = strings.Replace(argFormat, "{"+key+"}", value, 1)
@@ -107,7 +116,10 @@ func handleDB(r *Rouse, command string, cfg *config.AppConfig) *exec.Cmd {
 
 		bjson, _ := json.Marshal(conList)
 		currentPath := filepath.Dir(os.Args[0])
-		filePath := filepath.Join(currentPath, "connections.json")
+		rdm_path := filepath.Join(currentPath, ".rdm")
+		EnsureDirExist(rdm_path)
+		filePath := filepath.Join(rdm_path, "connections.json")
+		global.LOG.Error(filePath)
 		err := ioutil.WriteFile(filePath, bjson, os.ModePerm)
 		if err != nil {
 			global.LOG.Error(err.Error())
