@@ -1,7 +1,11 @@
 package awaken
 
 import (
+	"encoding/json"
+	"go-client/global"
 	"go-client/pkg/config"
+	"io/ioutil"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
@@ -76,6 +80,7 @@ func handleDB(r *Rouse, command string, cfg *config.AppConfig) *exec.Cmd {
 		return nil
 	}
 	appPath := appItem.Path
+
 	connectMap := map[string]string{
 		"name":     r.Name,
 		"protocol": r.Protocol,
@@ -84,6 +89,33 @@ func handleDB(r *Rouse, command string, cfg *config.AppConfig) *exec.Cmd {
 		"host":     r.Host,
 		"port":     strconv.Itoa(r.Port),
 		"dbname":   r.DBName,
+	}
+
+	if r.Protocol == "redis" {
+		var conList []map[string]string
+		ss := make(map[string]string)
+		ss["host"] = r.Host
+		ss["port"] = strconv.Itoa(r.Port)
+		ss["name"] = r.Name
+		ss["auth"] = r.Username + "@" + r.Value
+		ss["ssh_agent_path"] = ""
+		ss["ssh_password"] = ""
+		ss["ssh_private_key_path"] = ""
+		ss["timeout_connect"] = "60000"
+		ss["timeout_execute"] = "60000"
+		conList = append(conList, ss)
+
+		bjson, _ := json.Marshal(conList)
+		currentPath := filepath.Dir(os.Args[0])
+		filePath := filepath.Join(currentPath, "connections.json")
+		err := ioutil.WriteFile(filePath, bjson, os.ModePerm)
+		if err != nil {
+			global.LOG.Error(err.Error())
+			return nil
+		}
+		connectMap = map[string]string{
+			"config_file": currentPath,
+		}
 	}
 	commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
 	return exec.Command(appPath, strings.Split(commands, " ")...)
