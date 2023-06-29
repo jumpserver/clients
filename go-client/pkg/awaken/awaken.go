@@ -63,7 +63,7 @@ func removeCurRdpFile() {
 
 func (r *Rouse) HandleRDP(appConfig *config.AppConfig) {
 	removeCurRdpFile()
-	filePath := filepath.Join(filepath.Dir(os.Args[0]), r.Name+".rdp")
+	filePath := filepath.Join(filepath.Dir(os.Args[0]), r.File.Name+".rdp")
 	err := ioutil.WriteFile(filePath, []byte(r.Content), os.ModePerm)
 	if err != nil {
 		global.LOG.Error(err.Error())
