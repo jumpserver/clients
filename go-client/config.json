@@ -14,8 +14,8 @@
         "path": "",
         "arg_format": "-newtab {name} -url {protocol}://{username}:{value}@{host}:{port}",
         "is_internal": false,
-        "is_default": true,
-        "is_set": true
+        "is_default": false,
+        "is_set": false
       },
       {
         "name": "putty",
@@ -29,22 +29,8 @@
         "path": "putty.exe",
         "arg_format": "-{protocol} {username}@{host} -P {port} -pw {value}",
         "is_internal": true,
-        "is_default": false,
+        "is_default": true,
         "is_set": true
-      },
-      {
-        "name": "winscp",
-        "display_name": "WinSCP",
-        "protocol": [
-          "sftp"
-        ],
-        "comment": "WinSCP是一个Windows环境下使用SSH的开源图形化SFTP客户端，同时支持SCP协议。",
-        "type": "linux",
-        "path": "",
-        "arg_format": "{protocol}://{username}:{value}@{host}:{port}",
-        "is_internal": false,
-        "is_default": false,
-        "is_set": false
       }
     ],
     "remotedesktop": [
@@ -93,8 +79,8 @@
         "path": "",
         "arg_format": "-con name={name}|driver={protocol}|user={username}|password={value}|database={dbname}|host={host}|port={port}|save=false|connect=true",
         "is_internal": false,
-        "is_default": true,
-        "is_set": true
+        "is_default": false,
+        "is_set": false
       },
       {
         "name": "resp",
