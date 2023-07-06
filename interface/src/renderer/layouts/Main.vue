@@ -4,7 +4,7 @@
       class="fake-title-bar"
     >
       <div class="fake-title-bar__title">
-        本地客户端配置工具
+        本地客户端工具
       </div>
     </div>
     <el-row class="main-content">
@@ -114,6 +114,9 @@ export default {
           break
         case 'remotePage':
           activeItems.value = appItems['remotedesktop']
+          break
+        case 'fileTransferPage':
+          activeItems.value = appItems['filetransfer']
           break
         case 'databasesPage':
           activeItems.value = appItems['databases']

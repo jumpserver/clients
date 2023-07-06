@@ -146,6 +146,9 @@ ipcMain.on('config-set', function (event, type, value) {
                 case 'remotePage':
                     lst = config[platform]['remotedesktop']
                     break
+                case 'fileTransferPage':
+                    lst = config[platform]['filetransfer']
+                    break
                 case 'databasesPage':
                     lst = config[platform]['databases']
                     break
