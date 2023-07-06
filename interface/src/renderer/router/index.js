@@ -20,6 +20,11 @@ export default createRouter({
           component: () => import('@/pages/RemoteDesktop.vue')
         },
         {
+          path: '/files',
+          name: 'fileTransferPage',
+          component: () => import('@/pages/FileTransfer.vue')
+        },
+        {
           path: '/databases',
           name: 'databasesPage',
           component: () => import('@/pages/Databases.vue')

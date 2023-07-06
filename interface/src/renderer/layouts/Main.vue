@@ -25,6 +25,12 @@
             </el-icon>
             <span>远程桌面</span>
           </el-menu-item>
+          <el-menu-item index="fileTransferPage">
+            <el-icon>
+              <i class="fa fa-folder" aria-hidden="true"></i>
+            </el-icon>
+            <span>文件传输</span>
+          </el-menu-item>
           <el-menu-item index="databasesPage">
             <el-icon>
               <i class="fa fa-database" aria-hidden="true"></i>
