@@ -3,7 +3,7 @@
     <el-col v-for="(d, index) in listData" :key="index" :span="12">
       <el-card shadow="hover" class="app-card" :body-style="{ padding: '0px' }" @click="handClickItem(d)">
         <div class="app-info">
-          <img :src="get_logo_src(d.name)" class="image">
+          <img alt="" :src="get_logo_src(d.name)" class="image">
           <div class="info">
             <div class="title">{{ d.display_name }}</div>
             <div class="comment">{{ d.comment }}</div>
@@ -96,11 +96,12 @@ export default {
       .comment {
         color: #aaa;
         margin-top: 5px;
+        padding-bottom: 5px;
         overflow: hidden;
         font-size: 12px;
         text-overflow: ellipsis;
         word-break: break-all;
-        min-height: 90px;
+        height: 90px;
         line-height: 24px;
       }
 

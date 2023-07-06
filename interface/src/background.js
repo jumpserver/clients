@@ -18,11 +18,10 @@ async function createWindow() {
         center: true,
         fullscreenable: false,
         resizable: false,
-        backgroundColor: '#000',
-        frame: false,
+        transparent: true,
         titleBarStyle: 'hidden',
         titleBarOverlay: {
-            color: "#000",
+            color: "#1f1f1f",
             symbolColor: "#fff",
         },
         webPreferences: {

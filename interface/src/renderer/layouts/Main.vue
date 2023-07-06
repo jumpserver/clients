@@ -1,7 +1,7 @@
 <template>
   <div id="main-page">
     <div
-      class="fake-title-bar"
+        class="fake-title-bar"
     >
       <div class="fake-title-bar__title">
         本地客户端工具
@@ -10,8 +10,8 @@
     <el-row class="main-content">
       <el-col :span="5" class="side-bar-menu">
         <el-menu
-          :default-active="defaultActive"
-          @select="handleSelect"
+            :default-active="defaultActive"
+            @select="handleSelect"
         >
           <el-menu-item index="sshPage">
             <el-icon>
@@ -46,8 +46,8 @@
         </el-menu>
       </el-col>
       <el-col
-        :span="19"
-        class="main-wrapper"
+          :span="19"
+          class="main-wrapper"
       >
         <section class="app-main">
           <router-view :key="key" :activeItems="activeItems"/>
@@ -61,7 +61,7 @@
 import {ipcRenderer} from 'electron'
 import {computed, getCurrentInstance, onBeforeMount, onBeforeUnmount, ref} from "vue";
 import {useRouter} from 'vue-router'
-import { ElMessage } from 'element-plus'
+import {ElMessage} from 'element-plus'
 
 export default {
   name: 'MainPage',
@@ -86,16 +86,16 @@ export default {
 
     let config
     let ipcEventHandler = (evt, code, arg) => {
-      if(code === 200){
+      if (code === 200) {
         config = JSON.parse(arg);
         get_type_config()
-      }else {
+      } else {
         ElMessage.error(arg)
       }
     }
 
     let get_type_config = () => {
-      if(config === undefined || config===null){
+      if (config === undefined || config === null) {
         return
       }
 
@@ -147,7 +147,7 @@ export default {
   color: #eee;
   font-size: 14px;
   line-height: 25px;
-  background: #0000008e;
+  background: #1f1f1f;
 
   &__title {
     margin-left: 167px;
@@ -158,12 +158,13 @@ export default {
   width: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-  background: #0000008e;
+  background: #1f1f1f;
 
   .side-bar-menu {
     height: calc(100vh - 25px);
     overflow-x: hidden;
     overflow-y: auto;
+    border-right: solid 1px #4c4d4faf;
 
     .el-menu {
       border-right: none;

@@ -1,7 +1,7 @@
 <template>
   <div>
-    <img id="logo" src="@/assets/JumpServer.png"/>
-    <h1>本地客户端配置工具</h1>
+    <img id="logo" src="@/assets/JumpServer.png" alt=""/>
+    <h1>本地客户端工具</h1>
     <span>作者：Fit2Cloud - Halo</span>
   </div>
 </template>

@@ -13,7 +13,10 @@
   >
     <el-form ref="item-form" :model="selectItem" label-position="right" label-width="90px">
       <el-form-item label="应用说明" prop="comment">
-        <el-input v-model="selectItem.comment" readonly rows="6" resize="none" type="textarea"/>
+        <el-input v-model="selectItem.comment" readonly rows="3" resize="none" type="textarea"/>
+      </el-form-item>
+      <el-form-item label="下载地址" prop="download_url">
+        <el-input v-model="selectItem.download_url" readonly autosize="{maxRows: 2}" resize="none" type="textarea"/>
       </el-form-item>
       <el-form-item label="应用路径" prop="path" :rules="[{required: true, message: '路径不能为空', trigger: 'blur'}]">
         <el-input
@@ -65,6 +68,7 @@ export default {
       selectItem: {
         display_name: '',
         comment: '',
+        download_url: '',
         path: '',
         is_internal: false,
         is_default: false,
@@ -109,6 +113,7 @@ export default {
       this.selectItem = {
         display_name: '',
         comment: '',
+        download_url: '',
         path: '',
         is_internal: false,
         is_default: false,
