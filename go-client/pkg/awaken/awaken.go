@@ -100,7 +100,7 @@ func (r *Rouse) Run() {
 	switch protocol {
 	case "rdp":
 		r.HandleRDP(&appConfig)
-	case "ssh":
+	case "ssh", "sftp":
 		r.HandleSSH(&appConfig)
 	case "mysql", "mariadb", "postgresql", "redis", "oracle", "sqlserver":
 		r.HandleDB(&appConfig)
