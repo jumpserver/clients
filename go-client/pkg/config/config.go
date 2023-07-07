@@ -16,6 +16,7 @@ type AppConfig struct {
 
 type AppType struct {
 	Terminal      []AppItem `json:"terminal"`
+	FileTransfer  []AppItem `json:"filetransfer"`
 	RemoteDesktop []AppItem `json:"remotedesktop"`
 	Databases     []AppItem `json:"databases"`
 }

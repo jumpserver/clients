@@ -35,7 +35,14 @@ func handleRDP(r *Rouse, filePath string, cfg *config.AppConfig) *exec.Cmd {
 
 func handleSSH(r *Rouse, currentPath string, cfg *config.AppConfig) *exec.Cmd {
 	var appItem *config.AppItem
-	appLst := cfg.Windows.Terminal
+	var appLst []config.AppItem
+	switch r.Protocol {
+	case "ssh":
+		appLst = cfg.Windows.Terminal
+	case "sftp":
+		appLst = cfg.Windows.FileTransfer
+	}
+
 	for _, app := range appLst {
 		if app.IsActive() && app.IsSupportProtocol(r.Protocol) {
 			appItem = &app
