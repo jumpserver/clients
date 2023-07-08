@@ -12,9 +12,9 @@
                 {{ is_set_string(d.is_set) }}
               </span>
               <el-divider v-show="d.is_default" direction="vertical"/>
-              <span v-show="d.is_default" class="is-setted">
-                默认应用
-              </span>
+              <span v-show="d.is_default" class="is-setted">默认应用</span>
+              <el-divider v-show="d.match_first.length !== 0" direction="vertical"/>
+              <el-text v-show="d.match_first.length !== 0" size="small" class="match_first">{{ join_2_string(d.match_first) }}</el-text>
             </div>
           </div>
         </div>
@@ -42,6 +42,12 @@ export default {
       } else {
         return "未配置"
       }
+    },
+    join_2_string(b) {
+      if (b) {
+        return b.join(',')
+      }
+      return ""
     },
     get_logo_src(name) {
       return require(`@/assets/${name}.png`)
@@ -113,6 +119,10 @@ export default {
       .not-setted {
         font-size: 12px;
         color: #e6a23c;
+      }
+
+      .match_first {
+        color: #5cb87a;
       }
     }
   }

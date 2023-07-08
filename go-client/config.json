@@ -14,6 +14,7 @@
         "type": "linux",
         "path": "",
         "arg_format": "-newtab {name} -url {protocol}://{username}:{value}@{host}:{port}",
+        "match_first": [],
         "is_internal": false,
         "is_default": false,
         "is_set": false
@@ -30,6 +31,7 @@
         "type": "linux",
         "path": "putty.exe",
         "arg_format": "-{protocol} {username}@{host} -P {port} -pw {value}",
+        "match_first": [],
         "is_internal": true,
         "is_default": true,
         "is_set": true
@@ -47,6 +49,7 @@
         "type": "windows",
         "path": "mstsc.exe",
         "arg_format": "",
+        "match_first": [],
         "is_internal": true,
         "is_default": true,
         "is_set": true
@@ -64,6 +67,7 @@
         "type": "linux",
         "path": "",
         "arg_format": "{protocol}://{username}:{value}@{host}:{port}",
+        "match_first": [],
         "is_internal": false,
         "is_default": false,
         "is_set": false
@@ -79,6 +83,7 @@
         "type": "linux",
         "path": "",
         "arg_format": "{protocol}://{username}:{value}@{host}:{port}",
+        "match_first": [],
         "is_internal": false,
         "is_default": false,
         "is_set": false
@@ -96,6 +101,7 @@
         "type": "databases",
         "path": "",
         "arg_format": "userid={username}/{value}@{host}:{port}/{dbname}",
+        "match_first": [],
         "is_internal": false,
         "is_default": false,
         "is_set": false
@@ -107,14 +113,14 @@
           "oracle",
           "mysql",
           "postgresql",
-          "mariadb",
-          "oracle"
+          "mariadb"
         ],
         "comment": "DBeaver Community是一个通用的数据库管理工具和SQL客户端，支持MySQL、PostgreSQL、Oracle以及其他兼容JDBC的数据库。",
         "download_url": "https://dbeaver.io/download/",
         "type": "databases",
         "path": "",
         "arg_format": "-con name={name}|driver={protocol}|user={username}|password={value}|database={dbname}|host={host}|port={port}|save=false|connect=true",
+        "match_first": [],
         "is_internal": false,
         "is_default": false,
         "is_set": false
@@ -130,6 +136,7 @@
         "type": "databases",
         "path": "",
         "arg_format": "--settings-dir {config_file}",
+        "match_first": [],
         "is_internal": false,
         "is_default": false,
         "is_set": false

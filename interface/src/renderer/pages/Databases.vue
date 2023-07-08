@@ -1,15 +1,13 @@
 <template>
   <ListTable :list-data="activeItems" @appItemClick="appItemClick"/>
   <SettingDialog
-    v-model="dialogVisible"
-    :destroy-on-close="true"
-    :title="title"
-    :showConfirm="false"
-    v-bind="$attrs"
-
-    @cancel="onCancelItem"
-    @save="onSaveItem"
-    @confirm="onConfirmItem"
+      v-model="dialogVisible"
+      :destroy-on-close="true"
+      :title="title"
+      :showConfirm="false"
+      v-bind="$attrs"
+      @cancel="onCancelItem"
+      @save="onSaveItem"
   >
     <el-form ref="item-form" :model="selectItem" label-position="right" label-width="90px">
       <el-form-item label="应用说明" prop="comment">
@@ -18,12 +16,17 @@
       <el-form-item label="下载地址" prop="download_url">
         <el-input v-model="selectItem.download_url" readonly autosize="{maxRows: 2}" resize="none" type="textarea"/>
       </el-form-item>
+      <el-form-item label="优先匹配" prop="match_first" :rules="[{required: true, message: '协议不能为空', trigger: 'blur'}]">
+        <el-select v-model="selectItem.match_first" multiple placeholder="请选择优先匹配的数据库协议" style="width: 100%">
+          <el-option v-for="i in selectItem.protocol" :key="i" :label="i" :value="i" />
+        </el-select>
+      </el-form-item>
       <el-form-item label="应用路径" prop="path" :rules="[{required: true, message: '路径不能为空', trigger: 'blur'}]">
         <el-input
-          v-model="selectItem.path"
-          placeholder="请选择数据库工具启动程序路径"
-          clearable
-          :readonly="selectItem.is_internal"
+            v-model="selectItem.path"
+            placeholder="请选择数据库工具启动程序路径"
+            clearable
+            :readonly="selectItem.is_internal"
         >
           <template #append>
             <el-button :disabled="selectItem.is_internal" @click="openFile">
@@ -35,11 +38,11 @@
         </el-input>
         <el-text size="small">本地客户端连 Oracle 数据库需要使用 21.0 及以上版本 OCI</el-text>
         <input
-          type="file"
-          name="filename"
-          id="select-exe"
-          style="display: none"
-          @change="changeFile"
+            type="file"
+            name="filename"
+            id="select-exe"
+            style="display: none"
+            @change="changeFile"
         />
       </el-form-item>
     </el-form>
@@ -66,10 +69,12 @@ export default {
   data() {
     return {
       selectItem: {
+        protocol: [],
         display_name: '',
         comment: '',
         download_url: '',
         path: '',
+        match_first: [],
         is_internal: false,
         is_default: false,
       },
@@ -95,12 +100,12 @@ export default {
       this.clearSelectItem()
     },
     onSaveItem() {
-      this.selectItem.is_set = this.selectItem.path !== ''
-      this.writeSelectItem()
-      this.clearSelectItem()
-    },
-    onConfirmItem() {
-      this.selectItem.is_default = true
+      // this.$refs['item-form'].validate((valid) => {
+      //   if (valid) {
+      //   } else {
+      //     return false;
+      //   }
+      // });
       this.selectItem.is_set = this.selectItem.path !== ''
       this.writeSelectItem()
       this.clearSelectItem()
@@ -111,10 +116,12 @@ export default {
     clearSelectItem() {
       this.dialogVisible = false
       this.selectItem = {
+        protocol: [],
         display_name: '',
         comment: '',
         download_url: '',
         path: '',
+        match_first: [],
         is_internal: false,
         is_default: false,
       }

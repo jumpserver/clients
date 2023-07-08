@@ -13,8 +13,8 @@ protocol.registerSchemesAsPrivileged([
 async function createWindow() {
     // Create the browser window.
     const win = new BrowserWindow({
-        width: 800,
-        height: 500,
+        width: 860,
+        height: 550,
         center: true,
         fullscreenable: false,
         resizable: false,
@@ -160,6 +160,7 @@ ipcMain.on('config-set', function (event, type, value) {
                     item.path = value.path
                     item.is_default = value.is_default
                     item.is_set= value.is_set
+                    item.match_first= value.match_first
                 }
             })
             const config_str = JSON.stringify(config)
