@@ -156,6 +156,9 @@ ipcMain.on('config-set', function (event, type, value) {
                 if (value.is_default){
                     item.is_default = false
                 }
+                if (item.match_first.length > 0){
+                    item.match_first = item.match_first.filter(item=>!value.match_first.includes(item))
+                }
                 if(item.name === value.name) {
                     item.path = value.path
                     item.is_default = value.is_default

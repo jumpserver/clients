@@ -87,7 +87,7 @@ func handleDB(r *Rouse, command string, cfg *config.AppConfig) *exec.Cmd {
 	var appItem *config.AppItem
 	appLst := cfg.Windows.Databases
 	for _, app := range appLst {
-		if app.IsSet && app.IsSupportProtocol(r.Protocol) {
+		if app.IsSet && app.IsMatchProtocol(r.Protocol) {
 			appItem = &app
 			break
 		}
@@ -132,9 +132,7 @@ func handleDB(r *Rouse, command string, cfg *config.AppConfig) *exec.Cmd {
 			global.LOG.Error(err.Error())
 			return nil
 		}
-		connectMap = map[string]string{
-			"config_file": currentPath,
-		}
+		connectMap["config_file"] = currentPath
 	}
 	commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
 	return exec.Command(appPath, strings.Split(commands, " ")...)

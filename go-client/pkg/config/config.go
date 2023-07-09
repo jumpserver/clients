@@ -27,6 +27,7 @@ type AppItem struct {
 	Protocol    []string `json:"protocol"`
 	Comment     string   `json:"comment"`
 	Type        string   `json:"type"`
+	MatchFirst  []string `json:"match_first"`
 	Path        string   `json:"path"`
 	ArgFormat   string   `json:"arg_format"`
 	IsInternal  bool     `json:"is_internal"`
@@ -43,6 +44,15 @@ func (a *AppItem) IsActive() bool {
 
 func (a *AppItem) IsSupportProtocol(protocol string) bool {
 	for _, p := range a.Protocol {
+		if p == protocol {
+			return true
+		}
+	}
+	return false
+}
+
+func (a *AppItem) IsMatchProtocol(protocol string) bool {
+	for _, p := range a.MatchFirst {
 		if p == protocol {
 			return true
 		}
