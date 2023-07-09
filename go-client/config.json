@@ -20,6 +20,23 @@
         "is_set": false
       },
       {
+        "name": "securecrt",
+        "display_name": "SecureCRT",
+        "protocol": [
+          "ssh",
+          "telnet"
+        ],
+        "comment": "SecureCRT是VanDyke Software所开发销售的一个SSH、Telnet客户端和虚拟终端软件。",
+        "download_url": "https://www.vandyke.com/cgi-bin/releases.php?product=securecrt",
+        "type": "linux",
+        "path": "",
+        "arg_format": "/N {name} /T /SSH2 /ACCEPTHOSTKEYS /p {port} /password {value} /L {username} {host}",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      },
+      {
         "name": "putty",
         "display_name": "PuTTY",
         "protocol": [
