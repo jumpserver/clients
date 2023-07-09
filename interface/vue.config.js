@@ -12,13 +12,14 @@ module.exports = {
         .set('@', resolve('src/renderer'))
         .set('~', resolve('src'))
         .set('root', resolve('./'))
-        .set('#', resolve('src/universal'))
   },
   pluginOptions: {
     electronBuilder: {
-      removeElectronJunk: false,
+      nodeIntegration:true,
+      customFileProtocol: './',
       builderOptions: {
-        productName: 'JumpServer Clients',
+        productName: 'JumpServer Config Clients',
+        appId: 'com.jumpserver.client',
         dmg: {
           contents: [
             {
@@ -37,7 +38,7 @@ module.exports = {
         mac: {
           icon: 'build/icons/icon.icns',
           extendInfo: {
-            LSUIElement: 1
+            LSUIElement: 0
           },
           target: [{
             target: 'dmg',
@@ -47,26 +48,40 @@ module.exports = {
             ]
           }],
           // eslint-disable-next-line no-template-curly-in-string
-          artifactName: 'JumpServer-Clients-${version}-${arch}.dmg'
+          artifactName: 'JumpServer-Config-Clients-${version}-${arch}.dmg'
         },
         win: {
           icon: 'build/icons/icon.ico',
           // eslint-disable-next-line no-template-curly-in-string
-          artifactName: 'JumpServer-Clients-${version}-${arch}.exe',
+          artifactName: 'JumpServer-Config-Clients-${version}-${arch}.exe',
           target: [{
-            target: 'msi',
+            target: 'nsis',
             arch: [
               'x64',
               'ia32'
             ]
           }]
         },
+        nsis: {
+          oneClick: false,
+          allowToChangeInstallationDirectory: true,
+        },
         linux: {
           icon: 'build/icons/'
         },
-        snap: {
-          publish: ['github']
-        }
+      },
+      chainWebpackMainProcess: (config) => {
+        config.resolve.alias
+            .set('@', resolve('src/renderer'))
+            .set('~', resolve('src'))
+            .set('root', resolve('./'))
+        config.output.filename((file) => {
+          if (file.chunk.name === 'index') {
+            return 'background.js';
+          } else {
+            return '[name].js';
+          }
+        });
       }
     }
   }

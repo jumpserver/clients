@@ -22,7 +22,7 @@ func main() {
 		infoJson := string(decoded)
 		json.Unmarshal([]byte(infoJson), p)
 		r := awaken.Rouse{
-			Info:    *p,
+			Info: *p,
 		}
 		r.Run()
 	}
