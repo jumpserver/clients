@@ -43,7 +43,7 @@ async function createWindow() {
         createProtocol("app");
         // Load the index.html when not in development
         await mainWindow.loadURL("app://./index.html");
-        mainWindow.webContents.openDevTools()
+        // mainWindow.webContents.openDevTools()
     }
 }
 
