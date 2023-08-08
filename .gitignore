@@ -1,3 +1,8 @@
 .DS_Store
 .idea/
-/go-client/test.go
+go-client/test.go
+go-client/build
+interface/node_modules
+interface/yarn.lock
+interface/dist_electron
+interface/dist

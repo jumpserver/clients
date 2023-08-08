@@ -1,13 +1,12 @@
 package awaken
 
 import (
-	"fmt"
 	"go-client/global"
+	"go-client/pkg/config"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 )
 
 /*{
@@ -28,9 +27,14 @@ type File struct {
 
 type Info struct {
 	ID       string `json:"id"`
+	Name     string `json:"name"`
 	Value    string `json:"value"`
 	Protocol string `json:"protocol"`
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	Username string `json:"username"`
 	Command  string `json:"command"`
+	DBName   string `json:"dbname"`
 	File     `json:"file"`
 }
 
@@ -57,92 +61,39 @@ func removeCurRdpFile() {
 	}
 }
 
-func (r *Rouse) HandleRDP() {
+func (r *Rouse) HandleRDP(appConfig *config.AppConfig) {
 	removeCurRdpFile()
-	filePath := filepath.Join(filepath.Dir(os.Args[0]), r.Name+".rdp")
+	filePath := filepath.Join(filepath.Dir(os.Args[0]), r.File.Name+".rdp")
 	err := ioutil.WriteFile(filePath, []byte(r.Content), os.ModePerm)
 	if err != nil {
 		global.LOG.Error(err.Error())
 		return
 	}
-	cmd := handleRDP(filePath)
+	cmd := handleRDP(r, filePath, appConfig)
 	cmd.Run()
 }
 
-func (r *Rouse) HandleSSH() {
+func (r *Rouse) HandleSSH(appConfig *config.AppConfig) {
 	currentPath := filepath.Dir(os.Args[0])
-	cmd := handleSSH(r.Command, r.Value, currentPath)
+	cmd := handleSSH(r, currentPath, appConfig)
 	cmd.Run()
 }
 
-func structureMySQLCommand(command string) string {
-	command = strings.ReplaceAll(command, "mysql ", "")
-	db := &DBCommand{}
-	paramSlice := strings.Split(command, " ")
-	for i, v := range paramSlice {
-		if strings.HasPrefix(v, "-p") {
-			db.Password = paramSlice[i][2:]
-			continue
-		}
-		switch v {
-		case "-u":
-			db.User = paramSlice[i+1]
-		case "-h":
-			db.Host = paramSlice[i+1]
-		case "-P":
-			db.Port = paramSlice[i+1]
-		}
-	}
-	db.DBName = paramSlice[len(paramSlice)-1]
-	command = fmt.Sprintf(
-		"mysql -u %s -p%s -h %s -P %s %s",
-		db.User, db.Password, db.Host, db.Port, db.DBName,
-	)
-	return command
-}
-
-func structureRedisCommand(command string) string {
-	command = strings.ReplaceAll(command, "redis-cli ", "")
-	db := &DBCommand{}
-	paramSlice := strings.Split(command, " ")
-	for i, v := range paramSlice {
-		switch v {
-		case "-a":
-			db.Password = paramSlice[i+1]
-		case "-h":
-			db.Host = paramSlice[i+1]
-		case "-p":
-			db.Port = paramSlice[i+1]
-		}
-	}
-	cmd := fmt.Sprintf(
-		"redis-cli -h %s -p %s -a %s",
-		db.Host, db.Port, db.Password,
-	)
-	return cmd
-}
-
-func (r *Rouse) HandleDB() {
-	command := r.Command
-	switch r.Protocol {
-	case "mysql", "mariadb":
-		command = structureMySQLCommand(command)
-	case "postgresql":
-		command = structurePostgreSQLCommand(command)
-	case "redis":
-		command = structureRedisCommand(command)
-	}
-	cmd := handleDB(command)
+func (r *Rouse) HandleDB(appConfig *config.AppConfig) {
+	cmd := handleDB(r, appConfig)
 	cmd.Run()
 }
+
 func (r *Rouse) Run() {
 	protocol := r.Protocol
+	appConfig := config.GetConf()
+
 	switch protocol {
 	case "rdp":
-		r.HandleRDP()
-	case "ssh":
-		r.HandleSSH()
+		r.HandleRDP(&appConfig)
+	case "ssh", "sftp":
+		r.HandleSSH(&appConfig)
 	case "mysql", "mariadb", "postgresql", "redis", "oracle", "sqlserver":
-		r.HandleDB()
+		r.HandleDB(&appConfig)
 	}
 }

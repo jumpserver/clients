@@ -4,50 +4,21 @@
 package awaken
 
 import (
-	"fmt"
+	"go-client/pkg/config"
 	"os/exec"
-	"path/filepath"
-	"strings"
 )
 
-func handleRDP(filePath string) *exec.Cmd {
+func handleRDP(r *Rouse, filePath string, cfg *config.AppConfig) *exec.Cmd {
 	cmd := awakenRDPCommand(filePath)
 	return cmd
 }
 
-func handleSSH(c string, secret string, currentPath string) *exec.Cmd {
-	clientPath := filepath.Join(currentPath, "client")
-	command := fmt.Sprintf("%s %s -P %s", clientPath, c, secret)
-	cmd := awakenCommand(command)
+func handleSSH(r *Rouse, currentPath string, cfg *config.AppConfig) *exec.Cmd {
+	cmd := awakenSSHCommand(r, currentPath, cfg)
 	return cmd
 }
 
-func structurePostgreSQLCommand(command string) string {
-	command = strings.Trim(strings.ReplaceAll(command, "psql ", ""), `"`)
-	db := &DBCommand{}
-	for _, v := range strings.Split(command, " ") {
-		tp, val := strings.Split(v, "=")[0], strings.Split(v, "=")[1]
-		switch tp {
-		case "user":
-			db.User = val
-		case "password":
-			db.Password = val
-		case "host":
-			db.Host = val
-		case "port":
-			db.Port = val
-		case "dbname":
-			db.DBName = val
-		}
-	}
-	command = fmt.Sprintf(
-		"PGPASSWORD=%s psql -U %s -h %s -p %s -d %s",
-		db.Password, db.User, db.Host, db.Port, db.DBName,
-	)
-	return command
-}
-
-func handleDB(command string) *exec.Cmd {
-	cmd := awakenCommand(command)
+func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
+	cmd := awakenDBCommand(r, cfg)
 	return cmd
 }

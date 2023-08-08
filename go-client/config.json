@@ -1,0 +1,331 @@
+{
+  "filename": "Jumpserve Clients Config",
+  "windows": {
+    "terminal": [
+      {
+        "name": "xshell",
+        "display_name": "XShell",
+        "protocol": [
+          "ssh",
+          "telnet"
+        ],
+        "comment": "XShell是一个强大的安全终端模拟软件，它支持SSH、TELNET协议。",
+        "download_url": "https://www.xshell.com/zh/xshell-download/",
+        "type": "linux",
+        "path": "",
+        "arg_format": "-newtab {name} -url {protocol}://{username}:{value}@{host}:{port}",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      },
+      {
+        "name": "securecrt",
+        "display_name": "SecureCRT",
+        "protocol": [
+          "ssh",
+          "telnet"
+        ],
+        "comment": "SecureCRT是VanDyke Software所开发销售的一个SSH、Telnet客户端和虚拟终端软件。",
+        "download_url": "https://www.vandyke.com/cgi-bin/releases.php?product=securecrt",
+        "type": "linux",
+        "path": "",
+        "arg_format": "/N {name} /T /SSH2 /ACCEPTHOSTKEYS /p {port} /password {value} /L {username} {host}",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      },
+      {
+        "name": "putty",
+        "display_name": "PuTTY",
+        "protocol": [
+          "ssh",
+          "telnet"
+        ],
+        "comment": "PuTTY是一个Telnet、SSH、rlogin纯TCP以及串行阜连线软件。",
+        "download_url": "内置",
+        "type": "linux",
+        "path": "putty.exe",
+        "arg_format": "-{protocol} {username}@{host} -P {port} -pw {value}",
+        "match_first": [],
+        "is_internal": true,
+        "is_default": true,
+        "is_set": true
+      }
+    ],
+    "remotedesktop": [
+      {
+        "name": "mstsc",
+        "display_name": "Microsoft Remote Desktop",
+        "protocol": [
+          "rdp"
+        ],
+        "comment": "Microsoft Remote Desktop是一款强大的微软远程连接工具，可以从几乎任何地方连接到远程PC和您的工作资源。",
+        "download_url": "内置",
+        "type": "windows",
+        "path": "mstsc.exe",
+        "arg_format": "",
+        "match_first": [],
+        "is_internal": true,
+        "is_default": true,
+        "is_set": true
+      }
+    ],
+    "filetransfer": [
+      {
+        "name": "winscp",
+        "display_name": "WinSCP",
+        "protocol": [
+          "sftp"
+        ],
+        "comment": "WinSCP是一个Windows环境下使用SSH的开源图形化SFTP客户端，同时支持SCP协议。",
+        "download_url": "https://winscp.net/eng/index.php",
+        "type": "linux",
+        "path": "",
+        "arg_format": "{protocol}://{username}:{value}@{host}:{port}",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      },
+      {
+        "name": "filezilla",
+        "display_name": "Filezilla",
+        "protocol": [
+          "sftp"
+        ],
+        "comment": "FileZilla Client是一款免费、开源的 FTP 客户端。它支持FTP、SFTP。",
+        "download_url": "https://filezilla-project.org/download.php?type=client",
+        "type": "linux",
+        "path": "",
+        "arg_format": "{protocol}://{username}:{value}@{host}:{port}",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      }
+    ],
+    "databases": [
+      {
+        "name": "plsql",
+        "display_name": "PL/SQL Developer",
+        "protocol": [
+          "oracle"
+        ],
+        "comment": "PL/SQL Developer是一个集成开发环境，由Allround Automations公司开发，专门面向Oracle数据库存储的程序单元的开发。",
+        "download_url": "https://www.allroundautomations.com/registered-plsqldev/",
+        "type": "databases",
+        "path": "",
+        "arg_format": "userid={username}/{value}@{host}:{port}/{dbname}",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      },
+      {
+        "name": "dbeaver",
+        "display_name": "DBeaver Community",
+        "protocol": [
+          "oracle",
+          "mysql",
+          "postgresql",
+          "mariadb"
+        ],
+        "comment": "DBeaver Community是一个通用的数据库管理工具和SQL客户端，支持MySQL、PostgreSQL、Oracle以及其他兼容JDBC的数据库。",
+        "download_url": "https://dbeaver.io/download/",
+        "type": "databases",
+        "path": "",
+        "arg_format": "-con name={name}|driver={protocol}|user={username}|password={value}|database={dbname}|host={host}|port={port}|save=false|connect=true",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      },
+      {
+        "name": "resp",
+        "display_name": "Redis Desktop Manager",
+        "protocol": [
+          "redis"
+        ],
+        "comment": "Redis Desktop Manager 是一款能够跨平台使用的开源 Redis 可视化工具，主要针对 Redis 开发设计。",
+        "download_url": "https://github.com/FuckDoctors/rdm-builder/releases/download/2022.5.1/resp-2022.5.1.exe",
+        "type": "databases",
+        "path": "",
+        "arg_format": "--settings-dir {config_file}",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      }
+    ]
+  },
+  "macos": {
+    "terminal": [
+      {
+        "name": "terminal",
+        "display_name": "Terminal",
+        "protocol": [
+          "ssh"
+        ],
+        "comment": "Terminal是MacOS操作系统上的虚拟终端应用软件，位于“实用工具”文件夹内。",
+        "download_url": "内置",
+        "type": "linux",
+        "path": "Terminal",
+        "arg_format": "-{protocol} {username}@{host} -P {port} -pw {value}",
+        "match_first": [],
+        "is_internal": true,
+        "is_default": true,
+        "is_set": true
+      },
+      {
+        "name": "securecrt",
+        "display_name": "SecureCRT",
+        "protocol": [
+          "ssh"
+        ],
+        "comment": "SecureCRT是VanDyke Software所开发销售的一个SSH、Telnet客户端和虚拟终端软件。\n\n!!!手动下载安装，点击保存启用!!!",
+        "download_url": "https://www.vandyke.com/cgi-bin/releases.php?product=securecrt",
+        "type": "linux",
+        "path": "/Applications/SecureCRT.app/Contents/MacOS/SecureCRT",
+        "arg_format": "/N {name} /T /SSH2 /ACCEPTHOSTKEYS /p {port} /password {value} /L {username} {host}",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      }
+    ],
+    "remotedesktop": [
+      {
+        "name": "mstsc",
+        "display_name": "Microsoft Remote Desktop",
+        "protocol": [
+          "rdp"
+        ],
+        "comment": "Microsoft Remote Desktop是一款强大的微软远程连接工具，可以从几乎任何地方连接到远程PC和您的工作资源。\n\n!!!手动下载安装，点击保存启用!!!",
+        "download_url": "内置",
+        "type": "windows",
+        "path": "/Applications/Microsoft Remote Desktop.app",
+        "arg_format": "",
+        "match_first": [],
+        "is_internal": true,
+        "is_default": true,
+        "is_set": false
+      }
+    ],
+    "filetransfer": [
+      {
+        "name": "filezilla",
+        "display_name": "Filezilla",
+        "protocol": [
+          "sftp"
+        ],
+        "comment": "FileZilla Client是一款免费、开源的 FTP 客户端。它支持FTP、SFTP。\n\n!!!手动下载安装，点击保存启用!!!",
+        "download_url": "https://filezilla-project.org/download.php?type=client",
+        "type": "linux",
+        "path": "/Applications/FileZilla.app/Contents/MacOS/filezilla",
+        "arg_format": "{protocol}://{username}:{value}@{host}:{port}",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      }
+    ],
+    "databases": [
+      {
+        "name": "dbeaver",
+        "display_name": "DBeaver Community",
+        "protocol": [
+          "oracle",
+          "mysql",
+          "postgresql",
+          "mariadb"
+        ],
+        "comment": "DBeaver Community是一个通用的数据库管理工具和SQL客户端，支持MySQL、PostgreSQL、Oracle以及其他兼容JDBC的数据库。\n\n!!!手动下载安装，点击保存启用!!!",
+        "download_url": "https://dbeaver.io/download/",
+        "type": "databases",
+        "path": "/Applications/DBeaver.app/Contents/MacOS/dbeaver",
+        "arg_format": "-con name={name}|driver={protocol}|user={username}|password={value}|database={dbname}|host={host}|port={port}|save=false|connect=true",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      }
+    ]
+  },
+  "linux": {
+    "terminal": [
+      {
+        "name": "terminal",
+        "display_name": "Terminal",
+        "protocol": [
+          "ssh"
+        ],
+        "comment": "Terminal是MacOS操作系统上的虚拟终端应用软件，位于“实用工具”文件夹内。",
+        "download_url": "内置",
+        "type": "linux",
+        "path": "Terminal",
+        "arg_format": "-{protocol} {username}@{host} -P {port} -pw {value}",
+        "match_first": [],
+        "is_internal": true,
+        "is_default": true,
+        "is_set": true
+      }
+    ],
+    "remotedesktop": [      {
+      "name": "remmina",
+      "display_name": "Remmina",
+      "protocol": [
+        "rdp"
+      ],
+      "comment": "Remmina 是一个使用 GTK+ 开发的远程桌面客户端，提供了 RDP、VNC、XDMCP、SSH 等远程连接协议的支持。",
+      "download_url": "https://remmina.org/how-to-install-remmina/-内置",
+      "type": "windows",
+      "path": "remmina",
+      "arg_format": "",
+      "match_first": [],
+      "is_internal": true,
+      "is_default": true,
+      "is_set": true
+    }],
+    "filetransfer": [
+      {
+        "name": "filezilla",
+        "display_name": "Filezilla",
+        "protocol": [
+          "sftp"
+        ],
+        "comment": "FileZilla Client是一款免费、开源的 FTP 客户端。它支持FTP、SFTP。",
+        "download_url": "https://filezilla-project.org/download.php?type=client",
+        "type": "linux",
+        "path": "",
+        "arg_format": "{protocol}://{username}:{value}@{host}:{port}",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      }
+    ],
+    "databases": [
+      {
+        "name": "dbeaver",
+        "display_name": "DBeaver Community",
+        "protocol": [
+          "oracle",
+          "mysql",
+          "postgresql",
+          "mariadb"
+        ],
+        "comment": "DBeaver Community是一个通用的数据库管理工具和SQL客户端，支持MySQL、PostgreSQL、Oracle以及其他兼容JDBC的数据库。",
+        "download_url": "https://dbeaver.io/download/",
+        "type": "databases",
+        "path": "",
+        "arg_format": "-con name={name}|driver={protocol}|user={username}|password={value}|database={dbname}|host={host}|port={port}|save=false|connect=true",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      }
+    ]
+  }
+}

@@ -1,62 +1,127 @@
 package awaken
 
 import (
-	"fmt"
+	"encoding/json"
+	"go-client/global"
+	"go-client/pkg/config"
+	"io/ioutil"
+	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
-	"syscall"
 )
 
-func handleRDP(filePath string) *exec.Cmd {
+func EnsureDirExist(path string) {
+	if fi, err := os.Stat(path); err == nil && fi.IsDir() {
+		return
+	}
+	if err := os.MkdirAll(path, os.ModePerm); err != nil {
+		global.LOG.Error(err.Error())
+	}
+}
+
+func getCommandFromArgs(connectInfo map[string]string, argFormat string) string {
+	for key, value := range connectInfo {
+		argFormat = strings.Replace(argFormat, "{"+key+"}", value, 1)
+	}
+	return argFormat
+}
+
+func handleRDP(r *Rouse, filePath string, cfg *config.AppConfig) *exec.Cmd {
 	cmd := exec.Command("mstsc.exe", filePath)
 	return cmd
 }
 
-func handleSSH(c string, secret string, currentPath string) *exec.Cmd {
-	puttyPath := "putty.exe"
-	if _, err := exec.LookPath("putty.exe"); err != nil {
-		puttyPath = filepath.Join(currentPath, "putty.exe")
+func handleSSH(r *Rouse, currentPath string, cfg *config.AppConfig) *exec.Cmd {
+	var appItem *config.AppItem
+	var appLst []config.AppItem
+	switch r.Protocol {
+	case "ssh":
+		appLst = cfg.Windows.Terminal
+	case "sftp":
+		appLst = cfg.Windows.FileTransfer
 	}
 
-	//TODO core api 有时判断系统会判断错 导致返回无putty
-	if strings.HasPrefix(c, "putty.exe") {
-		c = strings.Replace(c, "putty.exe -", "", 1)
-	}
-
-	c = strings.Replace(c, " -p ", " -P ", 1)
-	c = fmt.Sprintf("-%s -pw %s", c, secret)
-	command := strings.Split(c, " ")
-	return exec.Command(puttyPath, command...)
-}
-
-func structurePostgreSQLCommand(command string) string {
-	command = strings.Trim(strings.ReplaceAll(command, "psql ", ""), `"`)
-	db := &DBCommand{}
-	for _, v := range strings.Split(command, " ") {
-		tp, val := strings.Split(v, "=")[0], strings.Split(v, "=")[1]
-		switch tp {
-		case "user":
-			db.User = val
-		case "password":
-			db.Password = val
-		case "host":
-			db.Host = val
-		case "port":
-			db.Port = val
-		case "dbname":
-			db.DBName = val
+	for _, app := range appLst {
+		if app.IsActive() && app.IsSupportProtocol(r.Protocol) {
+			appItem = &app
+			break
 		}
 	}
-	command = fmt.Sprintf(
-		`psql "user=%s password=%s host=%s dbname=%s port=%s"`,
-		db.User, db.Password, db.Host, db.DBName, db.Port,
-	)
-	return command
+	if appItem == nil {
+		return nil
+	}
+	var appPath string
+	if appItem.IsInternal {
+		appPath = filepath.Join(currentPath, appItem.Path)
+	} else {
+		appPath = appItem.Path
+	}
+
+	connectMap := map[string]string{
+		"name":     r.Name,
+		"protocol": r.Protocol,
+		"username": r.Username,
+		"value":    r.Value,
+		"host":     r.Host,
+		"port":     strconv.Itoa(r.Port),
+	}
+	commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
+	return exec.Command(appPath, strings.Split(commands, " ")...)
 }
 
-func handleDB(command string) *exec.Cmd {
-	cmd := exec.Command("cmd")
-	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CmdLine: `/c start cmd /k ` + command}
-	return cmd
+func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
+	var appItem *config.AppItem
+	appLst := cfg.Windows.Databases
+	for _, app := range appLst {
+		if app.IsSet && app.IsMatchProtocol(r.Protocol) {
+			appItem = &app
+			break
+		}
+	}
+	if appItem == nil {
+		return nil
+	}
+	appPath := appItem.Path
+
+	connectMap := map[string]string{
+		"name":     r.Name,
+		"protocol": r.Protocol,
+		"username": r.Username,
+		"value":    r.Value,
+		"host":     r.Host,
+		"port":     strconv.Itoa(r.Port),
+		"dbname":   r.DBName,
+	}
+
+	if r.Protocol == "redis" {
+		var conList []map[string]string
+		ss := make(map[string]string)
+		ss["host"] = r.Host
+		ss["port"] = strconv.Itoa(r.Port)
+		ss["name"] = r.Name
+		ss["auth"] = r.Username + "@" + r.Value
+		ss["ssh_agent_path"] = ""
+		ss["ssh_password"] = ""
+		ss["ssh_private_key_path"] = ""
+		ss["timeout_connect"] = "60000"
+		ss["timeout_execute"] = "60000"
+		conList = append(conList, ss)
+
+		bjson, _ := json.Marshal(conList)
+		currentPath := filepath.Dir(os.Args[0])
+		rdmPath := filepath.Join(currentPath, ".rdm")
+		EnsureDirExist(rdmPath)
+		filePath := filepath.Join(rdmPath, "connections.json")
+		global.LOG.Error(filePath)
+		err := ioutil.WriteFile(filePath, bjson, os.ModePerm)
+		if err != nil {
+			global.LOG.Error(err.Error())
+			return nil
+		}
+		connectMap["config_file"] = currentPath
+	}
+	commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
+	return exec.Command(appPath, strings.Split(commands, " ")...)
 }

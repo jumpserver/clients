@@ -1,0 +1,67 @@
+{
+  "name": "interface",
+  "author": "Fit2Cloud Technology Co., Ltd.; <support@fit2cloud.com>",
+  "version": "v2.0.0",
+  "homepage": "https://jumpserver.org",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service electron:serve",
+    "lint": "vue-cli-service lint",
+    "electron:build": "vue-cli-service electron:build",
+    "electron:serve": "vue-cli-service electron:serve",
+    "postinstall": "electron-builder install-app-deps",
+    "postuninstall": "electron-builder install-app-deps"
+  },
+  "main": "background.js",
+  "dependencies": {
+    "@babel/plugin-proposal-optional-chaining": "^7.21.0",
+    "@element-plus/icons-vue": "^2.1.0",
+    "core-js": "^3.8.3",
+    "element-plus": "^2.3.0",
+    "fs-extra": "^11.1.1",
+    "vue": "^3.2.13",
+    "vue-router": "^4.1.6"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.16",
+    "@babel/eslint-parser": "^7.12.16",
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-plugin-eslint": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "electron": "^23.1.3",
+    "electron-devtools-installer": "^3.1.0",
+    "eslint": "^8.31.0",
+    "eslint-config-standard": ">=16.0.0",
+    "eslint-plugin-import": "^2.24.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-vue": "^9.8.0",
+    "sass": "^1.63.3",
+    "sass-loader": "^13.3.2",
+    "vue-cli-plugin-electron-builder": "~2.1.1"
+  },
+  "overrides": {
+    "vue-cli-plugin-electron-builder": {
+      "electron-builder": "^23.1.0"
+    }
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/vue3-essential",
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "parser": "@babel/eslint-parser"
+    },
+    "rules": {}
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ]
+}
