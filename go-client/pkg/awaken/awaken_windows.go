@@ -71,19 +71,7 @@ func handleSSH(r *Rouse, currentPath string, cfg *config.AppConfig) *exec.Cmd {
 	return exec.Command(appPath, strings.Split(commands, " ")...)
 }
 
-func structureMySQLCommand(command string) string {
-	return ""
-}
-
-func structureRedisCommand(command string) string {
-	return ""
-}
-
-func structurePostgreSQLCommand(command string) string {
-	return ""
-}
-
-func handleDB(r *Rouse, command string, cfg *config.AppConfig) *exec.Cmd {
+func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	var appItem *config.AppItem
 	appLst := cfg.Windows.Databases
 	for _, app := range appLst {

@@ -13,7 +13,7 @@
         <el-input v-model="selectItem.comment" readonly rows="4" resize="none" type="textarea"/>
       </el-form-item>
       <el-form-item label="下载地址" prop="download_url">
-        <el-input v-model="selectItem.download_url" readonly autosize="{maxRows: 2}"  resize="none" type="textarea"/>
+        <el-input v-model="selectItem.download_url" readonly :autosize="{maxRows: 2}"  resize="none" type="textarea"/>
       </el-form-item>
       <el-form-item label="应用路径" prop="path" :rules="[{required: true, message: '路径不能为空', trigger: 'blur'}]">
         <el-input
@@ -58,6 +58,10 @@ export default {
       type: Array,
       default: () => []
     },
+    os: {
+      type: String,
+      default: ''
+    },
   },
   data() {
     return {
@@ -84,8 +88,11 @@ export default {
     },
     changeFile() {
       const exe = document.getElementById("select-exe");
-      if (exe == null) return;
-      this.selectItem.path = exe.files[0].path;
+      if (this.os === 'darwin') {
+        this.selectItem.path = '/Applications/' + exe.files[0].name.replace('.zip', '');
+      } else {
+        this.selectItem.path = exe.files[0].path;
+      }
     },
     onCancelItem() {
       this.clearSelectItem()

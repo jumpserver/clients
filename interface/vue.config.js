@@ -15,11 +15,15 @@ module.exports = {
   },
   pluginOptions: {
     electronBuilder: {
-      nodeIntegration:true,
+      nodeIntegration: true,
       customFileProtocol: './',
       builderOptions: {
-        productName: 'JumpServer Config Clients',
+        productName: 'JumpServer本地客户端工具',
         appId: 'com.jumpserver.client',
+        asar: false,
+        extraResources: [
+          "bin/**"
+        ],
         dmg: {
           contents: [
             {
@@ -48,12 +52,16 @@ module.exports = {
             ]
           }],
           // eslint-disable-next-line no-template-curly-in-string
-          artifactName: 'JumpServer-Config-Clients-${version}-${arch}.dmg'
+          artifactName: 'JumpServer-Clients-Installer-${os}-${version}-${arch}.dmg',
+          protocols: {
+            name: "Jms",
+            schemes: ["jms"]
+          },
         },
         win: {
           icon: 'build/icons/icon.ico',
           // eslint-disable-next-line no-template-curly-in-string
-          artifactName: 'JumpServer-Config-Clients-${version}-${arch}.exe',
+          artifactName: 'JumpServer-Clients-Installer-${os}-${version}-${arch}.exe',
           target: [{
             target: 'nsis',
             arch: [
@@ -67,7 +75,20 @@ module.exports = {
           allowToChangeInstallationDirectory: true,
         },
         linux: {
-          icon: 'build/icons/'
+          icon: 'build/icons/',
+          // eslint-disable-next-line no-template-curly-in-string
+          artifactName: 'JumpServer-Clients-Installer-${os}-${version}-${arch}.deb',
+          protocols: {
+            name: "Jms",
+            schemes: ["jms"]
+          },
+          target: [{
+            target: 'deb',
+            arch: [
+              'x64',
+              'arm64'
+            ]
+          }]
         },
       },
       chainWebpackMainProcess: (config) => {

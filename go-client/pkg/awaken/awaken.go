@@ -80,16 +80,7 @@ func (r *Rouse) HandleSSH(appConfig *config.AppConfig) {
 }
 
 func (r *Rouse) HandleDB(appConfig *config.AppConfig) {
-	command := r.Command
-	switch r.Protocol {
-	case "mysql", "mariadb":
-		command = structureMySQLCommand(command)
-	case "postgresql":
-		command = structurePostgreSQLCommand(command)
-	case "redis":
-		command = structureRedisCommand(command)
-	}
-	cmd := handleDB(r, command, appConfig)
+	cmd := handleDB(r, appConfig)
 	cmd.Run()
 }
 

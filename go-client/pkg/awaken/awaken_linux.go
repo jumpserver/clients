@@ -3,9 +3,19 @@ package awaken
 import (
 	"fmt"
 	"go-client/global"
+	"go-client/pkg/config"
 	"os/exec"
+	"path/filepath"
+	"strconv"
 	"strings"
 )
+
+func getCommandFromArgs(connectInfo map[string]string, argFormat string) string {
+	for key, value := range connectInfo {
+		argFormat = strings.Replace(argFormat, "{"+key+"}", value, 1)
+	}
+	return argFormat
+}
 
 func awakenRDPCommand(filePath string) *exec.Cmd {
 	global.LOG.Debug(filePath)
@@ -13,7 +23,9 @@ func awakenRDPCommand(filePath string) *exec.Cmd {
 	return cmd
 }
 
-func awakenCommand(command string) *exec.Cmd {
+func awakenSSHCommand(r *Rouse, currentPath string, cfg *config.AppConfig) *exec.Cmd {
+	clientPath := filepath.Join(currentPath, "client")
+	command := fmt.Sprintf("%s %s -P %s", clientPath, r.Command, r.Value)
 	cmd := new(exec.Cmd)
 	out, _ := exec.Command("bash", "-c", "echo $XDG_CURRENT_DESKTOP").CombinedOutput()
 	currentDesktop := strings.ToLower(strings.Trim(string(out), "\n"))
@@ -31,4 +43,31 @@ func awakenCommand(command string) *exec.Cmd {
 		global.LOG.Info(msg)
 	}
 	return cmd
+}
+
+func awakenDBCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
+	var appItem *config.AppItem
+	appLst := cfg.Windows.Databases
+	for _, app := range appLst {
+		if app.IsSet && app.IsMatchProtocol(r.Protocol) {
+			appItem = &app
+			break
+		}
+	}
+	if appItem == nil {
+		return nil
+	}
+	appPath := appItem.Path
+
+	connectMap := map[string]string{
+		"name":     r.Name,
+		"protocol": r.Protocol,
+		"username": r.Username,
+		"value":    r.Value,
+		"host":     r.Host,
+		"port":     strconv.Itoa(r.Port),
+		"dbname":   r.DBName,
+	}
+	commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
+	return exec.Command(appPath, strings.Split(commands, " ")...)
 }
