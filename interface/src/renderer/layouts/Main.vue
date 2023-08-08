@@ -35,7 +35,7 @@
             <el-icon>
               <i class="fa fa-database" aria-hidden="true"></i>
             </el-icon>
-            <span>数据库工具</span>
+            <span>数据库</span>
           </el-menu-item>
           <el-menu-item index="aboutPage">
             <el-icon>
@@ -50,7 +50,7 @@
           class="main-wrapper"
       >
         <section class="app-main">
-          <router-view :key="key" :activeItems="activeItems"/>
+          <router-view :key="key" :activeItems="activeItems" :os="os" />
         </section>
       </el-col>
     </el-row>
@@ -69,7 +69,7 @@ export default {
   setup() {
     const defaultActive = ref('sshPage')
     let activeItems = ref()
-    const os = ref('')
+    const os = ref()
 
     const {proxy} = getCurrentInstance();
     let key = computed(() => {

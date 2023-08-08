@@ -1,7 +1,8 @@
 {
   "name": "interface",
-  "author": "Fit2Cloud Technology Co., Ltd.;",
+  "author": "Fit2Cloud Technology Co., Ltd.; <support@fit2cloud.com>",
   "version": "v2.0.0",
+  "homepage": "https://jumpserver.org",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service electron:serve",
@@ -37,6 +38,11 @@
     "sass": "^1.63.3",
     "sass-loader": "^13.3.2",
     "vue-cli-plugin-electron-builder": "~2.1.1"
+  },
+  "overrides": {
+    "vue-cli-plugin-electron-builder": {
+      "electron-builder": "^23.1.0"
+    }
   },
   "eslintConfig": {
     "root": true,

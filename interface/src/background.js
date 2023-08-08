@@ -3,6 +3,7 @@ import {createProtocol} from "vue-cli-plugin-electron-builder/lib";
 import installExtension, {VUEJS3_DEVTOOLS} from "electron-devtools-installer";
 import path from 'path'
 import fse from 'fs-extra'
+import {execFile} from "child_process";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 // Scheme must be registered before the app is ready
@@ -10,9 +11,11 @@ protocol.registerSchemesAsPrivileged([
     {scheme: "app", privileges: {secure: true, standard: true}},
 ]);
 
+let mainWindow
+
 async function createWindow() {
     // Create the browser window.
-    const win = new BrowserWindow({
+    mainWindow = new BrowserWindow({
         width: 860,
         height: 550,
         center: true,
@@ -34,12 +37,13 @@ async function createWindow() {
 
     if (process.env.WEBPACK_DEV_SERVER_URL) {
         // Load the url of the dev server if in development mode
-        await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
-        // if (!process.env.IS_TEST) win.webContents.openDevTools()
+        await mainWindow.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
+        // if (!process.env.IS_TEST) mainWindow.webContents.openDevTools()
     } else {
         createProtocol("app");
         // Load the index.html when not in development
-        win.loadURL("app://./index.html");
+        await mainWindow.loadURL("app://./index.html");
+        mainWindow.webContents.openDevTools()
     }
 }
 
@@ -105,8 +109,80 @@ if (isDevelopment) {
     }
 }
 
-const STORE_PATH = app.getPath('appData')
-const configFilePath = path.join(STORE_PATH, 'JumpServer', 'Client', 'config.json')
+
+if (process.defaultApp) {
+    if (process.argv.length >= 2) {
+        app.setAsDefaultProtocolClient('jms', process.execPath, [path.resolve(process.argv[1])])
+    }
+} else {
+    app.setAsDefaultProtocolClient('jms')
+}
+
+const handleOpenFromUrl = (url) => {
+    let subPath
+    if (isDevelopment && !process.env.IS_TEST) {
+        subPath = "bin"
+    } else {
+        subPath = process.resourcesPath + "/bin"
+    }
+    if (process.platform === "linux") {
+        switch (process.arch) {
+            case 'x32':
+            case 'x64':
+                subPath += "/linux-amd64"
+                break;
+            case 'arm':
+            case 'arm64':
+                subPath += "/linux-arm64"
+                break;
+        }
+    } else if (process.platform === "darwin") {
+        subPath += "/darwin"
+    }
+    console.log(subPath)
+    let exeFilePath = path.join(subPath, 'JumpServerClient')
+    const {execFile} = require('child_process')
+    execFile(exeFilePath, [url], (error, stdout, stderr) => {
+        if (error) {
+            console.log(error);
+        }
+    });
+}
+
+app.on('open-url', (event, urlStr) => {
+    handleOpenFromUrl(urlStr);
+});
+
+// 隐藏主窗口
+const hideWindow = () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.hide()
+    }
+}
+
+app.on('second-instance', (event, commandLine, workingDirectory) => {
+    let commands = commandLine.slice();
+    // commandLine 是一个数组， 其中最后一个数组元素为我们唤醒的链接
+    let urlStr = commands.pop();
+    handleOpenFromUrl(urlStr)
+})
+
+
+let STORE_PATH
+let configFilePath
+if (process.platform === "win32") {
+    STORE_PATH = app.getPath('appData')
+    configFilePath = path.join(STORE_PATH, 'JumpServer', 'Client', 'config.json')
+} else {
+    let subPath
+    if (isDevelopment && !process.env.IS_TEST) {
+        subPath = "bin"
+    } else {
+        subPath = process.resourcesPath + "/bin"
+    }
+    configFilePath = path.join(subPath, 'config.json')
+}
+
 const callBackUrlName = 'config-reply-get'//消息发布-发布名称
 //读取本地文件
 ipcMain.on('config-get', function (event) {
@@ -153,21 +229,21 @@ ipcMain.on('config-set', function (event, type, value) {
                     break
             }
             lst.forEach(item => {
-                if (value.is_default){
+                if (value.is_default) {
                     item.is_default = false
                 }
-                if (item.match_first.length > 0){
-                    item.match_first = item.match_first.filter(item=>!value.match_first.includes(item))
+                if (item.match_first.length > 0) {
+                    item.match_first = item.match_first.filter(item => !value.match_first.includes(item))
                 }
-                if(item.name === value.name) {
+                if (item.name === value.name) {
                     item.path = value.path
                     item.is_default = value.is_default
-                    item.is_set= value.is_set
-                    item.match_first= value.match_first
+                    item.is_set = value.is_set
+                    item.match_first = value.match_first
                 }
             })
             const config_str = JSON.stringify(config)
-            fse.writeFileSync(configFilePath, config_str,"utf8")
+            fse.writeFileSync(configFilePath, config_str, "utf8")
             event.sender.send(callBackUrlName, 200, config_str);
         }
     })
