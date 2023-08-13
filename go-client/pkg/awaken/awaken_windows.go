@@ -33,7 +33,7 @@ func handleRDP(r *Rouse, filePath string, cfg *config.AppConfig) *exec.Cmd {
 	return cmd
 }
 
-func handleSSH(r *Rouse, currentPath string, cfg *config.AppConfig) *exec.Cmd {
+func handleSSH(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	var appItem *config.AppItem
 	var appLst []config.AppItem
 	switch r.Protocol {
@@ -54,6 +54,7 @@ func handleSSH(r *Rouse, currentPath string, cfg *config.AppConfig) *exec.Cmd {
 	}
 	var appPath string
 	if appItem.IsInternal {
+		currentPath := filepath.Dir(os.Args[0])
 		appPath = filepath.Join(currentPath, appItem.Path)
 	} else {
 		appPath = appItem.Path
@@ -62,7 +63,7 @@ func handleSSH(r *Rouse, currentPath string, cfg *config.AppConfig) *exec.Cmd {
 	connectMap := map[string]string{
 		"name":     r.Name,
 		"protocol": r.Protocol,
-		"username": r.Username,
+		"username": r.getUserName(),
 		"value":    r.Value,
 		"host":     r.Host,
 		"port":     strconv.Itoa(r.Port),
@@ -88,7 +89,7 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	connectMap := map[string]string{
 		"name":     r.Name,
 		"protocol": r.Protocol,
-		"username": r.Username,
+		"username": r.getUserName(),
 		"value":    r.Value,
 		"host":     r.Host,
 		"port":     strconv.Itoa(r.Port),
@@ -101,7 +102,7 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		ss["host"] = r.Host
 		ss["port"] = strconv.Itoa(r.Port)
 		ss["name"] = r.Name
-		ss["auth"] = r.Username + "@" + r.Value
+		ss["auth"] = r.Token.ID + "@" + r.Value
 		ss["ssh_agent_path"] = ""
 		ss["ssh_password"] = ""
 		ss["ssh_private_key_path"] = ""
@@ -124,4 +125,9 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	}
 	commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
 	return exec.Command(appPath, strings.Split(commands, " ")...)
+}
+
+func handleCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
+	cmd := exec.Command(r.Command)
+	return cmd
 }

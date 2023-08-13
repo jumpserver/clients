@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go-client/global"
 	"go-client/pkg/config"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
@@ -23,7 +24,8 @@ func awakenRDPCommand(filePath string) *exec.Cmd {
 	return cmd
 }
 
-func awakenSSHCommand(r *Rouse, currentPath string, cfg *config.AppConfig) *exec.Cmd {
+func awakenSSHCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
+	currentPath := filepath.Dir(os.Args[0])
 	clientPath := filepath.Join(currentPath, "client")
 	command := fmt.Sprintf("%s %s -P %s", clientPath, r.Command, r.Value)
 	cmd := new(exec.Cmd)
@@ -60,9 +62,9 @@ func awakenDBCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	appPath := appItem.Path
 
 	connectMap := map[string]string{
-		"name":     r.Name,
+		"name":     r.getName(),
 		"protocol": r.Protocol,
-		"username": r.Username,
+		"username": r.getUserName(),
 		"value":    r.Value,
 		"host":     r.Host,
 		"port":     strconv.Itoa(r.Port),
@@ -70,4 +72,32 @@ func awakenDBCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	}
 	commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
 	return exec.Command(appPath, strings.Split(commands, " ")...)
+}
+
+func awakenOtherCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
+	var command string
+	if r.Protocol == "ssh" {
+		currentPath := filepath.Dir(os.Args[0])
+		clientPath := filepath.Join(currentPath, "client")
+		command = fmt.Sprintf("%s %s -P %s", clientPath, r.Command, r.Value)
+	} else {
+		command = r.Command
+	}
+	cmd := new(exec.Cmd)
+	out, _ := exec.Command("bash", "-c", "echo $XDG_CURRENT_DESKTOP").CombinedOutput()
+	currentDesktop := strings.ToLower(strings.Trim(string(out), "\n"))
+
+	switch currentDesktop {
+	case "gnome":
+		cmd = exec.Command(
+			"gnome-terminal", "--", "bash", "-c",
+			fmt.Sprintf("%s; exec bash -i", command),
+		)
+	case "deepin":
+		cmd = exec.Command("deepin-terminal", "--keep-open", "-C", command)
+	default:
+		msg := fmt.Sprintf("Not yet supported %s desktop system", currentDesktop)
+		global.LOG.Info(msg)
+	}
+	return cmd
 }

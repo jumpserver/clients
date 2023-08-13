@@ -70,8 +70,10 @@ func GetConf() AppConfig {
 var GlobalConfig *AppConfig
 
 func getDefaultConfig() AppConfig {
-	//filePath := filepath.Join(filepath.Dir(os.Args[0]), "config.json")
-	filePath := filepath.Join("/Users/halo/golang/clients/interface/bin/config.json")
+	filePath := filepath.Join(filepath.Dir(os.Args[0]), "../config.json")
+	if os.Getenv("DEBUG") == "True" {
+		filePath = filepath.Join("../interface/bin/config.json")
+	}
 	jsonFile, err := os.Open(filePath)
 	if err != nil {
 		global.LOG.Error(err.Error())
