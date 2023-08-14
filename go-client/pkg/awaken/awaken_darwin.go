@@ -93,8 +93,31 @@ func awakenDBCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		"port":     strconv.Itoa(r.Port),
 		"dbname":   r.DBName,
 	}
-	commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
-	return exec.Command(appPath, strings.Split(commands, " ")...)
+	if appItem.IsInternal {
+		var argFormat string
+		switch r.Protocol {
+		case "redis":
+			argFormat = "redis-cli -h {host} -p {port} -a {username}@{value}"
+		case "oracle":
+			argFormat = "sqlplus {username}/{value}@{host}:{port}/{dbname}"
+		case "postgresql":
+			argFormat = "psql user={username} password={value} host={host} dbname={dbname} port={port}"
+		case "mysql", "mariadb":
+			argFormat = "mysql -u{username} -p{value} -h {host} -P {port} {dbname}"
+		}
+		currentPath := filepath.Dir(os.Args[0])
+		commands := getCommandFromArgs(connectMap, argFormat)
+		clientPath := filepath.Join(currentPath, "client")
+		cmd := exec.Command(
+			"osascript", "-s", "h", "-e", fmt.Sprintf(`tell application "%s" to do script "%s %s" activate`,
+				appItem.DisplayName, clientPath, commands),
+		)
+		return cmd
+	} else {
+		appPath = appItem.Path
+		commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
+		return exec.Command(appPath, strings.Split(commands, " ")...)
+	}
 }
 
 func awakenOtherCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {

@@ -7,7 +7,7 @@
           <div class="info">
             <div class="title">{{ d.display_name }}</div>
             <div class="comment">{{ d.comment }}</div>
-            <div>
+            <div class="prop">
               <span :class="d.is_set? 'is-setted':'not-setted'">
                 {{ is_set_string(d.is_set) }}
               </span>
@@ -111,18 +111,21 @@ export default {
         line-height: 24px;
       }
 
-      .is-setted {
-        font-size: 12px;
-        color: #5cb87a;
-      }
+      .prop{
+        .is-setted {
+          font-size: 12px;
+          color: #5cb87a;
+        }
 
-      .not-setted {
-        font-size: 12px;
-        color: #e6a23c;
-      }
+        .not-setted {
+          font-size: 12px;
+          color: #e6a23c;
+        }
 
-      .match_first {
-        color: #5cb87a;
+        .match_first {
+          font-size: 11px;
+          color: #5cb87a;
+        }
       }
     }
   }

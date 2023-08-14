@@ -217,6 +217,32 @@
     ],
     "databases": [
       {
+        "name": "terminal",
+        "display_name": "Terminal",
+        "protocol": [
+          "oracle",
+          "mysql",
+          "postgresql",
+          "mariadb",
+          "redis"
+        ],
+        "comment": "Terminal是MacOS操作系统上的虚拟终端应用软件，位于“实用工具”文件夹内。",
+        "download_url": "内置",
+        "type": "linux",
+        "path": "Terminal",
+        "arg_format": "",
+        "match_first": [
+          "oracle",
+          "mysql",
+          "postgresql",
+          "mariadb",
+          "redis"
+        ],
+        "is_internal": true,
+        "is_default": false,
+        "is_set": true
+      },
+      {
         "name": "dbeaver",
         "display_name": "DBeaver Community",
         "protocol": [
@@ -231,10 +257,6 @@
         "path": "/Applications/DBeaver.app/Contents/MacOS/dbeaver",
         "arg_format": "-con name={name}|driver={protocol}|user={username}|password={value}|database={dbname}|host={host}|port={port}|save=false|connect=true",
         "match_first": [
-          "oracle",
-          "mysql",
-          "postgresql",
-          "mariadb"
         ],
         "is_internal": false,
         "is_default": false,
