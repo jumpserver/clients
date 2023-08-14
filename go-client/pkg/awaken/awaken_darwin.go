@@ -103,14 +103,12 @@ func awakenDBCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		case "postgresql":
 			argFormat = "psql user={username} password={value} host={host} dbname={dbname} port={port}"
 		case "mysql", "mariadb":
-			argFormat = "mysql -u{username} -p{value} -h {host} -P {port} {dbname}"
+			argFormat = "mysql -u {username} -p{value} -h {host} -P {port} {dbname}"
 		}
-		currentPath := filepath.Dir(os.Args[0])
 		commands := getCommandFromArgs(connectMap, argFormat)
-		clientPath := filepath.Join(currentPath, "client")
 		cmd := exec.Command(
-			"osascript", "-s", "h", "-e", fmt.Sprintf(`tell application "%s" to do script "%s %s" activate`,
-				appItem.DisplayName, clientPath, commands),
+			"osascript", "-s", "h", "-e", fmt.Sprintf(`tell application "%s" to do script "%s" activate`,
+				appItem.DisplayName, commands),
 		)
 		return cmd
 	} else {
