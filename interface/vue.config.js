@@ -18,7 +18,7 @@ module.exports = {
       nodeIntegration: true,
       customFileProtocol: './',
       builderOptions: {
-        productName: 'JumpServer本地客户端工具',
+        productName: 'JumpServerClient',
         appId: 'com.jumpserver.client',
         asar: false,
         extraResources: [
@@ -65,8 +65,7 @@ module.exports = {
           target: [{
             target: 'nsis',
             arch: [
-              'x64',
-              'ia32'
+              'x64'
             ]
           }]
         },

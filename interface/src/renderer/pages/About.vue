@@ -2,7 +2,7 @@
   <div>
     <img id="logo" src="@/assets/JumpServer.png" alt=""/>
     <h1>本地客户端工具</h1>
-    <span>作者：Fit2Cloud - Halo</span>
+    <span>作者：FIT2CLOUD 飞致云 - Halo</span>
   </div>
 </template>
 

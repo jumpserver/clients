@@ -58,7 +58,7 @@ func awakenSSHCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
 		clientPath := filepath.Join(currentPath, "client")
 		cmd = exec.Command(
-			"osascript", "-s", "h", "-e", fmt.Sprintf(`tell application "%s" to do script "%s %s"`,
+			"osascript", "-s", "h", "-e", fmt.Sprintf(`tell application "%s" to do script "%s %s" activate`,
 				appItem.DisplayName, clientPath, commands),
 		)
 	} else {
