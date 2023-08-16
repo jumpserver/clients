@@ -3,6 +3,23 @@
   "windows": {
     "terminal": [
       {
+        "name": "putty",
+        "display_name": "PuTTY",
+        "protocol": [
+          "ssh",
+          "telnet"
+        ],
+        "comment": "PuTTY是一个Telnet、SSH、rlogin纯TCP以及串行阜连线软件。",
+        "download_url": "内置",
+        "type": "linux",
+        "path": "putty.exe",
+        "arg_format": "-{protocol} {username}@{host} -P {port} -pw {value}",
+        "match_first": [],
+        "is_internal": true,
+        "is_default": true,
+        "is_set": true
+      },
+      {
         "name": "xshell",
         "display_name": "XShell",
         "protocol": [
@@ -35,23 +52,6 @@
         "is_internal": false,
         "is_default": false,
         "is_set": false
-      },
-      {
-        "name": "putty",
-        "display_name": "PuTTY",
-        "protocol": [
-          "ssh",
-          "telnet"
-        ],
-        "comment": "PuTTY是一个Telnet、SSH、rlogin纯TCP以及串行阜连线软件。",
-        "download_url": "内置",
-        "type": "linux",
-        "path": "putty.exe",
-        "arg_format": "-{protocol} {username}@{host} -P {port} -pw {value}",
-        "match_first": [],
-        "is_internal": true,
-        "is_default": true,
-        "is_set": true
       }
     ],
     "remotedesktop": [
@@ -272,11 +272,11 @@
         "protocol": [
           "ssh"
         ],
-        "comment": "Terminal是MacOS操作系统上的虚拟终端应用软件，位于“实用工具”文件夹内。",
+        "comment": "Terminal是Linux操作系统上的虚拟终端应用软件。",
         "download_url": "内置",
         "type": "linux",
         "path": "Terminal",
-        "arg_format": "-{protocol} {username}@{host} -P {port} -pw {value}",
+        "arg_format": "{protocol} {username}@{host} -p {port} -P {value}",
         "match_first": [],
         "is_internal": true,
         "is_default": true,
@@ -302,6 +302,33 @@
       }
     ],
     "filetransfer": [],
-    "databases": []
+    "databases": [
+      {
+        "name": "terminal",
+        "display_name": "Terminal",
+        "protocol": [
+          "oracle",
+          "mysql",
+          "postgresql",
+          "mariadb",
+          "redis"
+        ],
+        "comment": "Terminal是Linux操作系统上的虚拟终端应用软件。",
+        "download_url": "内置",
+        "type": "linux",
+        "path": "Terminal",
+        "arg_format": "",
+        "match_first": [
+          "oracle",
+          "mysql",
+          "postgresql",
+          "mariadb",
+          "redis"
+        ],
+        "is_internal": true,
+        "is_default": false,
+        "is_set": true
+      }
+    ]
   }
 }

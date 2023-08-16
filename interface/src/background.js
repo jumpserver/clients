@@ -110,12 +110,14 @@ if (isDevelopment) {
 }
 
 
-if (process.defaultApp) {
+if (process.platform === "darwin") {
+  if (process.defaultApp) {
     if (process.argv.length >= 2) {
-        app.setAsDefaultProtocolClient('jms', process.execPath, [path.resolve(process.argv[1])])
+      app.setAsDefaultProtocolClient('jms', process.execPath, [path.resolve(process.argv[1])])
     }
-} else {
+  } else {
     app.setAsDefaultProtocolClient('jms')
+  }
 }
 
 const handleOpenFromUrl = (url) => {

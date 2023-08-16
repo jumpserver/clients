@@ -39,6 +39,9 @@ module.exports = {
             }
           ]
         },
+        deb: {
+          afterInstall:"build/linux/after-install.sh",
+        },
         mac: {
           icon: 'build/icons/icon.icns',
           extendInfo: {
@@ -77,10 +80,6 @@ module.exports = {
           icon: 'build/icons/',
           // eslint-disable-next-line no-template-curly-in-string
           artifactName: 'JumpServer-Clients-Installer-${os}-${version}-${arch}.deb',
-          protocols: {
-            name: "Jms",
-            schemes: ["jms"]
-          },
           target: [{
             target: 'deb',
             arch: [
