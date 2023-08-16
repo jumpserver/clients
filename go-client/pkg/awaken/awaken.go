@@ -4,6 +4,7 @@ import (
 	"go-client/global"
 	"go-client/pkg/config"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -25,29 +26,57 @@ type File struct {
 	Content string `json:"content"`
 }
 
-type Info struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Value    string `json:"value"`
-	Protocol string `json:"protocol"`
-	Host     string `json:"host"`
-	Port     int    `json:"port"`
-	Username string `json:"username"`
-	Command  string `json:"command"`
-	DBName   string `json:"dbname"`
-	File     `json:"file"`
+type Endpoint struct {
+	Host string `json:"host"`
+	Port int    `json:"port"`
 }
 
-type DBCommand struct {
-	User     string `json:"user"`
-	Password string `json:"password"`
-	Host     string `json:"host"`
-	Port     string `json:"port"`
-	DBName   string `json:"dbname"`
+type Token struct {
+	ID    string `json:"id"`
+	Value string `json:"value"`
+}
+
+type Asset struct {
+	ID       string `json:"id"`
+	Category string `json:"category"`
+	Type     string `json:"type"`
+	Name     string `json:"name"`
+	Address  string `json:"address"`
+	DBInfo   `json:"info"`
+}
+
+type DBInfo struct {
+	DBName           string `json:"db_name"`
+	UseSsl           string `json:"use_ssl"`
+	AllowInvalidCert string `json:"allow_invalid_cert"`
+}
+
+type Info struct {
+	Version  string `json:"version"`
+	Name     string `json:"name"`
+	Protocol string `json:"protocol"`
+	Command  string `json:"command"`
+	Asset    `json:"asset"`
+	Endpoint `json:"endpoint"`
+	Token    `json:"token"`
+	File     `json:"file"`
 }
 
 type Rouse struct {
 	Info
+}
+
+func (r *Rouse) getUserName() string {
+	username := r.Token.ID
+	if r.Protocol == "ssh" || r.Protocol == "sftp" {
+		username = "JMS-" + username
+	}
+	return username
+}
+
+func (r *Rouse) getName() string {
+	name, _ := url.QueryUnescape(r.Name)
+	return name
 }
 
 func removeCurRdpFile() {
@@ -63,7 +92,8 @@ func removeCurRdpFile() {
 
 func (r *Rouse) HandleRDP(appConfig *config.AppConfig) {
 	removeCurRdpFile()
-	filePath := filepath.Join(filepath.Dir(os.Args[0]), r.File.Name+".rdp")
+	fileName, _ := url.QueryUnescape(r.File.Name)
+	filePath := filepath.Join(filepath.Dir(os.Args[0]), fileName+".rdp")
 	err := ioutil.WriteFile(filePath, []byte(r.Content), os.ModePerm)
 	if err != nil {
 		global.LOG.Error(err.Error())
@@ -74,8 +104,7 @@ func (r *Rouse) HandleRDP(appConfig *config.AppConfig) {
 }
 
 func (r *Rouse) HandleSSH(appConfig *config.AppConfig) {
-	currentPath := filepath.Dir(os.Args[0])
-	cmd := handleSSH(r, currentPath, appConfig)
+	cmd := handleSSH(r, appConfig)
 	cmd.Run()
 }
 
@@ -84,16 +113,25 @@ func (r *Rouse) HandleDB(appConfig *config.AppConfig) {
 	cmd.Run()
 }
 
+func (r *Rouse) HandleCommand(appConfig *config.AppConfig) {
+	cmd := handleCommand(r, appConfig)
+	cmd.Run()
+}
+
 func (r *Rouse) Run() {
 	protocol := r.Protocol
 	appConfig := config.GetConf()
-
-	switch protocol {
-	case "rdp":
-		r.HandleRDP(&appConfig)
-	case "ssh", "sftp":
-		r.HandleSSH(&appConfig)
-	case "mysql", "mariadb", "postgresql", "redis", "oracle", "sqlserver":
-		r.HandleDB(&appConfig)
+	if r.Command == "" {
+		switch protocol {
+		case "rdp":
+			r.HandleRDP(&appConfig)
+		case "ssh", "sftp":
+			r.HandleSSH(&appConfig)
+		case "mysql", "mariadb", "postgresql", "redis", "oracle", "sqlserver":
+			r.HandleDB(&appConfig)
+		}
+	} else {
+		r.HandleCommand(&appConfig)
 	}
+
 }

@@ -13,12 +13,17 @@ func handleRDP(r *Rouse, filePath string, cfg *config.AppConfig) *exec.Cmd {
 	return cmd
 }
 
-func handleSSH(r *Rouse, currentPath string, cfg *config.AppConfig) *exec.Cmd {
-	cmd := awakenSSHCommand(r, currentPath, cfg)
+func handleSSH(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
+	cmd := awakenSSHCommand(r, cfg)
 	return cmd
 }
 
 func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	cmd := awakenDBCommand(r, cfg)
+	return cmd
+}
+
+func handleCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
+	cmd := awakenOtherCommand(r, cfg)
 	return cmd
 }

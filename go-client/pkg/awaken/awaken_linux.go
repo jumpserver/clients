@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go-client/global"
 	"go-client/pkg/config"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
@@ -23,31 +24,67 @@ func awakenRDPCommand(filePath string) *exec.Cmd {
 	return cmd
 }
 
-func awakenSSHCommand(r *Rouse, currentPath string, cfg *config.AppConfig) *exec.Cmd {
-	clientPath := filepath.Join(currentPath, "client")
-	command := fmt.Sprintf("%s %s -P %s", clientPath, r.Command, r.Value)
-	cmd := new(exec.Cmd)
-	out, _ := exec.Command("bash", "-c", "echo $XDG_CURRENT_DESKTOP").CombinedOutput()
-	currentDesktop := strings.ToLower(strings.Trim(string(out), "\n"))
+func awakenSSHCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
+	var appItem *config.AppItem
+	var appLst []config.AppItem
+	switch r.Protocol {
+	case "ssh":
+		appLst = cfg.Linux.Terminal
+	case "sftp":
+		appLst = cfg.Linux.FileTransfer
+	}
 
-	switch currentDesktop {
-	case "gnome":
-		cmd = exec.Command(
-			"gnome-terminal", "--", "bash", "-c",
-			fmt.Sprintf("%s; exec bash -i", command),
-		)
-	case "deepin":
-		cmd = exec.Command("deepin-terminal", "--keep-open", "-C", command)
-	default:
-		msg := fmt.Sprintf("Not yet supported %s desktop system", currentDesktop)
-		global.LOG.Info(msg)
+	for _, app := range appLst {
+		if app.IsActive() && app.IsSupportProtocol(r.Protocol) {
+			appItem = &app
+			break
+		}
+	}
+	if appItem == nil {
+		return nil
+	}
+	var cmd *exec.Cmd
+	connectMap := map[string]string{
+		"name":     r.getName(),
+		"protocol": r.Protocol,
+		"username": r.getUserName(),
+		"value":    r.Value,
+		"host":     r.Host,
+		"port":     strconv.Itoa(r.Port),
+	}
+
+	if appItem.IsInternal {
+		currentPath := filepath.Dir(os.Args[0])
+		commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
+		clientPath := filepath.Join(currentPath, "client")
+		out, _ := exec.Command("bash", "-c", "echo $XDG_CURRENT_DESKTOP").CombinedOutput()
+		currentDesktop := strings.ToLower(strings.Trim(string(out), "\n"))
+
+		switch currentDesktop {
+		case "gnome", "ubuntu:gnome":
+			cmd = exec.Command(
+				"gnome-terminal", "--", "bash", "-c",
+				fmt.Sprintf("%s %s; exec bash -i", clientPath, commands),
+			)
+		case "deepin":
+			cmd = exec.Command("deepin-terminal", "--keep-open", "-C", fmt.Sprintf("%s %s", clientPath, commands))
+		default:
+			msg := fmt.Sprintf("Not yet supported %s desktop system", currentDesktop)
+			global.LOG.Info(msg)
+		}
+	} else {
+		var appPath string
+		appPath = appItem.Path
+		commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
+		appPath = appItem.Path
+		cmd = exec.Command(appPath, strings.Split(commands, " ")...)
 	}
 	return cmd
 }
 
 func awakenDBCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	var appItem *config.AppItem
-	appLst := cfg.Windows.Databases
+	appLst := cfg.Linux.Databases
 	for _, app := range appLst {
 		if app.IsSet && app.IsMatchProtocol(r.Protocol) {
 			appItem = &app
@@ -57,17 +94,55 @@ func awakenDBCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	if appItem == nil {
 		return nil
 	}
+	var cmd *exec.Cmd
 	appPath := appItem.Path
-
 	connectMap := map[string]string{
-		"name":     r.Name,
+		"name":     r.getName(),
 		"protocol": r.Protocol,
-		"username": r.Username,
+		"username": r.getUserName(),
 		"value":    r.Value,
 		"host":     r.Host,
 		"port":     strconv.Itoa(r.Port),
 		"dbname":   r.DBName,
 	}
-	commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
-	return exec.Command(appPath, strings.Split(commands, " ")...)
+	if appItem.IsInternal {
+		var argFormat string
+		switch r.Protocol {
+		case "redis":
+			argFormat = "redis-cli -h {host} -p {port} -a {username}@{value}"
+		case "oracle":
+			argFormat = "sqlplus {username}/{value}@{host}:{port}/{dbname}"
+		case "postgresql":
+			argFormat = "psql user={username} password={value} host={host} dbname={dbname} port={port}"
+		case "mysql", "mariadb":
+			argFormat = "mysql -u {username} -p{value} -h {host} -P {port} {dbname}"
+		}
+		commands := getCommandFromArgs(connectMap, argFormat)
+
+		out, _ := exec.Command("bash", "-c", "echo $XDG_CURRENT_DESKTOP").CombinedOutput()
+		currentDesktop := strings.ToLower(strings.Trim(string(out), "\n"))
+
+		switch currentDesktop {
+		case "gnome", "ubuntu:gnome":
+			cmd = exec.Command(
+				"gnome-terminal", "--", "bash", "-c",
+				fmt.Sprintf("%s; exec bash -i", commands),
+			)
+		case "deepin":
+			cmd = exec.Command("deepin-terminal", "--keep-open", "-C", commands)
+		default:
+			msg := fmt.Sprintf("Not yet supported %s desktop system", currentDesktop)
+			global.LOG.Info(msg)
+		}
+		return cmd
+	} else {
+		appPath = appItem.Path
+		commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
+		return exec.Command(appPath, strings.Split(commands, " ")...)
+	}
+}
+
+func awakenOtherCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
+	cmd := new(exec.Cmd)
+	return cmd
 }

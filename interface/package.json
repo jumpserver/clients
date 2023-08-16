@@ -1,5 +1,5 @@
 {
-  "name": "interface",
+  "name": "jumpserver-client",
   "author": "Fit2Cloud Technology Co., Ltd.; <support@fit2cloud.com>",
   "version": "v2.0.0",
   "homepage": "https://jumpserver.org",
@@ -7,7 +7,9 @@
   "scripts": {
     "serve": "vue-cli-service electron:serve",
     "lint": "vue-cli-service lint",
-    "electron:build": "vue-cli-service electron:build",
+    "build:mac": "vue-cli-service electron:build --macos",
+    "build:linux": "vue-cli-service electron:build --linux",
+    "build:win": "vue-cli-service electron:build --windows",
     "electron:serve": "vue-cli-service electron:serve",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps"
