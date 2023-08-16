@@ -61,7 +61,7 @@ func awakenSSHCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		currentDesktop := strings.ToLower(strings.Trim(string(out), "\n"))
 
 		switch currentDesktop {
-		case "gnome":
+		case "gnome", "ubuntu:gnome":
 			cmd = exec.Command(
 				"gnome-terminal", "--", "bash", "-c",
 				fmt.Sprintf("%s %s; exec bash -i", clientPath, commands),
@@ -123,7 +123,7 @@ func awakenDBCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		currentDesktop := strings.ToLower(strings.Trim(string(out), "\n"))
 
 		switch currentDesktop {
-		case "gnome":
+		case "gnome", "ubuntu:gnome":
 			cmd = exec.Command(
 				"gnome-terminal", "--", "bash", "-c",
 				fmt.Sprintf("%s; exec bash -i", commands),
