@@ -55,7 +55,7 @@ module.exports = {
             ]
           }],
           // eslint-disable-next-line no-template-curly-in-string
-          artifactName: 'JumpServer-Clients-Installer-${os}-${version}-${arch}.dmg',
+          artifactName: 'JumpServer-Client-Installer-${os}-v${version}-${arch}.dmg',
           protocols: {
             name: "Jms",
             schemes: ["jms"]
@@ -64,7 +64,7 @@ module.exports = {
         win: {
           icon: 'build/icons/icon.ico',
           // eslint-disable-next-line no-template-curly-in-string
-          artifactName: 'JumpServer-Clients-Installer-${os}-${version}-${arch}.exe',
+          artifactName: 'JumpServer-Client-Installer-${os}-v${version}-${arch}.exe',
           target: [{
             target: 'nsis',
             arch: [
@@ -79,7 +79,7 @@ module.exports = {
         linux: {
           icon: 'build/icons/',
           // eslint-disable-next-line no-template-curly-in-string
-          artifactName: 'JumpServer-Clients-Installer-${os}-${version}-${arch}.deb',
+          artifactName: 'JumpServer-Client-Installer-${os}-v${version}-${arch}.deb',
           target: [{
             target: 'deb',
             arch: [
