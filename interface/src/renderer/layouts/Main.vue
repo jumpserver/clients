@@ -39,7 +39,7 @@
           </el-menu-item>
           <el-menu-item index="aboutPage">
             <el-icon>
-              <i class="fa fa-telegram" aria-hidden="true"></i>
+              <i class="fa fa-users" aria-hidden="true"></i>
             </el-icon>
             <span>关于我们</span>
           </el-menu-item>

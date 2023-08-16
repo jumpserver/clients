@@ -18,7 +18,7 @@ module.exports = {
       nodeIntegration: true,
       customFileProtocol: './',
       builderOptions: {
-        productName: 'JumpServer本地客户端工具',
+        productName: 'JumpServerClient',
         appId: 'com.jumpserver.client',
         asar: false,
         extraResources: [
@@ -38,6 +38,9 @@ module.exports = {
               type: 'file'
             }
           ]
+        },
+        deb: {
+          afterInstall:"build/linux/after-install.sh",
         },
         mac: {
           icon: 'build/icons/icon.icns',
@@ -65,8 +68,7 @@ module.exports = {
           target: [{
             target: 'nsis',
             arch: [
-              'x64',
-              'ia32'
+              'x64'
             ]
           }]
         },
@@ -78,10 +80,6 @@ module.exports = {
           icon: 'build/icons/',
           // eslint-disable-next-line no-template-curly-in-string
           artifactName: 'JumpServer-Clients-Installer-${os}-${version}-${arch}.deb',
-          protocols: {
-            name: "Jms",
-            schemes: ["jms"]
-          },
           target: [{
             target: 'deb',
             arch: [

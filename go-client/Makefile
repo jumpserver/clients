@@ -20,3 +20,6 @@ build-client:
 
 	GOARCH=arm64 GOOS=linux $(CLIENTBUILD) -ldflags "$(LDFLAGS)" -o $(BUILDDIR)/linux-arm64/JumpServerClient $(CLIENTSRCFILE)
 	GOARCH=arm64 GOOS=linux $(CLIENTBUILD) -ldflags "$(LDFLAGS)" -o $(BUILDDIR)/linux-arm64/client $(SSHCSRCFILE)
+
+	cp -R $(BUILDDIR)/* $(BASEPATH)/../interface/bin/
+	cp $(BASEPATH)/config.json $(BASEPATH)/../interface/bin/

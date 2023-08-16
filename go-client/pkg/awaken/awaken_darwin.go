@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go-client/global"
 	"go-client/pkg/config"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
@@ -23,7 +24,7 @@ func awakenRDPCommand(filePath string) *exec.Cmd {
 	return cmd
 }
 
-func awakenSSHCommand(r *Rouse, currentPath string, cfg *config.AppConfig) *exec.Cmd {
+func awakenSSHCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	var appItem *config.AppItem
 	var appLst []config.AppItem
 	switch r.Protocol {
@@ -43,25 +44,26 @@ func awakenSSHCommand(r *Rouse, currentPath string, cfg *config.AppConfig) *exec
 		return nil
 	}
 	var cmd *exec.Cmd
+	connectMap := map[string]string{
+		"name":     r.getName(),
+		"protocol": r.Protocol,
+		"username": r.getUserName(),
+		"value":    r.Value,
+		"host":     r.Host,
+		"port":     strconv.Itoa(r.Port),
+	}
+
 	if appItem.IsInternal {
+		currentPath := filepath.Dir(os.Args[0])
+		commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
 		clientPath := filepath.Join(currentPath, "client")
-		command := fmt.Sprintf("%s %s -P %s", clientPath, r.Command, r.Value)
 		cmd = exec.Command(
-			"osascript", "-s", "h",
-			"-e", fmt.Sprintf(`tell application "%s" to do script "%s"`, appItem.DisplayName, command),
+			"osascript", "-s", "h", "-e", fmt.Sprintf(`tell application "%s" to do script "%s %s" activate`,
+				appItem.DisplayName, clientPath, commands),
 		)
 	} else {
 		var appPath string
 		appPath = appItem.Path
-
-		connectMap := map[string]string{
-			"name":     r.Name,
-			"protocol": r.Protocol,
-			"username": r.Username,
-			"value":    r.Value,
-			"host":     r.Host,
-			"port":     strconv.Itoa(r.Port),
-		}
 		commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
 		appPath = appItem.Path
 		cmd = exec.Command(appPath, strings.Split(commands, " ")...)
@@ -82,16 +84,52 @@ func awakenDBCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		return nil
 	}
 	appPath := appItem.Path
-
 	connectMap := map[string]string{
-		"name":     r.Name,
+		"name":     r.getName(),
 		"protocol": r.Protocol,
-		"username": r.Username,
+		"username": r.getUserName(),
 		"value":    r.Value,
 		"host":     r.Host,
 		"port":     strconv.Itoa(r.Port),
 		"dbname":   r.DBName,
 	}
-	commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
-	return exec.Command(appPath, strings.Split(commands, " ")...)
+	if appItem.IsInternal {
+		var argFormat string
+		switch r.Protocol {
+		case "redis":
+			argFormat = "redis-cli -h {host} -p {port} -a {username}@{value}"
+		case "oracle":
+			argFormat = "sqlplus {username}/{value}@{host}:{port}/{dbname}"
+		case "postgresql":
+			argFormat = "psql user={username} password={value} host={host} dbname={dbname} port={port}"
+		case "mysql", "mariadb":
+			argFormat = "mysql -u {username} -p{value} -h {host} -P {port} {dbname}"
+		}
+		commands := getCommandFromArgs(connectMap, argFormat)
+		cmd := exec.Command(
+			"osascript", "-s", "h", "-e", fmt.Sprintf(`tell application "%s" to do script "%s" activate`,
+				appItem.DisplayName, commands),
+		)
+		return cmd
+	} else {
+		appPath = appItem.Path
+		commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
+		return exec.Command(appPath, strings.Split(commands, " ")...)
+	}
+}
+
+func awakenOtherCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
+	var command string
+	if r.Protocol == "ssh" {
+		currentPath := filepath.Dir(os.Args[0])
+		clientPath := filepath.Join(currentPath, "client")
+		command = fmt.Sprintf("%s %s -P %s", clientPath, r.Command, r.Value)
+	} else {
+		command = r.Command
+	}
+	cmd := exec.Command(
+		"osascript", "-s", "h",
+		"-e", fmt.Sprintf(`tell application "%s" to do script "%s"`, "Terminal", command),
+	)
+	return cmd
 }
