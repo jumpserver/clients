@@ -9,7 +9,7 @@
           "ssh",
           "telnet"
         ],
-        "comment": "PuTTY是一个Telnet、SSH、rlogin纯TCP以及串行阜连线软件。",
+        "comment": "PuTTY是一个Telnet、SSH、rlogin、纯TCP以及串行接口连接软件。",
         "download_url": "内置",
         "type": "linux",
         "path": "putty.exe",
