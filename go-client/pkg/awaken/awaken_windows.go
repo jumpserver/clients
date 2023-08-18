@@ -61,7 +61,7 @@ func handleSSH(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	}
 
 	connectMap := map[string]string{
-		"name":     r.Name,
+		"name":     r.getName(),
 		"protocol": r.Protocol,
 		"username": r.getUserName(),
 		"value":    r.Value,
@@ -87,7 +87,7 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	appPath := appItem.Path
 
 	connectMap := map[string]string{
-		"name":     r.Name,
+		"name":     r.getName(),
 		"protocol": r.Protocol,
 		"username": r.getUserName(),
 		"value":    r.Value,
