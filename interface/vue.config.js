@@ -20,11 +20,13 @@ module.exports = {
       builderOptions: {
         productName: 'JumpServerClient',
         appId: 'com.jumpserver.client',
+        afterSign: "build/sign/notarize.js",
         asar: false,
         extraResources: [
           "bin/**"
         ],
         dmg: {
+          sign: false,
           contents: [
             {
               x: 410,
@@ -70,17 +72,16 @@ module.exports = {
             arch: [
               'x64'
             ]
-          },
-          {
-            target: 'msi',
-            arch: [
-              'x64'
-            ]
           }]
         },
         nsis: {
-          oneClick: false,
-          allowToChangeInstallationDirectory: true,
+          oneClick: true,
+          allowToChangeInstallationDirectory: false,
+          deleteAppDataOnUninstall: true,
+          include: "build/win/installer.nsh"
+        },
+        msi: {
+          oneClick: true,
         },
         linux: {
           icon: 'build/icons/',

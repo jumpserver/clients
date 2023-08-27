@@ -162,28 +162,16 @@ const hideWindow = () => {
     }
 }
 
-// app.on('second-instance', (event, commandLine, workingDirectory) => {
-//     let commands = commandLine.slice();
-//     // commandLine 是一个数组， 其中最后一个数组元素为我们唤醒的链接
-//     let urlStr = commands.pop();
-//     handleOpenFromUrl(urlStr)
-// })
-
-
-let STORE_PATH
 let configFilePath
-if (process.platform === "win32") {
-    STORE_PATH = app.getPath('appData')
-    configFilePath = path.join(STORE_PATH, 'JumpServer', 'Client', 'config.json')
+
+let subPath
+if (isDevelopment && !process.env.IS_TEST) {
+    subPath = "bin"
 } else {
-    let subPath
-    if (isDevelopment && !process.env.IS_TEST) {
-        subPath = "bin"
-    } else {
-        subPath = process.resourcesPath + "/bin"
-    }
-    configFilePath = path.join(subPath, 'config.json')
+    subPath = process.resourcesPath + "/bin"
 }
+configFilePath = path.join(subPath, 'config.json')
+
 
 const callBackUrlName = 'config-reply-get'//消息发布-发布名称
 //读取本地文件

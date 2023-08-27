@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 /*{
@@ -76,7 +77,7 @@ func (r *Rouse) getUserName() string {
 
 func (r *Rouse) getName() string {
 	name, _ := url.QueryUnescape(r.Name)
-	return name
+	return strings.Replace(name, " ", "", -1)
 }
 
 func removeCurRdpFile() {
