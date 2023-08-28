@@ -64,7 +64,7 @@
         "download_url": "https://mobaxterm.mobatek.net/download-home-edition.html",
         "type": "linux",
         "path": "",
-        "arg_format": "-newtab sshpass -p{value} ssh {username}@{host} -p{port}",
+        "arg_format": "-newtab * sshpass -p{value} ssh -o StrictHostKeyChecking=no {username}@{host} -p{port}",
         "match_first": [],
         "is_internal": false,
         "is_default": false,
