@@ -52,6 +52,23 @@
         "is_internal": false,
         "is_default": false,
         "is_set": false
+      },
+      {
+        "name": "mobaxterm",
+        "display_name": "MobaXterm",
+        "protocol": [
+          "ssh",
+          "telnet"
+        ],
+        "comment": "MobaXterm是一款功能丰富的远程计算机管理工具，其包括了SSH客户端、FTP客户端、远程桌面等。",
+        "download_url": "https://mobaxterm.mobatek.net/download-home-edition.html",
+        "type": "linux",
+        "path": "",
+        "arg_format": "-newtab sshpass -p{value} ssh {username}@{host} -p{port}",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
       }
     ],
     "remotedesktop": [
@@ -177,6 +194,23 @@
         "is_internal": true,
         "is_default": true,
         "is_set": true
+      },
+      {
+        "name": "securecrt",
+        "display_name": "SecureCRT",
+        "protocol": [
+          "ssh",
+          "telnet"
+        ],
+        "comment": "SecureCRT是VanDyke Software所开发销售的一个SSH、Telnet客户端和虚拟终端软件。\n\n!!!手动下载安装，点击保存启用!!!",
+        "download_url": "https://www.vandyke.com/cgi-bin/releases.php?product=securecrt",
+        "type": "linux",
+        "path": "/Applications/SecureCRT.app/Contents/MacOS/SecureCRT",
+        "arg_format": "/N {name} /T /SSH2 /ACCEPTHOSTKEYS /p {port} /password {value} /L {username} {host}",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
       }
     ],
     "remotedesktop": [
