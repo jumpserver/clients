@@ -80,9 +80,6 @@ module.exports = {
           deleteAppDataOnUninstall: true,
           include: "build/win/installer.nsh"
         },
-        msi: {
-          oneClick: true,
-        },
         linux: {
           icon: 'build/icons/',
           // eslint-disable-next-line no-template-curly-in-string
