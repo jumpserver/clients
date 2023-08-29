@@ -20,11 +20,13 @@ module.exports = {
       builderOptions: {
         productName: 'JumpServerClient',
         appId: 'com.jumpserver.client',
+        afterSign: "build/sign/notarize.js",
         asar: false,
         extraResources: [
           "bin/**"
         ],
         dmg: {
+          sign: false,
           contents: [
             {
               x: 410,
@@ -55,7 +57,7 @@ module.exports = {
             ]
           }],
           // eslint-disable-next-line no-template-curly-in-string
-          artifactName: 'JumpServer-Client-Installer-${os}-v${version}-${arch}.dmg',
+          artifactName: 'JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}',
           protocols: {
             name: "Jms",
             schemes: ["jms"]
@@ -64,7 +66,7 @@ module.exports = {
         win: {
           icon: 'build/icons/icon.ico',
           // eslint-disable-next-line no-template-curly-in-string
-          artifactName: 'JumpServer-Client-Installer-${os}-v${version}-${arch}.exe',
+          artifactName: 'JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}',
           target: [{
             target: 'nsis',
             arch: [
@@ -73,13 +75,15 @@ module.exports = {
           }]
         },
         nsis: {
-          oneClick: false,
-          allowToChangeInstallationDirectory: true,
+          oneClick: true,
+          allowToChangeInstallationDirectory: false,
+          deleteAppDataOnUninstall: true,
+          include: "build/win/installer.nsh"
         },
         linux: {
           icon: 'build/icons/',
           // eslint-disable-next-line no-template-curly-in-string
-          artifactName: 'JumpServer-Client-Installer-${os}-v${version}-${arch}.deb',
+          artifactName: 'JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}',
           target: [{
             target: 'deb',
             arch: [

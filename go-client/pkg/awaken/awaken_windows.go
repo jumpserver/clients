@@ -69,7 +69,13 @@ func handleSSH(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		"port":     strconv.Itoa(r.Port),
 	}
 	commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
-	return exec.Command(appPath, strings.Split(commands, " ")...)
+	if strings.Contains(commands, "*") {
+		commands := strings.Split(commands, "*")
+		return exec.Command(appPath, commands...)
+	} else {
+		commands := strings.Split(commands, " ")
+		return exec.Command(appPath, commands...)
+	}
 }
 
 func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
