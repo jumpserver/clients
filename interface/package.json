@@ -1,7 +1,7 @@
 {
   "name": "jumpserver-client",
   "author": "Fit2Cloud Technology Co., Ltd.; <support@fit2cloud.com>",
-  "version": "v2.0.0",
+  "version": "v2.0.1",
   "homepage": "https://jumpserver.org",
   "private": true,
   "scripts": {
@@ -27,6 +27,7 @@
   "devDependencies": {
     "@babel/core": "^7.12.16",
     "@babel/eslint-parser": "^7.12.16",
+    "@electron/notarize": "^2.1.0",
     "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-plugin-eslint": "~5.0.0",
     "@vue/cli-service": "~5.0.0",

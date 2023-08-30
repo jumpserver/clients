@@ -20,10 +20,10 @@
           v-model="selectItem.path"
           placeholder="请选择本地应用启动程序路径"
           clearable
-          :readonly="selectItem.is_internal"
+          :readonly="selectItem.is_internal || os === 'darwin'"
         >
           <template #append>
-            <el-button :disabled="selectItem.is_internal" @click="openFile">
+            <el-button :disabled="selectItem.is_internal || os === 'darwin'" @click="openFile">
               <el-icon>
                 <FolderOpened/>
               </el-icon>

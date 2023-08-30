@@ -101,7 +101,7 @@ func awakenDBCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		case "oracle":
 			argFormat = "sqlplus {username}/{value}@{host}:{port}/{dbname}"
 		case "postgresql":
-			argFormat = "psql user={username} password={value} host={host} dbname={dbname} port={port}"
+			argFormat = "psql 'user={username} password={value} host={host} dbname={dbname} port={port}'"
 		case "mysql", "mariadb":
 			argFormat = "mysql -u {username} -p{value} -h {host} -P {port} {dbname}"
 		}

@@ -17,13 +17,13 @@
       </el-form-item>
       <el-form-item label="应用路径" prop="path" :rules="[{required: true, message: '路径不能为空', trigger: 'blur'}]">
         <el-input
-            v-model="selectItem.path"
-            placeholder="请选择本地应用启动程序路径"
-            clearable
-            :readonly="selectItem.is_internal"
+          v-model="selectItem.path"
+          placeholder="请选择本地应用启动程序路径"
+          clearable
+          :readonly="selectItem.is_internal || os === 'darwin'"
         >
           <template #append>
-            <el-button :disabled="selectItem.is_internal" @click="openFile">
+            <el-button :disabled="selectItem.is_internal || os === 'darwin'" @click="openFile">
               <el-icon>
                 <FolderOpened/>
               </el-icon>
@@ -88,11 +88,6 @@ export default {
     },
     changeFile() {
       const exe = document.getElementById("select-exe");
-      // if (this.os === 'darwin') {
-      //   this.selectItem.path = '/Applications/' + exe.files[0].name.replace('.zip', '');
-      // } else {
-      //   this.selectItem.path = exe.files[0].path;
-      // }
       this.selectItem.path = exe.files[0].path;
     },
     onCancelItem() {
