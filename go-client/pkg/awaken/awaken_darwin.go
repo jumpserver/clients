@@ -57,10 +57,19 @@ func awakenSSHCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		currentPath := filepath.Dir(os.Args[0])
 		commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
 		clientPath := filepath.Join(currentPath, "client")
-		cmd = exec.Command(
-			"osascript", "-s", "h", "-e", fmt.Sprintf(`tell application "%s" to do script "%s %s" activate`,
-				appItem.DisplayName, clientPath, commands),
-		)
+		if appItem.Name == "iterm" {
+			itermCmd := fmt.Sprintf(`%s %s`, clientPath, commands)
+
+			scriptPath := filepath.Join(currentPath, "Scripts", "iterm2_loader.scpt")
+			//command = fmt.Sprintf(`%s "%s"`, scriptPath, command)
+			cmd = exec.Command("osascript", "-s", "h", scriptPath, itermCmd, "0")
+		} else {
+			cmd = exec.Command(
+				"osascript", "-s", "h", "-e", fmt.Sprintf(`tell application "%s" to do script "%s %s" activate`,
+					appItem.DisplayName, clientPath, commands),
+			)
+		}
+
 	} else {
 		var appPath string
 		appPath = appItem.Path
