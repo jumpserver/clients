@@ -44,7 +44,7 @@
   },
   "overrides": {
     "vue-cli-plugin-electron-builder": {
-      "electron-builder": "^23.1.0"
+      "electron-builder": "^24.6.3"
     }
   },
   "eslintConfig": {
