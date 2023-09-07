@@ -72,6 +72,11 @@ module.exports = {
             arch: [
               'x64'
             ]
+          },{
+            target: 'msiWrapped',
+            arch: [
+              'x64'
+            ]
           }]
         },
         nsis: {

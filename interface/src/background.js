@@ -5,6 +5,8 @@ import path from 'path'
 import fse from 'fs-extra'
 import {execFile} from "child_process";
 
+app.commandLine.appendSwitch('disable-gpu-sandbox');
+
 const isDevelopment = process.env.NODE_ENV !== "production";
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
