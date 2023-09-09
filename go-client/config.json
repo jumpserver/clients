@@ -192,6 +192,22 @@
         "arg_format": "{protocol} {username}@{host} -p {port} -P {value}",
         "match_first": [],
         "is_internal": true,
+        "is_default": false,
+        "is_set": true
+      },
+      {
+        "name": "iterm",
+        "display_name": "iTerm2",
+        "protocol": [
+          "ssh"
+        ],
+        "comment": "iTerm2是MacOS操作系统上的虚拟终端应用软件",
+        "download_url": "https://iterm2.com/downloads.html",
+        "type": "linux",
+        "path": "iTerm2",
+        "arg_format": "{protocol} {username}@{host} -p {port} -P {value}",
+        "match_first": [],
+        "is_internal": true,
         "is_default": true,
         "is_set": true
       },
@@ -290,11 +306,10 @@
         "type": "databases",
         "path": "/Applications/DBeaver.app/Contents/MacOS/dbeaver",
         "arg_format": "-con name={name}|driver={protocol}|user={username}|password={value}|database={dbname}|host={host}|port={port}|save=false|connect=true",
-        "match_first": [
-        ],
+        "match_first": [],
         "is_internal": false,
         "is_default": false,
-        "is_set": false
+        "is_set": true
       }
     ]
   },
