@@ -18,7 +18,7 @@ func getCommandFromArgs(connectInfo map[string]string, argFormat string) string 
 	return argFormat
 }
 
-func awakenRDPCommand(filePath string) *exec.Cmd {
+func awakenRDPCommand(filePath string, cfg *config.AppConfig) *exec.Cmd {
 	global.LOG.Debug(filePath)
 	cmd := exec.Command("open", filePath)
 	return cmd

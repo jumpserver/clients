@@ -18,9 +18,20 @@ func getCommandFromArgs(connectInfo map[string]string, argFormat string) string 
 	return argFormat
 }
 
-func awakenRDPCommand(filePath string) *exec.Cmd {
+func awakenRDPCommand(filePath string, cfg *config.AppConfig) *exec.Cmd {
 	global.LOG.Debug(filePath)
-	cmd := exec.Command("remmina", filePath)
+	var appItem *config.AppItem
+	appLst := cfg.Linux.RemoteDesktop
+	for _, app := range appLst {
+		if app.IsActive() && app.IsSupportProtocol("rdp") {
+			appItem = &app
+			break
+		}
+	}
+	if appItem == nil {
+		return nil
+	}
+	cmd := exec.Command(appItem.Name, filePath)
 	return cmd
 }
 
