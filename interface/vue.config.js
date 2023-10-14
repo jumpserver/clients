@@ -81,7 +81,7 @@ module.exports = {
         },
         nsis: {
           oneClick: true,
-          allowToChangeInstallationDirectory: false,
+          allowToChangeInstallationDirectory: true,
           deleteAppDataOnUninstall: true,
           include: "build/win/installer.nsh"
         },
