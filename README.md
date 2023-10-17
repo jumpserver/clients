@@ -3,11 +3,7 @@
 JumpServer 客户端，支持本地本地客户端拉起。
 ## 概览
 
-### Win
 ![windows](static/windows.png)
-
-### Mac
-![macos](static/macos.png)
 
 ## 安装
 
@@ -17,7 +13,15 @@ JumpServer 客户端，支持本地本地客户端拉起。
 
 ### Win
 
-下载Win安装包，双击JumpServer.exe 文件（需要等待10几秒钟）。
+下载Win安装包，双击JumpServer安装包文件（需要等待10几秒钟）。
+
+### Linux
+
+下载Linux安装包，双击Deb安装包文件，打开安装包管理器进行安装。或者使用命令进行安装
+```
+sudo dpkg -i <package_file>
+```
+
 
 ## 卸载
 
@@ -29,6 +33,12 @@ JumpServer 客户端，支持本地本地客户端拉起。
 
 移除JumpServer.app。
 
+### Linux
+
+点击打开软件管理器进行卸载。或者使用命令进行卸载
+```
+sudo dpkg --purge <package_file>
+```
 
 ## 打包
 

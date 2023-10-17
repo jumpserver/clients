@@ -9,7 +9,7 @@ import (
 )
 
 func handleRDP(r *Rouse, filePath string, cfg *config.AppConfig) *exec.Cmd {
-	cmd := awakenRDPCommand(filePath)
+	cmd := awakenRDPCommand(filePath, cfg)
 	return cmd
 }
 
