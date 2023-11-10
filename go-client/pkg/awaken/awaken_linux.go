@@ -31,7 +31,8 @@ func awakenRDPCommand(filePath string, cfg *config.AppConfig) *exec.Cmd {
 	if appItem == nil {
 		return nil
 	}
-	cmd := exec.Command(appItem.Name, filePath)
+	args := strings.Replace(argFormat, "{file}", filePath, 1)
+	cmd := exec.Command(appItem.Name, strings.Split(args, " ")...)
 	return cmd
 }
 
