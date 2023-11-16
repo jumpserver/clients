@@ -1,4 +1,4 @@
-# Jumpserve Clients
+# Jumpserve Client
 
 JumpServer 客户端，支持本地本地客户端拉起。
 ## 概览

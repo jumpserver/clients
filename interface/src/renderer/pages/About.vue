@@ -1,8 +1,8 @@
 <template>
   <div>
     <img id="logo" src="@/assets/JumpServer.png" alt=""/>
-    <h1>本地客户端工具</h1>
-    <span>作者：FIT2CLOUD 飞致云 - Halo</span>
+    <h1>{{ $t('Common.JumpServerClient') }}</h1>
+    <span>{{ $t('AboutUs.Author') }}：FIT2CLOUD 飞致云 - Halo</span>
   </div>
 </template>
 

@@ -9,22 +9,22 @@
       @cancel="onCancelItem"
       @save="onSaveItem"
   >
-    <el-form ref="item-form" :model="selectItem" label-position="right" label-width="90px">
-      <el-form-item label="应用说明" prop="comment">
+    <el-form ref="item-form" :model="selectItem" label-position="right" label-width="auto">
+      <el-form-item :label="$t('Common.AppDesc')" prop="comment">
         <el-input v-model="selectItem.comment" readonly rows="3" resize="none" type="textarea"/>
       </el-form-item>
-      <el-form-item label="下载地址" prop="download_url">
+      <el-form-item :label="$t('Common.DownloadUrl')" prop="download_url">
         <el-input v-model="selectItem.download_url" readonly :autosize="{maxRows: 2}" resize="none" type="textarea"/>
       </el-form-item>
-      <el-form-item label="优先匹配" prop="match_first" :rules="[{required: true, message: '协议不能为空', trigger: 'blur'}]">
-        <el-select v-model="selectItem.match_first" multiple placeholder="请选择优先匹配的数据库协议" style="width: 100%">
+      <el-form-item :label="$t('Common.Priority')" prop="match_first" :rules="[{required: true, message: $t('Common.ProtocolValidate'), trigger: 'blur'}]">
+        <el-select v-model="selectItem.match_first" multiple :placeholder="$t('Common.ProtocolPlaceholder')" style="width: 100%">
           <el-option v-for="i in selectItem.protocol" :key="i" :label="i" :value="i" />
         </el-select>
       </el-form-item>
-      <el-form-item label="应用路径" prop="path" :rules="[{required: true, message: '路径不能为空', trigger: 'blur'}]">
+      <el-form-item :label="$t('Common.AppPath')" prop="path" :rules="[{required: true, message: $t('Common.PathValidate'), trigger: 'blur'}]">
         <el-input
           v-model="selectItem.path"
-          placeholder="请选择数据库工具启动程序路径"
+          :placeholder="$t('Common.PathPlaceholder')"
           clearable
           :readonly="selectItem.is_internal || os === 'darwin'"
         >
@@ -36,7 +36,7 @@
             </el-button>
           </template>
         </el-input>
-        <el-text size="small">本地客户端连 Oracle 数据库需要使用 21.0 及以上版本 OCI</el-text>
+        <el-text size="small">{{ $t('Common.OracleOCI') }}</el-text>
         <input
             type="file"
             name="filename"

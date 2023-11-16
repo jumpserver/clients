@@ -11,10 +11,10 @@
     <slot/>
     <template #footer>
       <div class="dialog-footer">
-        <el-button v-if="showCancel && showButtons" @click="onCancel">{{ cancelTitle }}</el-button>
-        <el-button v-if="showSave && showButtons" type="success" @click="onSave">{{ saveTitle }}</el-button>
+        <el-button v-if="showCancel && showButtons" @click="onCancel">{{ $t('Dialog.Cancel') }}</el-button>
+        <el-button v-if="showSave && showButtons" type="success" @click="onSave">{{ $t('Dialog.Save') }}</el-button>
         <el-button v-if="showConfirm && showButtons" :loading="loadingStatus" type="primary" @click="onConfirm">
-          {{ confirmTitle }}
+          {{ $t('Dialog.Save&Default') }}
         </el-button>
       </div>
     </template>
@@ -41,31 +41,13 @@ export default {
       type: Boolean,
       default: true
     },
-    confirmTitle: {
-      type: String,
-      default() {
-        return "保存且默认"
-      }
-    },
     showCancel: {
       type: Boolean,
       default: true
     },
-    cancelTitle: {
-      type: String,
-      default() {
-        return "关闭"
-      }
-    },
     showSave: {
       type: Boolean,
       default: true
-    },
-    saveTitle: {
-      type: String,
-      default() {
-        return "保存"
-      }
     },
     showButtons: {
       type: Boolean,
@@ -80,8 +62,7 @@ export default {
       default: '1200px'
     }
   },
-  data() {
-    return {}
+  setup() {
   },
   methods: {
     onCancel() {

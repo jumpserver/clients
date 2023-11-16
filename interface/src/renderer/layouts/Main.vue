@@ -4,7 +4,7 @@
         class="fake-title-bar"
     >
       <div class="fake-title-bar__title">
-        本地客户端工具
+        {{ $t('Common.JumpServerClient') }}
       </div>
     </div>
     <el-row class="main-content">
@@ -17,33 +17,37 @@
             <el-icon>
               <i class="fa fa-terminal" aria-hidden="true"></i>
             </el-icon>
-            <span>远程终端</span>
+            <span>{{ $t('Router.Terminal') }}</span>
           </el-menu-item>
           <el-menu-item index="remotePage">
             <el-icon>
               <i class="fa fa-desktop" aria-hidden="true"></i>
             </el-icon>
-            <span>远程桌面</span>
+            <span>{{ $t('Router.RemoteDesktop') }}</span>
           </el-menu-item>
           <el-menu-item index="fileTransferPage">
             <el-icon>
               <i class="fa fa-folder" aria-hidden="true"></i>
             </el-icon>
-            <span>文件传输</span>
+            <span>{{ $t('Router.FileTransfer') }}</span>
           </el-menu-item>
           <el-menu-item index="databasesPage">
             <el-icon>
               <i class="fa fa-database" aria-hidden="true"></i>
             </el-icon>
-            <span>数据库</span>
+            <span>{{ $t('Router.Database') }}</span>
           </el-menu-item>
           <el-menu-item index="aboutPage">
             <el-icon>
               <i class="fa fa-users" aria-hidden="true"></i>
             </el-icon>
-            <span>关于我们</span>
+            <span>{{ $t('Router.AboutUs') }}</span>
           </el-menu-item>
         </el-menu>
+        <el-icon style="position:absolute;bottom: 0;padding: 10px;color: #eee; font-size: 18px;"
+                 @click="handClickI18n">
+          <i class="fa fa-language" aria-hidden="true"></i>
+        </el-icon>
       </el-col>
       <el-col
           :span="19"
@@ -62,6 +66,7 @@ import {ipcRenderer} from 'electron'
 import {computed, getCurrentInstance, onBeforeMount, onBeforeUnmount, ref} from "vue";
 import {useRouter} from 'vue-router'
 import {ElMessage} from 'element-plus'
+import { useI18n } from "vue-i18n";
 
 export default {
   name: 'MainPage',
@@ -131,8 +136,15 @@ export default {
         name: item
       })
     }
+
     ipcRenderer.send('config-get')
-    return {os, defaultActive, key, activeItems, handleSelect}
+
+    const t = useI18n();
+    let handClickI18n = () => {
+      t.locale.value = "en"
+      localStorage.setItem('lang', "en")
+    }
+    return {os, defaultActive, key, activeItems, handleSelect, handClickI18n}
   }
 }
 </script>
