@@ -39,7 +39,8 @@ func awakenSSHCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	var appItem *config.AppItem
 	var appLst []config.AppItem
 	switch r.Protocol {
-	case "ssh":
+	case "ssh", "telnet":
+		r.Protocol = "ssh"
 		appLst = cfg.Linux.Terminal
 	case "sftp":
 		appLst = cfg.Linux.FileTransfer
