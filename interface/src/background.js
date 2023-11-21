@@ -1,4 +1,4 @@
-import {app, BrowserWindow, ipcMain, protocol} from "electron";
+import {app, shell, BrowserWindow, ipcMain, protocol} from "electron";
 import {createProtocol} from "vue-cli-plugin-electron-builder/lib";
 import installExtension, {VUEJS3_DEVTOOLS} from "electron-devtools-installer";
 import path from 'path'
@@ -37,10 +37,15 @@ async function createWindow() {
         },
     });
 
-    if (process.env.WEBPACK_DEV_SERVER_URL) {
+    mainWindow.webContents.setWindowOpenHandler((details) => {
+        shell.openExternal(details.url)
+        return { action: "deny" }
+    });
+
+  if (process.env.WEBPACK_DEV_SERVER_URL) {
         // Load the url of the dev server if in development mode
         await mainWindow.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
-        // if (!process.env.IS_TEST) mainWindow.webContents.openDevTools()
+        if (!process.env.IS_TEST) mainWindow.webContents.openDevTools()
     } else {
         createProtocol("app");
         // Load the index.html when not in development

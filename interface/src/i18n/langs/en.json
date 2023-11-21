@@ -24,9 +24,20 @@
     "RemoteDesktop": "Remote Desktop",
     "FileTransfer": "File Transfer",
     "Database": "Database",
-    "AboutUs": "About Us"
+    "AboutUs": "About Us",
+    "Language": "Language"
   },
   "AboutUs": {
-    "Author": "Author"
+    "Author": "Author",
+    "Version": "Version",
+    "Copyright": "Copyright",
+    "AllRightsReserved": "All Rights Reserved",
+    "OfficialWebsite": "Official Website",
+    "OnlineDocumentation": "Online Documentation",
+    "CommunityForum": "Community Forum",
+    "AboutUs": "AboutUs"
+  },
+  "Language": {
+    "ChooseLanguage": "Choose Language"
   }
 }

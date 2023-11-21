@@ -24,9 +24,20 @@
     "RemoteDesktop": "远程桌面",
     "FileTransfer": "文件传输",
     "Database": "数据库",
-    "AboutUs": "关于我们"
+    "AboutUs": "关于我们",
+    "Language": "语言设置"
   },
   "AboutUs": {
-    "Author": "作者"
+    "Author": "作者",
+    "Version": "版本",
+    "Copyright": "版权公告",
+    "AllRightsReserved": "版权所有",
+    "OfficialWebsite": "产品官网",
+    "OnlineDocumentation": "在线文档",
+    "CommunityForum": "社区论坛",
+    "AboutUs": "关于我们"
+  },
+  "Language": {
+    "ChooseLanguage": "选择语言"
   }
 }

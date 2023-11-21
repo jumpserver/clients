@@ -8,17 +8,17 @@
       @save="onSaveItem"
       @confirm="onConfirmItem"
   >
-    <el-form ref="item-form" :model="selectItem" label-position="right" label-width="90px">
-      <el-form-item label="应用说明" prop="comment">
+    <el-form ref="item-form" :model="selectItem" label-position="right" label-width="auto">
+      <el-form-item :label="$t('Common.AppDesc')" prop="comment">
         <el-input v-model="selectItem.comment" readonly rows="4" resize="none" type="textarea"/>
       </el-form-item>
-      <el-form-item label="下载地址" prop="download_url">
+      <el-form-item :label="$t('Common.DownloadUrl')" prop="download_url">
         <el-input v-model="selectItem.download_url" readonly :autosize="{maxRows: 2}"  resize="none" type="textarea"/>
       </el-form-item>
-      <el-form-item label="应用路径" prop="path" :rules="[{required: true, message: '路径不能为空', trigger: 'blur'}]">
+      <el-form-item :label="$t('Common.AppPath')" prop="path" :rules="[{required: true, message: $t('Common.PathValidate'), trigger: 'blur'}]">
         <el-input
           v-model="selectItem.path"
-          placeholder="请选择本地应用启动程序路径"
+          placeholder="$t('Common.PathPlaceholder')"
           clearable
           :readonly="selectItem.is_internal || os === 'darwin'"
         >

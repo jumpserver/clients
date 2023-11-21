@@ -37,6 +37,12 @@
             </el-icon>
             <span>{{ $t('Router.Database') }}</span>
           </el-menu-item>
+          <el-menu-item index="languagePage">
+            <el-icon>
+              <i class="fa fa-language" aria-hidden="true"></i>
+            </el-icon>
+            <span>{{ $t('Router.Language') }}</span>
+          </el-menu-item>
           <el-menu-item index="aboutPage">
             <el-icon>
               <i class="fa fa-users" aria-hidden="true"></i>
@@ -44,10 +50,6 @@
             <span>{{ $t('Router.AboutUs') }}</span>
           </el-menu-item>
         </el-menu>
-        <el-icon style="position:absolute;bottom: 0;padding: 10px;color: #eee; font-size: 18px;"
-                 @click="handClickI18n">
-          <i class="fa fa-language" aria-hidden="true"></i>
-        </el-icon>
       </el-col>
       <el-col
           :span="19"
@@ -66,7 +68,6 @@ import {ipcRenderer} from 'electron'
 import {computed, getCurrentInstance, onBeforeMount, onBeforeUnmount, ref} from "vue";
 import {useRouter} from 'vue-router'
 import {ElMessage} from 'element-plus'
-import { useI18n } from "vue-i18n";
 
 export default {
   name: 'MainPage',
@@ -139,12 +140,7 @@ export default {
 
     ipcRenderer.send('config-get')
 
-    const t = useI18n();
-    let handClickI18n = () => {
-      t.locale.value = "en"
-      localStorage.setItem('lang', "en")
-    }
-    return {os, defaultActive, key, activeItems, handleSelect, handClickI18n}
+    return {os, defaultActive, key, activeItems, handleSelect}
   }
 }
 </script>
@@ -153,7 +149,7 @@ export default {
 
 .fake-title-bar {
   -webkit-app-region: drag;
-  height: 25px;
+  height: 30px;
   width: 100%;
   text-align: center;
   color: #eee;
@@ -173,7 +169,7 @@ export default {
   background: #1f1f1f;
 
   .side-bar-menu {
-    height: calc(100vh - 25px);
+    height: calc(100vh - 30px);
     overflow-x: hidden;
     overflow-y: auto;
     border-right: solid 1px #4c4d4faf;
