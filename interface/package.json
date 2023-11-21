@@ -1,7 +1,7 @@
 {
   "name": "jumpserver-client",
   "author": "Fit2Cloud Technology Co., Ltd.; <support@fit2cloud.com>",
-  "version": "v2.0.2",
+  "version": "v2.0.3",
   "homepage": "https://jumpserver.org",
   "private": true,
   "scripts": {
