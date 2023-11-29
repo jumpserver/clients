@@ -1,24 +1,25 @@
 <template>
-  <el-dialog
-    class="base-dialog"
-    :append-to-body="true"
-    :modal-append-to-body="true"
-    :title="title"
-    :top="top"
-    :width="width"
-    v-bind="$attrs"
-  >
-    <slot/>
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button v-if="showCancel && showButtons" @click="onCancel">{{ $t('Dialog.Cancel') }}</el-button>
-        <el-button v-if="showSave && showButtons" type="success" @click="onSave">{{ $t('Dialog.Save') }}</el-button>
-        <el-button v-if="showConfirm && showButtons" :loading="loadingStatus" type="primary" @click="onConfirm">
-          {{ $t('Dialog.Save&Default') }}
-        </el-button>
-      </div>
-    </template>
-  </el-dialog>
+  <div>
+    <el-dialog
+      class="base-dialog"
+      :modal-append-to-body="true"
+      :title="title"
+      :top="top"
+      :width="width"
+      v-bind="$attrs"
+    >
+      <slot/>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button v-if="showCancel && showButtons" @click="onCancel">{{ $t('Dialog.Cancel') }}</el-button>
+          <el-button v-if="showSave && showButtons" type="success" @click="onSave">{{ $t('Dialog.Save') }}</el-button>
+          <el-button v-if="showConfirm && showButtons" :loading="loadingStatus" type="primary" @click="onConfirm">
+            {{ $t('Dialog.Save&Default') }}
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+  </div>
 </template>
 
 <script>
@@ -78,8 +79,8 @@ export default {
 }
 </script>
 
-<style lang="scss">
-.base-dialog {
+<style lang="scss" scoped>
+:deep(.el-dialog) {
   .el-dialog__body {
     padding: 10px 20px;
   }
