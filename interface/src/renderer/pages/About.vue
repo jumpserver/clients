@@ -1,14 +1,14 @@
 <template>
   <div>
     <img id="logo" src="@/assets/JumpServer.png" alt=""/>
-    <h2>{{ $t('Common.JumpServerClient') }}</h2>
-    <p>{{ $t('AboutUs.Version') }}：v2.0.3</p>
+    <p>{{ $t('Common.JumpServerClient') }}</p>
+    <p>{{ $t('AboutUs.Version') }}：v2.1.0</p>
     <p>{{ $t('AboutUs.Author') }}：FIT2CLOUD 飞致云 - Halo</p>
     <p>{{ $t('AboutUs.Copyright') }}：FIT2CLOUD 飞致云 © 2014-2023 {{ $t('AboutUs.AllRightsReserved')}}</p>
-    <a id="baidu" target="_blank" href="https://www.fit2cloud.com/jumpserver/index.html">{{ $t('AboutUs.OfficialWebsite') }}</a>
-    <a id="baidu" target="_blank" href="https://docs.jumpserver.org/zh/v3/">{{ $t('AboutUs.OnlineDocumentation') }}</a>
-    <a id="baidu" target="_blank" href="https://bbs.fit2cloud.com/c/js/5">{{ $t('AboutUs.CommunityForum') }}</a>
-    <a id="baidu" target="_blank" href="https://www.fit2cloud.com/index.html">{{ $t('AboutUs.AboutUs') }}</a>
+    <a target="_blank" href="https://www.fit2cloud.com/jumpserver/index.html">{{ $t('AboutUs.OfficialWebsite') }}</a>
+    <a target="_blank" href="https://docs.jumpserver.org/zh/v3/">{{ $t('AboutUs.OnlineDocumentation') }}</a>
+    <a target="_blank" href="https://bbs.fit2cloud.com/c/js/5">{{ $t('AboutUs.CommunityForum') }}</a>
+    <a target="_blank" href="https://www.fit2cloud.com/index.html">{{ $t('AboutUs.AboutUs') }}</a>
   </div>
 </template>
 
