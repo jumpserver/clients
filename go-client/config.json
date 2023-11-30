@@ -169,7 +169,7 @@
         "download_url": "https://github.com/FuckDoctors/rdm-builder/releases/download/2022.5.1/resp-2022.5.1.exe",
         "type": "databases",
         "path": "",
-        "arg_format": "--settings-dir {config_file}",
+        "arg_format": "--settings-dir*{config_file}",
         "match_first": [],
         "is_internal": false,
         "is_default": false,
