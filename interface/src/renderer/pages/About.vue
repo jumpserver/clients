@@ -1,14 +1,22 @@
 <template>
   <div>
     <img id="logo" src="@/assets/JumpServer.png" alt=""/>
-    <h1>本地客户端工具</h1>
-    <span>作者：FIT2CLOUD 飞致云 - Halo</span>
+    <p>{{ $t('Common.JumpServerClient') }}</p>
+    <p>{{ $t('AboutUs.Version') }}：v2.1.0</p>
+    <p>{{ $t('AboutUs.Author') }}：FIT2CLOUD 飞致云 - Halo</p>
+    <p>{{ $t('AboutUs.Copyright') }}：FIT2CLOUD 飞致云 © 2014-2023 {{ $t('AboutUs.AllRightsReserved')}}</p>
+    <a target="_blank" href="https://www.fit2cloud.com/jumpserver/index.html">{{ $t('AboutUs.OfficialWebsite') }}</a>
+    <a target="_blank" href="https://docs.jumpserver.org/zh/v3/">{{ $t('AboutUs.OnlineDocumentation') }}</a>
+    <a target="_blank" href="https://bbs.fit2cloud.com/c/js/5">{{ $t('AboutUs.CommunityForum') }}</a>
+    <a target="_blank" href="https://www.fit2cloud.com/index.html">{{ $t('AboutUs.AboutUs') }}</a>
   </div>
 </template>
 
 <script>
 export default {
-  name: "AboutPage"
+  name: "AboutPage",
+  components: {},
+  setup() {}
 }
 </script>
 
@@ -18,9 +26,20 @@ div {
   height: 100%;
   text-align: center;
   color: #e1e1e1e1;
+
+  p {
+    font-size: 15px;
+  }
+
+  a {
+    line-height: 50px;
+    margin: 0 15px;
+    color: #3f83cc;
+  }
+
   #logo {
     margin-top: 80px;
-    width: 300px;
+    width: 200px;
   }
 }
 </style>

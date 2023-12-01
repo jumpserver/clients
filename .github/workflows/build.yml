@@ -1,0 +1,67 @@
+# build.yml
+
+name: Auto Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+      - release-test
+
+
+
+env:
+  ELECTRON_OUTPUT_PATH: interface/dist_electron
+  CSC_LINK: ${{ secrets.CSC_LINK }}
+  CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+
+
+jobs:
+  release:
+    name: build and release electron app
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-11, windows-latest]
+
+    steps:
+      - name: Check out git repository
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+
+      - name: build go client
+        run: make build-client
+        working-directory: go-client
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+            node-version: '16.x'
+
+      - name: Install system deps
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+            sudo apt-get install --no-install-recommends -y icnsutils graphicsmagick xz-utils
+
+      - name: Yarn install
+        run: |
+          yarn
+          yarn global add xvfb-maybe
+
+      - name: Build  & release app
+        run: |
+          yarn build
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          XCODE_APP_TEAM_ID: ${{ secrets.XCODE_APP_TEAM_ID }}
+          XCODE_APP_LOADER_EMAIL: ${{ secrets.XCODE_APP_LOADER_EMAIL }}
+          XCODE_APP_LOADER_PASSWORD: ${{ secrets.XCODE_APP_LOADER_PASSWORD }}
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.CSC_LINK }}
+          P12_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}

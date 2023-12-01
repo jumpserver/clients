@@ -33,6 +33,11 @@ export default createRouter({
           path: '/about',
           name: 'aboutPage',
           component: () => import('@/pages/About.vue')
+        },
+        {
+          path: '/i18n',
+          name: 'languagePage',
+          component: () => import('@/pages/Language.vue')
         }
       ]
     },

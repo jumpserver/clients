@@ -31,7 +31,8 @@ func awakenRDPCommand(filePath string, cfg *config.AppConfig) *exec.Cmd {
 	if appItem == nil {
 		return nil
 	}
-	cmd := exec.Command(appItem.Name, filePath)
+	args := strings.Replace(appItem.ArgFormat, "{file}", filePath, 1)
+	cmd := exec.Command(appItem.Name, strings.Split(args, " ")...)
 	return cmd
 }
 
@@ -39,7 +40,8 @@ func awakenSSHCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	var appItem *config.AppItem
 	var appLst []config.AppItem
 	switch r.Protocol {
-	case "ssh":
+	case "ssh", "telnet":
+		r.Protocol = "ssh"
 		appLst = cfg.Linux.Terminal
 	case "sftp":
 		appLst = cfg.Linux.FileTransfer

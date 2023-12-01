@@ -37,7 +37,8 @@ func handleSSH(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	var appItem *config.AppItem
 	var appLst []config.AppItem
 	switch r.Protocol {
-	case "ssh":
+	case "ssh", "telnet":
+		r.Protocol = "ssh"
 		appLst = cfg.Windows.Terminal
 	case "sftp":
 		appLst = cfg.Windows.FileTransfer
@@ -107,7 +108,7 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		ss := make(map[string]string)
 		ss["host"] = r.Host
 		ss["port"] = strconv.Itoa(r.Port)
-		ss["name"] = r.Name
+		ss["name"] = r.getName()
 		ss["auth"] = r.Token.ID + "@" + r.Value
 		ss["ssh_agent_path"] = ""
 		ss["ssh_password"] = ""
@@ -130,7 +131,13 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		connectMap["config_file"] = currentPath
 	}
 	commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
-	return exec.Command(appPath, strings.Split(commands, " ")...)
+	if strings.Contains(commands, "*") {
+		commands := strings.Split(commands, "*")
+		return exec.Command(appPath, commands...)
+	} else {
+		commands := strings.Split(commands, " ")
+		return exec.Command(appPath, commands...)
+	}
 }
 
 func handleCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
