@@ -1,59 +1,84 @@
 <template>
   <div id="main-page">
     <div
-        class="fake-title-bar"
+      class="fake-title-bar"
     >
       <div class="fake-title-bar__title">
-        本地客户端工具
+        {{ $t('Common.JumpServerClient') }}
       </div>
     </div>
     <el-row class="main-content">
       <el-col :span="5" class="side-bar-menu">
         <el-menu
-            :default-active="defaultActive"
-            @select="handleSelect"
+          :default-active="defaultActive"
+          @select="handleSelect"
         >
           <el-menu-item index="sshPage">
             <el-icon>
               <i class="fa fa-terminal" aria-hidden="true"></i>
             </el-icon>
-            <span>远程终端</span>
+            <span>{{ $t('Router.Terminal') }}</span>
           </el-menu-item>
           <el-menu-item index="remotePage">
             <el-icon>
               <i class="fa fa-desktop" aria-hidden="true"></i>
             </el-icon>
-            <span>远程桌面</span>
+            <span>{{ $t('Router.RemoteDesktop') }}</span>
           </el-menu-item>
           <el-menu-item index="fileTransferPage">
             <el-icon>
               <i class="fa fa-folder" aria-hidden="true"></i>
             </el-icon>
-            <span>文件传输</span>
+            <span>{{ $t('Router.FileTransfer') }}</span>
           </el-menu-item>
           <el-menu-item index="databasesPage">
             <el-icon>
               <i class="fa fa-database" aria-hidden="true"></i>
             </el-icon>
-            <span>数据库</span>
+            <span>{{ $t('Router.Database') }}</span>
+          </el-menu-item>
+          <el-menu-item index="languagePage">
+            <el-icon>
+              <i class="fa fa-language" aria-hidden="true"></i>
+            </el-icon>
+            <span>{{ $t('Router.Language') }}</span>
           </el-menu-item>
           <el-menu-item index="aboutPage">
             <el-icon>
               <i class="fa fa-users" aria-hidden="true"></i>
             </el-icon>
-            <span>关于我们</span>
+            <span>{{ $t('Router.AboutUs') }}</span>
           </el-menu-item>
         </el-menu>
       </el-col>
       <el-col
-          :span="19"
-          class="main-wrapper"
+        :span="19"
+        class="main-wrapper"
       >
         <section class="app-main">
-          <router-view :key="key" :activeItems="activeItems" :os="os" />
+          <router-view :key="key" :activeItems="activeItems" :os="os"/>
         </section>
       </el-col>
     </el-row>
+    <el-dialog
+      top="20%"
+      v-model="languagesDialogVisible"
+      :title="$t('Router.Language')"
+      :destroy-on-close="true"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :show-close="false"
+    >
+      <span class="label" >{{ $t('Language.ChooseLanguage') }}</span>
+      <el-select v-model="i18n" @change="handClickI18n" style="float:right;">
+        <el-option v-for="i in supportLanguages" :key="i" :label="i.title" :value="i.code" />
+      </el-select>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="onConfirm">{{ $t('Dialog.Save') }}</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -62,6 +87,7 @@ import {ipcRenderer} from 'electron'
 import {computed, getCurrentInstance, onBeforeMount, onBeforeUnmount, ref} from "vue";
 import {useRouter} from 'vue-router'
 import {ElMessage} from 'element-plus'
+import {useI18n} from "vue-i18n";
 
 export default {
   name: 'MainPage',
@@ -132,7 +158,37 @@ export default {
       })
     }
     ipcRenderer.send('config-get')
-    return {os, defaultActive, key, activeItems, handleSelect}
+
+    const languagesDialogVisible = ref(false)
+    const supportLanguages = [
+      {
+        title: '中文(简体)',
+        code: 'zh',
+      },
+      {
+        title: 'English',
+        code: 'en',
+      }
+    ]
+    const t = useI18n();
+    const i18n = ref()
+
+    onBeforeMount(() => {
+      i18n.value = t.locale.value
+      let lang = localStorage.getItem('lang')
+      if (lang === undefined || lang == null) {
+        languagesDialogVisible.value = true
+      }
+    })
+
+    let handClickI18n = (value) => {
+      t.locale.value = value
+    }
+    let onConfirm = () => {
+      localStorage.setItem('lang', t.locale.value)
+      languagesDialogVisible.value = false
+    }
+    return {os, defaultActive, key, activeItems, handleSelect, i18n, languagesDialogVisible, supportLanguages, handClickI18n, onConfirm}
   }
 }
 </script>
@@ -141,7 +197,7 @@ export default {
 
 .fake-title-bar {
   -webkit-app-region: drag;
-  height: 25px;
+  height: 30px;
   width: 100%;
   text-align: center;
   color: #eee;
@@ -161,7 +217,7 @@ export default {
   background: #1f1f1f;
 
   .side-bar-menu {
-    height: calc(100vh - 25px);
+    height: calc(100vh - 30px);
     overflow-x: hidden;
     overflow-y: auto;
     border-right: solid 1px #4c4d4faf;
@@ -200,5 +256,13 @@ export default {
   background-color: transparent;
 }
 
+:deep(.el-dialog) {
+  .el-dialog__body {
+    padding: 10px 20px;
+  }
+}
 
+.label {
+  line-height: 32px;
+}
 </style>

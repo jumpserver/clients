@@ -9,10 +9,10 @@
             <div class="comment">{{ d.comment }}</div>
             <div class="prop">
               <span :class="d.is_set? 'is-setted':'not-setted'">
-                {{ is_set_string(d.is_set) }}
+                {{ $t(is_set_string(d.is_set)) }}
               </span>
               <el-divider v-show="d.is_default" direction="vertical"/>
-              <span v-show="d.is_default" class="is-setted">默认应用</span>
+              <span v-show="d.is_default" class="is-setted">{{ $t('Common.DefaultApp') }}</span>
               <el-divider v-show="d.match_first.length !== 0" direction="vertical"/>
               <el-text v-show="d.match_first.length !== 0" size="small" class="match_first">{{ join_2_string(d.match_first) }}</el-text>
             </div>
@@ -38,9 +38,9 @@ export default {
   methods: {
     is_set_string(b) {
       if (b) {
-        return "已配置"
+        return "Common.Configured"
       } else {
-        return "未配置"
+        return "Common.NotConfigured"
       }
     },
     join_2_string(b) {
@@ -112,6 +112,11 @@ export default {
       }
 
       .prop{
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        color: #5cb87a;
+
         .is-setted {
           font-size: 12px;
           color: #5cb87a;
@@ -125,6 +130,7 @@ export default {
         .match_first {
           font-size: 11px;
           color: #5cb87a;
+
         }
       }
     }

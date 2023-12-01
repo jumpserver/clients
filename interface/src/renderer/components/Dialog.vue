@@ -1,24 +1,25 @@
 <template>
-  <el-dialog
-    class="base-dialog"
-    :append-to-body="true"
-    :modal-append-to-body="true"
-    :title="title"
-    :top="top"
-    :width="width"
-    v-bind="$attrs"
-  >
-    <slot/>
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button v-if="showCancel && showButtons" @click="onCancel">{{ cancelTitle }}</el-button>
-        <el-button v-if="showSave && showButtons" type="success" @click="onSave">{{ saveTitle }}</el-button>
-        <el-button v-if="showConfirm && showButtons" :loading="loadingStatus" type="primary" @click="onConfirm">
-          {{ confirmTitle }}
-        </el-button>
-      </div>
-    </template>
-  </el-dialog>
+  <div>
+    <el-dialog
+      class="base-dialog"
+      :modal-append-to-body="true"
+      :title="title"
+      :top="top"
+      :width="width"
+      v-bind="$attrs"
+    >
+      <slot/>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button v-if="showCancel && showButtons" @click="onCancel">{{ $t('Dialog.Cancel') }}</el-button>
+          <el-button v-if="showSave && showButtons" type="success" @click="onSave">{{ $t('Dialog.Save') }}</el-button>
+          <el-button v-if="showConfirm && showButtons" :loading="loadingStatus" type="primary" @click="onConfirm">
+            {{ $t('Dialog.Save&Default') }}
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+  </div>
 </template>
 
 <script>
@@ -41,31 +42,13 @@ export default {
       type: Boolean,
       default: true
     },
-    confirmTitle: {
-      type: String,
-      default() {
-        return "保存且默认"
-      }
-    },
     showCancel: {
       type: Boolean,
       default: true
     },
-    cancelTitle: {
-      type: String,
-      default() {
-        return "关闭"
-      }
-    },
     showSave: {
       type: Boolean,
       default: true
-    },
-    saveTitle: {
-      type: String,
-      default() {
-        return "保存"
-      }
     },
     showButtons: {
       type: Boolean,
@@ -80,8 +63,7 @@ export default {
       default: '1200px'
     }
   },
-  data() {
-    return {}
+  setup() {
   },
   methods: {
     onCancel() {
@@ -97,8 +79,8 @@ export default {
 }
 </script>
 
-<style lang="scss">
-.base-dialog {
+<style lang="scss" scoped>
+:deep(.el-dialog) {
   .el-dialog__body {
     padding: 10px 20px;
   }
