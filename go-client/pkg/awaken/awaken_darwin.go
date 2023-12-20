@@ -114,6 +114,8 @@ func awakenDBCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 			argFormat = "psql 'user={username} password={value} host={host} dbname={dbname} port={port}'"
 		case "mysql", "mariadb":
 			argFormat = "mysql -u {username} -p{value} -h {host} -P {port} {dbname}"
+		case "sqlserver":
+			argFormat = "sqlcmd -S {host},{port} -U {username} -P {value} -d {dbname}"
 		}
 		commands := getCommandFromArgs(connectMap, argFormat)
 		cmd := exec.Command(
