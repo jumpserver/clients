@@ -124,6 +124,9 @@ func awakenDBCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		)
 		return cmd
 	} else {
+		if r.Protocol == "sqlserver" {
+			connectMap["protocol"] = "mssql_jdbc_ms_new"
+		}
 		appPath = appItem.Path
 		commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
 		return exec.Command(appPath, strings.Split(commands, " ")...)

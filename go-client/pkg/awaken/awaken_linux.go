@@ -86,6 +86,9 @@ func awakenSSHCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 			global.LOG.Info(msg)
 		}
 	} else {
+		if r.Protocol == "sqlserver" {
+			connectMap["protocol"] = "mssql_jdbc_ms_new"
+		}
 		var appPath string
 		appPath = appItem.Path
 		commands := getCommandFromArgs(connectMap, appItem.ArgFormat)

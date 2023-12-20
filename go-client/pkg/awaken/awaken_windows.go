@@ -103,6 +103,9 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		"dbname":   r.DBName,
 	}
 
+	if r.Protocol == "sqlserver" {
+		connectMap["protocol"] = "mssql_jdbc_ms_new"
+	}
 	if r.Protocol == "redis" {
 		var conList []map[string]string
 		ss := make(map[string]string)
