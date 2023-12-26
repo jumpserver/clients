@@ -29,7 +29,7 @@ func getCommandFromArgs(connectInfo map[string]string, argFormat string) string 
 }
 
 func handleRDP(r *Rouse, filePath string, cfg *config.AppConfig) *exec.Cmd {
-	cmd := exec.Command("mstsc.exe", filePath)
+	cmd := exec.Command("C:\\WINDOWS\\system32\\mstsc.exe", filePath)
 	return cmd
 }
 
