@@ -18,7 +18,7 @@
       <el-form-item :label="$t('Common.AppPath')" prop="path" :rules="[{required: true, message: $t('Common.PathValidate'), trigger: 'blur'}]">
         <el-input
           v-model="selectItem.path"
-          placeholder="$t('Common.PathPlaceholder')"
+          :placeholder="$t('Common.PathPlaceholder')"
           clearable
           :readonly="selectItem.is_internal || os === 'darwin'"
         >
