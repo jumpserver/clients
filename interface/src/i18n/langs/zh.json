@@ -12,7 +12,8 @@
     "DefaultApp": "默认应用",
     "Configured": "已配置",
     "NotConfigured": "未配置",
-    "OracleOCI": "本地客户端连 Oracle 数据库需要使用 21.0 及以上版本 OCI"
+    "OracleOCI": "本地客户端连 Oracle 数据库需要使用 21.0 及以上版本 OCI",
+    "SystemComesWith": "系统自带"
   },
   "Dialog": {
     "Save&Default": "保存且默认",

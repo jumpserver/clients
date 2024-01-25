@@ -25,7 +25,6 @@ type AppItem struct {
 	Name        string   `json:"name"`
 	DisplayName string   `json:"display_name"`
 	Protocol    []string `json:"protocol"`
-	Comment     string   `json:"comment"`
 	Type        string   `json:"type"`
 	MatchFirst  []string `json:"match_first"`
 	Path        string   `json:"path"`

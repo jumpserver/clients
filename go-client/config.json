@@ -9,8 +9,11 @@
           "ssh",
           "telnet"
         ],
-        "comment": "PuTTY是一个Telnet、SSH、rlogin、纯TCP以及串行接口连接软件。",
-        "download_url": "内置",
+        "comment": {
+          "zh": "PuTTY是一个Telnet、SSH、rlogin、纯TCP以及串行接口连接软件。",
+          "en": "PuTTY is a Telnet, SSH, rlogin, pure TCP and serial interface connection software."
+        },
+        "download_url": "",
         "type": "linux",
         "path": "putty.exe",
         "arg_format": "-{protocol} {username}@{host} -P {port} -pw {value}",
@@ -26,7 +29,10 @@
           "ssh",
           "telnet"
         ],
-        "comment": "XShell是一个强大的安全终端模拟软件，它支持SSH、TELNET协议。",
+        "comment": {
+          "zh": "XShell是一个强大的安全终端模拟软件，它支持SSH、TELNET协议。",
+          "en": "XShell is a powerful secure terminal simulation software that supports SSH and TELNET protocols."
+        },
         "download_url": "https://www.xshell.com/zh/xshell-download/",
         "type": "linux",
         "path": "",
@@ -43,7 +49,10 @@
           "ssh",
           "telnet"
         ],
-        "comment": "SecureCRT是VanDyke Software所开发销售的一个SSH、Telnet客户端和虚拟终端软件。",
+        "comment": {
+          "zh": "SecureCRT是VanDyke Software所开发销售的一个SSH、Telnet客户端和虚拟终端软件。",
+          "en": "SecureCRT is an SSH, Telnet client and virtual terminal software developed and sold by VanDyke Software."
+        },
         "download_url": "https://www.vandyke.com/cgi-bin/releases.php?product=securecrt",
         "type": "linux",
         "path": "",
@@ -60,7 +69,10 @@
           "ssh",
           "telnet"
         ],
-        "comment": "MobaXterm是一款功能丰富的远程计算机管理工具，其包括了SSH客户端、FTP客户端、远程桌面等。",
+        "comment": {
+          "zh": "MobaXterm是一款功能丰富的远程计算机管理工具，其包括了SSH客户端、FTP客户端、远程桌面等。",
+          "en": "MobaXterm is a feature-rich remote computer management tool, including SSH client, FTP client, remote desktop, etc."
+        },
         "download_url": "https://mobaxterm.mobatek.net/download-home-edition.html",
         "type": "linux",
         "path": "",
@@ -78,8 +90,11 @@
         "protocol": [
           "rdp"
         ],
-        "comment": "Microsoft Remote Desktop是一款强大的微软远程连接工具，可以从几乎任何地方连接到远程PC和您的工作资源。",
-        "download_url": "内置",
+        "comment": {
+          "zh": "Microsoft Remote Desktop是一款强大的微软远程连接工具，可以从几乎任何地方连接到远程PC和您的工作资源。",
+          "en": "Microsoft Remote Desktop is a powerful Microsoft remote connection tool that can connect to remote PCs and your work resources from almost anywhere."
+        },
+        "download_url": "",
         "type": "windows",
         "path": "mstsc.exe",
         "arg_format": "{file}",
@@ -96,7 +111,10 @@
         "protocol": [
           "sftp"
         ],
-        "comment": "WinSCP是一个Windows环境下使用SSH的开源图形化SFTP客户端，同时支持SCP协议。",
+        "comment": {
+          "zh": "WinSCP是一个Windows环境下使用SSH的开源图形化SFTP客户端，同时支持SCP协议。",
+          "en": "WinSCP is an open source graphical SFTP client that uses SSH in a Windows environment and supports the SCP protocol."
+        },
         "download_url": "https://winscp.net/eng/index.php",
         "type": "linux",
         "path": "",
@@ -112,7 +130,10 @@
         "protocol": [
           "sftp"
         ],
-        "comment": "FileZilla Client是一款免费、开源的 FTP 客户端。它支持FTP、SFTP。",
+        "comment": {
+          "zh": "FileZilla Client是一款免费、开源的 FTP 客户端。它支持FTP、SFTP。",
+          "en": "FileZilla Client is a free, open source FTP client. It supports FTP, SFTP."
+        },
         "download_url": "https://filezilla-project.org/download.php?type=client",
         "type": "linux",
         "path": "",
@@ -130,7 +151,10 @@
         "protocol": [
           "oracle"
         ],
-        "comment": "PL/SQL Developer是一个集成开发环境，由Allround Automations公司开发，专门面向Oracle数据库存储的程序单元的开发。",
+        "comment": {
+          "zh": "PL/SQL Developer是一个集成开发环境，由Allround Automations公司开发，专门面向Oracle数据库存储的程序单元的开发。",
+          "en": "PL/SQL Developer is an integrated development environment developed by Allround Automations, specifically for the development of program units stored in Oracle databases."
+        },
         "download_url": "https://www.allroundautomations.com/registered-plsqldev/",
         "type": "databases",
         "path": "",
@@ -150,7 +174,10 @@
           "mariadb",
           "sqlserver"
         ],
-        "comment": "DBeaver Community是一个通用的数据库管理工具和SQL客户端，支持MySQL、PostgreSQL、Oracle以及其他兼容JDBC的数据库。",
+        "comment": {
+          "zh": "DBeaver Community是一个通用的数据库管理工具和SQL客户端，支持MySQL、PostgreSQL、Oracle以及其他兼容JDBC的数据库。",
+          "en": "DBeaver Community is a general database management tool and SQL client that supports MySQL, PostgreSQL, Oracle and other JDBC-compatible databases."
+        },
         "download_url": "https://dbeaver.io/download/",
         "type": "databases",
         "path": "",
@@ -166,11 +193,33 @@
         "protocol": [
           "redis"
         ],
-        "comment": "Redis Desktop Manager 是一款能够跨平台使用的开源 Redis 可视化工具，主要针对 Redis 开发设计。",
+        "comment": {
+          "zh": "Redis Desktop Manager 是一款能够跨平台使用的开源 Redis 可视化工具，主要针对 Redis 开发设计。",
+          "en": "Redis Desktop Manager is an open source Redis visualization tool that can be used across platforms and is mainly designed for Redis development."
+        },
         "download_url": "https://github.com/FuckDoctors/rdm-builder/releases/download/2022.5.1/resp-2022.5.1.exe",
         "type": "databases",
         "path": "",
         "arg_format": "--settings-dir*{config_file}",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      },
+      {
+        "name": "ssms17",
+        "display_name": "SQL Server Management Studio 17",
+        "protocol": [
+          "sqlserver"
+        ],
+        "comment": {
+          "zh": "SQL Server Management Studio (SSMS) 是一种集成环境，用于管理从 SQL Server 到 Azure SQL 数据库的任何 SQL 基础结构。",
+          "en": "SQL Server Management Studio (SSMS) is an integrated environment for managing any SQL infrastructure, from SQL Server to Azure SQL Database."
+        },
+        "download_url": "https://download.microsoft.com/download/D/D/4/DD495084-ADA7-4827-ADD3-FC566EC05B90/SSMS-Setup-CHS.exe",
+        "type": "databases",
+        "path": "-S {host},{port} -U {username} -P {value} -d {dbname}",
+        "arg_format": "",
         "match_first": [],
         "is_internal": false,
         "is_default": false,
@@ -187,8 +236,11 @@
           "ssh",
           "telnet"
         ],
-        "comment": "Terminal是MacOS操作系统上的虚拟终端应用软件，位于“实用工具”文件夹内。",
-        "download_url": "内置",
+        "comment": {
+          "zh": "Terminal是MacOS操作系统上的虚拟终端应用软件，位于“实用工具”文件夹内。",
+          "en": "Terminal is a virtual terminal application software on the MacOS operating system, located in the \"Utilities\" folder."
+        },
+        "download_url": "",
         "type": "linux",
         "path": "Terminal",
         "arg_format": "{protocol} {username}@{host} -p {port} -P {value}",
@@ -204,7 +256,10 @@
           "ssh",
           "telnet"
         ],
-        "comment": "iTerm2是MacOS操作系统上的虚拟终端应用软件。\n\n!!!手动下载安装，点击保存启用!!!",
+        "comment": {
+          "zh": "iTerm2是MacOS操作系统上的虚拟终端应用软件。\n\n!!!手动下载安装，点击保存启用!!!",
+          "en": "iTerm2 is a virtual terminal application software on the MacOS operating system.\n\n\n!!!Manually download and install, click Save to activate!!!"
+        },
         "download_url": "https://iterm2.com/downloads.html",
         "type": "linux",
         "path": "iTerm2",
@@ -221,7 +276,10 @@
           "ssh",
           "telnet"
         ],
-        "comment": "SecureCRT是VanDyke Software所开发销售的一个SSH、Telnet客户端和虚拟终端软件。\n\n!!!手动下载安装，点击保存启用!!!",
+        "comment": {
+          "zh": "SecureCRT是VanDyke Software所开发销售的一个SSH、Telnet客户端和虚拟终端软件。\n\n!!!手动下载安装，点击保存启用!!!",
+          "en": "SecureCRT is an SSH, Telnet client and virtual terminal software developed and sold by VanDyke Software.\n\n!!!Manually download and install, click Save to activate!!!"
+        },
         "download_url": "https://www.vandyke.com/cgi-bin/releases.php?product=securecrt",
         "type": "linux",
         "path": "/Applications/SecureCRT.app/Contents/MacOS/SecureCRT",
@@ -239,8 +297,11 @@
         "protocol": [
           "rdp"
         ],
-        "comment": "Microsoft Remote Desktop是一款强大的微软远程连接工具，可以从几乎任何地方连接到远程PC和您的工作资源。\n\n!!!手动下载安装，点击保存启用!!!",
-        "download_url": "内置",
+        "comment": {
+          "zh": "Microsoft Remote Desktop是一款强大的微软远程连接工具，可以从几乎任何地方连接到远程PC和您的工作资源。\n\n!!!手动下载安装，点击保存启用!!!",
+          "en": "Microsoft Remote Desktop is a powerful Microsoft remote connection tool that can connect to remote PCs and your work resources from almost anywhere.\n\n!!!Manually download and install, click Save to activate!!!"
+        },
+        "download_url": "",
         "type": "windows",
         "path": "/Applications/Microsoft Remote Desktop.app",
         "arg_format": "{file}",
@@ -257,7 +318,10 @@
         "protocol": [
           "sftp"
         ],
-        "comment": "FileZilla Client是一款免费、开源的 FTP 客户端。它支持FTP、SFTP。\n\n!!!手动下载安装，点击保存启用!!!",
+        "comment": {
+          "zh": "FileZilla Client是一款免费、开源的 FTP 客户端。它支持FTP、SFTP。\n\n!!!手动下载安装，点击保存启用!!!",
+          "en": "FileZilla Client is a free, open source FTP client. It supports FTP, SFTP.\n\n!!!Manually download and install, click Save to activate!!!"
+        },
         "download_url": "https://filezilla-project.org/download.php?type=client",
         "type": "linux",
         "path": "/Applications/FileZilla.app/Contents/MacOS/filezilla",
@@ -280,8 +344,11 @@
           "redis",
           "sqlserver"
         ],
-        "comment": "Terminal是MacOS操作系统上的虚拟终端应用软件，位于“实用工具”文件夹内。",
-        "download_url": "内置",
+        "comment": {
+          "zh": "Terminal是MacOS操作系统上的虚拟终端应用软件，位于“实用工具”文件夹内。",
+          "en": "Terminal is a virtual terminal application software on the MacOS operating system, located in the \"Utilities\" folder."
+        },
+        "download_url": "",
         "type": "linux",
         "path": "Terminal",
         "arg_format": "",
@@ -307,7 +374,10 @@
           "mariadb",
           "sqlserver"
         ],
-        "comment": "DBeaver Community是一个通用的数据库管理工具和SQL客户端，支持MySQL、PostgreSQL、Oracle以及其他兼容JDBC的数据库。\n\n!!!手动下载安装，点击保存启用!!!",
+        "comment": {
+          "zh": "DBeaver Community是一个通用的数据库管理工具和SQL客户端，支持MySQL、PostgreSQL、Oracle以及其他兼容JDBC的数据库。\n\n!!!手动下载安装，点击保存启用!!!",
+          "en": "DBeaver Community is a general database management tool and SQL client that supports MySQL, PostgreSQL, Oracle and other JDBC-compatible databases.\n\n!!!Manually download and install, click Save to activate!!!"
+        },
         "download_url": "https://dbeaver.io/download/",
         "type": "databases",
         "path": "/Applications/DBeaver.app/Contents/MacOS/dbeaver",
@@ -328,8 +398,11 @@
           "ssh",
           "telnet"
         ],
-        "comment": "Terminal是Linux操作系统上的虚拟终端应用软件。",
-        "download_url": "内置",
+        "comment": {
+          "zh": "Terminal是Linux操作系统上的虚拟终端应用软件。",
+          "en": "Terminal is a virtual terminal application software on the Linux operating system."
+        },
+        "download_url": "",
         "type": "linux",
         "path": "Terminal",
         "arg_format": "{protocol} {username}@{host} -p {port} -P {value}",
@@ -346,8 +419,11 @@
         "protocol": [
           "rdp"
         ],
-        "comment": "Remmina 是一个使用 GTK+ 开发的远程桌面客户端，提供了 RDP、VNC、XDMCP、SSH 等远程连接协议的支持。",
-        "download_url": "https://remmina.org/how-to-install-remmina/-内置",
+        "comment": {
+          "zh": "Remmina 是一个使用 GTK+ 开发的远程桌面客户端，提供了 RDP、VNC、XDMCP、SSH 等远程连接协议的支持。",
+          "en": "Remmina is a remote desktop client developed using GTK+, providing support for remote connection protocols such as RDP, VNC, XDMCP, and SSH."
+        },
+        "download_url": "https://remmina.org/how-to-install-remmina/",
         "type": "windows",
         "path": "remmina",
         "arg_format": "{file}",
@@ -362,8 +438,11 @@
         "protocol": [
           "rdp"
         ],
-        "comment": "FreeRDP 是远程桌面协议 (RDP) 的免费实现，在 Apache 许可证下发布。\n安装命令\nsudo apt-get install freerdp\nsudo yum install freerdp",
-        "download_url": "https://github.com/FreeRDP/FreeRDP-内置",
+        "comment": {
+          "zh": "FreeRDP 是远程桌面协议 (RDP) 的免费实现，在 Apache 许可证下发布。\n安装命令\nsudo apt-get install freerdp\nsudo yum install freerdp",
+          "en": "FreeRDP is a free implementation of the Remote Desktop Protocol (RDP), released under the Apache License.\nInstallation command\nsudo apt-get install freerdp\nsudo yum install freerdp"
+        },
+        "download_url": "https://github.com/FreeRDP/FreeRDP",
         "type": "windows",
         "path": "xfreerdp",
         "arg_format": "{file} /cert-ignore",
@@ -386,8 +465,11 @@
           "redis",
           "sqlserver"
         ],
-        "comment": "Terminal是Linux操作系统上的虚拟终端应用软件。",
-        "download_url": "内置",
+        "comment": {
+          "zh": "Terminal是Linux操作系统上的虚拟终端应用软件。",
+          "en": "Terminal is a virtual terminal application software on the Linux operating system."
+        },
+        "download_url": "",
         "type": "linux",
         "path": "Terminal",
         "arg_format": "",
@@ -412,7 +494,10 @@
           "mariadb",
           "sqlserver"
         ],
-        "comment": "DBeaver Community是一个通用的数据库管理工具和SQL客户端，支持MySQL、PostgreSQL、Oracle以及其他兼容JDBC的数据库。\n\n!!!手动下载安装，点击保存启用!!!",
+        "comment": {
+          "zh": "DBeaver Community是一个通用的数据库管理工具和SQL客户端，支持MySQL、PostgreSQL、Oracle以及其他兼容JDBC的数据库。\n\n!!!手动下载安装，点击保存启用!!!",
+          "en": "DBeaver Community is a general database management tool and SQL client that supports MySQL, PostgreSQL, Oracle and other JDBC-compatible databases.\n\n!!!Manually download and install, click Save to activate!!!"
+        },
         "download_url": "https://dbeaver.io/download/",
         "type": "databases",
         "path": "",
