@@ -6,7 +6,7 @@
           <img alt="" :src="get_logo_src(d.name)" class="image">
           <div class="info">
             <div class="title">{{ d.display_name }}</div>
-            <div class="comment">{{ d.comment }}</div>
+            <div class="comment">{{ d.comment[$i18n.locale] }}</div>
             <div class="prop">
               <span :class="d.is_set? 'is-setted':'not-setted'">
                 {{ $t(is_set_string(d.is_set)) }}
@@ -24,6 +24,9 @@
 </template>
 
 <script>
+// import {useI18n} from "vue-i18n";
+// import {onBeforeMount, ref} from "vue";
+
 export default {
   name: "ListTable",
   components: {},
@@ -34,6 +37,13 @@ export default {
     },
   },
   setup() {
+    // const t = useI18n();
+    // const i18n = ref()
+    //
+    // onBeforeMount(() => {
+    //   i18n.value = t.locale.value
+    // })
+    // return {i18n}
   },
   methods: {
     is_set_string(b) {
@@ -106,7 +116,7 @@ export default {
         overflow: hidden;
         font-size: 12px;
         text-overflow: ellipsis;
-        word-break: break-all;
+        //word-break: break-all;
         height: 90px;
         line-height: 24px;
       }

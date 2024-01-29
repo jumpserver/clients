@@ -1,51 +1,59 @@
 # Jumpserve Client
 
-JumpServer 客户端，支持本地本地客户端拉起。
-## 概览
+JumpServer client, supports local client pull up.
 
-![windows](static/windows.png)
+English | [中文](README_CN.md)
 
-## 安装
+## Overview
+
+![windows](static/windows_EN.png)
+
+## Install
 
 ### Mac
 
-下载Mac安装包，安装JumpServer.dmg并将JumpServer.app放入Applications中，双击打开JumpServer.app完成自定义协议。
+Download the Mac installation package, install JumpServer.dmg and put JumpServer.app into Applications. Double-click to open JumpServer.app to complete the custom protocol.
+
 
 ### Win
 
-下载Win安装包，双击JumpServer安装包文件（需要等待10几秒钟）。
+Download the Win installation package and double-click the JumpServer installation package file (you need to wait for 10 seconds).
+
 
 ### Linux
 
-下载Linux安装包，双击Deb安装包文件，打开安装包管理器进行安装。或者使用命令进行安装
+Download the Linux installation package, double-click the Deb installation package file, and open the installation package manager to install it. Or install it using the command
+
 ```
+
 sudo dpkg -i <package_file>
+
 ```
 
 
-## 卸载
+## uninstall
 
 ### Windows
 
-控制面板直接卸载即可。
+Just uninstall the control panel directly.
+
 
 ### Mac
 
-移除JumpServer.app。
+Remove JumpServer.app.
+
 
 ### Linux
 
-点击打开软件管理器进行卸载。或者使用命令进行卸载
+Click to open Software Manager to uninstall. Or use the command to uninstall
+
 ```
+
 sudo dpkg --purge <package_file>
+
 ```
 
-## 打包
 
-- [打包方法](https://github.com/jumpserver/apps/blob/master/README_PACK.md)
+## package
 
-## 参考
-
-- [浏览器拉起app原理](https://juejin.cn/post/6844903989155217421)
-- [Linux浏览器拉起app原理](https://medium.com/swlh/custom-protocol-handling-how-to-8ac41ff651eb)
-- [刘正的JumpClient](https://github.com/liuzheng/jumpClient)
+- [packaging scheme](https://github.com/jumpserver/apps/blob/master/README_PACK.md)
