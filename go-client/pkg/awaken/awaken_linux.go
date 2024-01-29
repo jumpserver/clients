@@ -86,6 +86,9 @@ func awakenSSHCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 			global.LOG.Info(msg)
 		}
 	} else {
+		if r.Protocol == "sqlserver" {
+			connectMap["protocol"] = "mssql_jdbc_ms_new"
+		}
 		var appPath string
 		appPath = appItem.Path
 		commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
@@ -129,6 +132,8 @@ func awakenDBCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 			argFormat = "psql 'user={username} password={value} host={host} dbname={dbname} port={port}'"
 		case "mysql", "mariadb":
 			argFormat = "mysql -u {username} -p{value} -h {host} -P {port} {dbname}"
+		case "sqlserver":
+			argFormat = "sqlcmd -S {host},{port} -U {username} -P {value} -d {dbname}"
 		}
 		commands := getCommandFromArgs(connectMap, argFormat)
 

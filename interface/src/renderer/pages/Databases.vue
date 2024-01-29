@@ -11,10 +11,11 @@
   >
     <el-form ref="item-form" :model="selectItem" label-position="right" label-width="auto">
       <el-form-item :label="$t('Common.AppDesc')" prop="comment">
-        <el-input v-model="selectItem.comment" readonly rows="3" resize="none" type="textarea"/>
+        <el-input v-model="selectItem.comment[$i18n.locale]" readonly rows="3" resize="none" type="textarea"/>
       </el-form-item>
       <el-form-item :label="$t('Common.DownloadUrl')" prop="download_url">
-        <el-input v-model="selectItem.download_url" readonly :autosize="{maxRows: 2}" resize="none" type="textarea"/>
+        <el-input v-if="selectItem.download_url" v-model="selectItem.download_url"  readonly :autosize="{maxRows: 2}" resize="none" type="textarea"/>
+        <el-input v-else :value="$t('Common.SystemComesWith')"  readonly :autosize="{maxRows: 2}" resize="none" type="textarea"/>
       </el-form-item>
       <el-form-item :label="$t('Common.Priority')" prop="match_first" :rules="[{required: true, message: $t('Common.ProtocolValidate'), trigger: 'blur'}]">
         <el-select v-model="selectItem.match_first" multiple :placeholder="$t('Common.ProtocolPlaceholder')" style="width: 100%">

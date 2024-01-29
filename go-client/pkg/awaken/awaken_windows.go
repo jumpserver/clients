@@ -29,7 +29,7 @@ func getCommandFromArgs(connectInfo map[string]string, argFormat string) string 
 }
 
 func handleRDP(r *Rouse, filePath string, cfg *config.AppConfig) *exec.Cmd {
-	cmd := exec.Command("mstsc.exe", filePath)
+	cmd := exec.Command("C:\\WINDOWS\\system32\\mstsc.exe", filePath)
 	return cmd
 }
 
@@ -103,6 +103,9 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		"dbname":   r.DBName,
 	}
 
+	if r.Protocol == "sqlserver" {
+		connectMap["protocol"] = "mssql_jdbc_ms_new"
+	}
 	if r.Protocol == "redis" {
 		var conList []map[string]string
 		ss := make(map[string]string)

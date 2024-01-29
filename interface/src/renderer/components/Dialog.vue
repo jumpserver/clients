@@ -32,7 +32,7 @@ export default {
     },
     top: {
       type: String,
-      default: '12vh'
+      default: '10vh'
     },
     width: {
       type: String,

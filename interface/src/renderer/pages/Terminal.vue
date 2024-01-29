@@ -10,15 +10,16 @@
   >
     <el-form ref="item-form" :model="selectItem" label-position="right" label-width="auto">
       <el-form-item :label="$t('Common.AppDesc')" prop="comment">
-        <el-input v-model="selectItem.comment" readonly rows="4" resize="none" type="textarea"/>
+        <el-input v-model="selectItem.comment[$i18n.locale]" readonly rows="4" resize="none" type="textarea"/>
       </el-form-item>
       <el-form-item :label="$t('Common.DownloadUrl')" prop="download_url">
-        <el-input v-model="selectItem.download_url" readonly :autosize="{maxRows: 2}"  resize="none" type="textarea"/>
+        <el-input v-if="selectItem.download_url" v-model="selectItem.download_url"  readonly :autosize="{maxRows: 2}" resize="none" type="textarea"/>
+        <el-input v-else :value="$t('Common.SystemComesWith')"  readonly :autosize="{maxRows: 2}" resize="none" type="textarea"/>
       </el-form-item>
       <el-form-item :label="$t('Common.AppPath')" prop="path" :rules="[{required: true, message: $t('Common.PathValidate'), trigger: 'blur'}]">
         <el-input
           v-model="selectItem.path"
-          placeholder="$t('Common.PathPlaceholder')"
+          :placeholder="$t('Common.PathPlaceholder')"
           clearable
           :readonly="selectItem.is_internal || os === 'darwin'"
         >
