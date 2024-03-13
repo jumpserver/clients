@@ -70,12 +70,14 @@ module.exports = {
           target: [{
             target: 'nsis',
             arch: [
-              'x64'
+              'x64',
+              'ia32'
             ]
           },{
             target: 'msiWrapped',
             arch: [
-              'x64'
+              'x64',
+              'ia32'
             ]
           }]
         },
