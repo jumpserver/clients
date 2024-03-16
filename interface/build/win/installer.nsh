@@ -3,19 +3,15 @@
 !macroend
 
 !macro customInstall
-    SetRegView 64
     WriteRegStr HKCR "jms" "" "URL:jms"
     WriteRegStr HKCR "jms" "URL Protocol" ""
     WriteRegStr HKCR "jms\shell" "" ""
     WriteRegStr HKCR "jms\shell\open" "" ""
-    WriteRegStr HKCR "jms\shell\open\command" "" '"$INSTDIR\resources\bin\windows\JumpServerClient.exe" "%1"'
-    SetRegView 32
-    WriteRegStr HKCR "jms" "" "URL:jms"
-    WriteRegStr HKCR "jms" "URL Protocol" ""
-    WriteRegStr HKCR "jms\shell" "" ""
-    WriteRegStr HKCR "jms\shell\open" "" ""
-    WriteRegStr HKCR "jms\shell\open\command" "" '"$INSTDIR\resources\bin\windows\JumpServerClient32.exe" "%1"'
-
+    ${If} ${RunningX64}
+        WriteRegStr HKCR "jms\shell\open\command" "" '"$INSTDIR\resources\bin\windows\JumpServerClient.exe" "%1"'
+    ${else}
+        WriteRegStr HKCR "jms\shell\open\command" "" '"$INSTDIR\resources\bin\windows\JumpServerClient32.exe" "%1"'
+    ${EndIf}
     AccessControl::GrantOnFile \
         "$INSTDIR\resources\bin" "(BU)" "GenericWrite + GenericRead"
     Pop $R0
