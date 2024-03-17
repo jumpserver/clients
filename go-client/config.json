@@ -405,6 +405,25 @@
         "is_internal": false,
         "is_default": false,
         "is_set": false
+      },
+      {
+        "name": "another_redis",
+        "display_name": "Another Redis Desktop Manager",
+        "protocol": [
+          "redis"
+        ],
+        "comment": {
+          "zh": "更快、更好、更稳定的Redis桌面(GUI)管理客户端。",
+          "en": "A faster, better and more stable redis desktop manager."
+        },
+        "download_url": "https://github.com/qishibo/AnotherRedisDesktopManager",
+        "type": "databases",
+        "path": "/Applications/Another Redis Desktop Manager.app/Contents/MacOS/Another Redis Desktop Manager",
+        "arg_format": "--host {host} --port {port} --auth {username}@{value}",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
       }
     ]
   },
