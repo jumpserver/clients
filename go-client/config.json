@@ -142,6 +142,25 @@
         "is_internal": false,
         "is_default": false,
         "is_set": false
+      },
+      {
+        "name": "xftp",
+        "display_name": "Xftp",
+        "protocol": [
+          "sftp"
+        ],
+        "comment": {
+          "zh": "Xftp是一个功能强大的SFTP、FTP 文件传输软件。",
+          "en": "Xftp is a powerful SFTP and FTP file transfer software."
+        },
+        "download_url": "https://www.xshell.com/zh/xftp-download/",
+        "type": "linux",
+        "path": "",
+        "arg_format": "-newwin {protocol}://{username}:{value}@{host}:{port}",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
       }
     ],
     "databases": [
@@ -220,6 +239,25 @@
         "type": "databases",
         "path": "",
         "arg_format": "-S {host},{port} -U {username} -P {value} -d {dbname}",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      },
+      {
+        "name": "another_redis",
+        "display_name": "Another Redis Desktop Manager",
+        "protocol": [
+          "redis"
+        ],
+        "comment": {
+          "zh": "更快、更好、更稳定的Redis桌面(GUI)管理客户端。",
+          "en": "A faster, better and more stable redis desktop manager."
+        },
+        "download_url": "https://github.com/qishibo/AnotherRedisDesktopManager",
+        "type": "databases",
+        "path": "",
+        "arg_format": "--host {host} --port {port} --auth {username}@{value}",
         "match_first": [],
         "is_internal": false,
         "is_default": false,
@@ -382,6 +420,25 @@
         "type": "databases",
         "path": "/Applications/DBeaver.app/Contents/MacOS/dbeaver",
         "arg_format": "-con name={name}|driver={protocol}|user={username}|password={value}|database={dbname}|host={host}|port={port}|save=false|connect=true",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      },
+      {
+        "name": "another_redis",
+        "display_name": "Another Redis Desktop Manager",
+        "protocol": [
+          "redis"
+        ],
+        "comment": {
+          "zh": "更快、更好、更稳定的Redis桌面(GUI)管理客户端。",
+          "en": "A faster, better and more stable redis desktop manager."
+        },
+        "download_url": "https://github.com/qishibo/AnotherRedisDesktopManager",
+        "type": "databases",
+        "path": "/Applications/Another Redis Desktop Manager.app/Contents/MacOS/Another Redis Desktop Manager",
+        "arg_format": "--host {host} --port {port} --auth {username}@{value}",
         "match_first": [],
         "is_internal": false,
         "is_default": false,

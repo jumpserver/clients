@@ -2,8 +2,8 @@
   <div>
     <img id="logo" src="@/assets/JumpServer.png" alt=""/>
     <p>{{ $t('Common.JumpServerClient') }}</p>
-    <p>{{ $t('AboutUs.Version') }}：v2.1.1</p>
-    <p>{{ $t('AboutUs.Copyright') }}：FIT2CLOUD 飞致云 © 2014-2023 {{ $t('AboutUs.AllRightsReserved')}}</p>
+    <p>{{ $t('AboutUs.Version') }}：v2.1.3</p>
+    <p>{{ $t('AboutUs.Copyright') }}：FIT2CLOUD 飞致云 © 2014-2024 {{ $t('AboutUs.AllRightsReserved')}}</p>
     <a target="_blank" href="https://www.fit2cloud.com/jumpserver/index.html">{{ $t('AboutUs.OfficialWebsite') }}</a>
     <a target="_blank" href="https://docs.jumpserver.org/zh/v3/">{{ $t('AboutUs.OnlineDocumentation') }}</a>
     <a target="_blank" href="https://kb.fit2cloud.com/categories/jumpserver">{{ $t('AboutUs.KnowledgeBase') }}</a>
