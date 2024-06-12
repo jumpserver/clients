@@ -262,6 +262,25 @@
         "is_internal": false,
         "is_default": false,
         "is_set": false
+      },
+      {
+        "name": "toad",
+        "display_name": "Toad for Oracle",
+        "protocol": [
+          "oracle"
+        ],
+        "comment": {
+          "zh": "Toad for Oracle是业界领先的数据库开发和管理工具。",
+          "en": "Toad for Oracle is an industry-leading database development and management tool."
+        },
+        "download_url": "https://www.quest.com/products/toad-for-oracle/",
+        "type": "databases",
+        "path": "",
+        "arg_format": "-c {username}/{value}@{host}:{port}/{dbname}",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
       }
     ]
   },
