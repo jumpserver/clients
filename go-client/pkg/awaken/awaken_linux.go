@@ -74,10 +74,10 @@ func awakenSSHCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		currentDesktop := strings.ToLower(strings.Trim(string(out), "\n"))
 
 		switch currentDesktop {
-		case "gnome", "ubuntu:gnome":
+		case "gnome", "ubuntu:gnome", "ukui":
 			cmd = exec.Command(
 				"gnome-terminal", "--", "bash", "-c",
-				fmt.Sprintf("%s %s; exec bash -i", clientPath, commands),
+				fmt.Sprintf("%s; exec bash -i", commands),
 			)
 		case "deepin":
 			cmd = exec.Command("deepin-terminal", "--keep-open", "-C", fmt.Sprintf("%s %s", clientPath, commands))
@@ -146,7 +146,6 @@ func awakenDBCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 				"gnome-terminal", "--", "bash", "-c",
 				fmt.Sprintf("%s; exec bash -i", commands),
 			)
-
 		case "deepin":
 			cmd = exec.Command("deepin-terminal", "--keep-open", "-C", commands)
 		default:
