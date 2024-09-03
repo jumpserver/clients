@@ -77,7 +77,7 @@ func awakenSSHCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		case "gnome", "ubuntu:gnome", "ukui":
 			cmd = exec.Command(
 				"gnome-terminal", "--", "bash", "-c",
-				fmt.Sprintf("%s; exec bash -i", commands),
+				fmt.Sprintf("%s %s; exec bash -i", clientPath, commands),
 			)
 		case "deepin":
 			cmd = exec.Command("deepin-terminal", "--keep-open", "-C", fmt.Sprintf("%s %s", clientPath, commands))
