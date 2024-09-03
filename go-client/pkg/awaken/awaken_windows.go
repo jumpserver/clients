@@ -2,7 +2,6 @@ package awaken
 
 import (
 	"encoding/json"
-	"fmt"
 	"go-client/global"
 	"go-client/pkg/config"
 	"io/ioutil"
@@ -107,37 +106,34 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	if r.Protocol == "sqlserver" {
 		connectMap["protocol"] = "mssql_jdbc_ms_new"
 	}
-	// https://dbeaver.com/docs/dbeaver/Command-Line/#connection-parameters
-	if r.Protocol == "oracle" && appItem.Name == "dbeaver" {
-		connectMap["url"] = fmt.Sprintf(`jdbc:oracle:oci:@(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=%s)(PORT=%s)))(CONNECT_DATA=(SERVICE_NAME=%s)))`, connectMap["host"], connectMap["port"], connectMap["dbname"])
-		appItem.ArgFormat = "-con name={name}|driver={protocol}|url={url}|user={username}|password={value}|save=false|connect=true"
-	}
-	if r.Protocol == "redis" && appItem.Name == "resp" {
-		var conList []map[string]string
-		ss := make(map[string]string)
-		ss["host"] = r.Host
-		ss["port"] = strconv.Itoa(r.Port)
-		ss["name"] = r.getName()
-		ss["auth"] = r.Token.ID + "@" + r.Value
-		ss["ssh_agent_path"] = ""
-		ss["ssh_password"] = ""
-		ss["ssh_private_key_path"] = ""
-		ss["timeout_connect"] = "60000"
-		ss["timeout_execute"] = "60000"
-		conList = append(conList, ss)
+	if r.Protocol == "redis" {
+		if appItem.Name == "resp" {
+			var conList []map[string]string
+			ss := make(map[string]string)
+			ss["host"] = r.Host
+			ss["port"] = strconv.Itoa(r.Port)
+			ss["name"] = r.getName()
+			ss["auth"] = r.Token.ID + "@" + r.Value
+			ss["ssh_agent_path"] = ""
+			ss["ssh_password"] = ""
+			ss["ssh_private_key_path"] = ""
+			ss["timeout_connect"] = "60000"
+			ss["timeout_execute"] = "60000"
+			conList = append(conList, ss)
 
-		bjson, _ := json.Marshal(conList)
-		currentPath := filepath.Dir(os.Args[0])
-		rdmPath := filepath.Join(currentPath, ".rdm")
-		EnsureDirExist(rdmPath)
-		filePath := filepath.Join(rdmPath, "connections.json")
-		global.LOG.Error(filePath)
-		err := ioutil.WriteFile(filePath, bjson, os.ModePerm)
-		if err != nil {
-			global.LOG.Error(err.Error())
-			return nil
+			bjson, _ := json.Marshal(conList)
+			currentPath := filepath.Dir(os.Args[0])
+			rdmPath := filepath.Join(currentPath, ".rdm")
+			EnsureDirExist(rdmPath)
+			filePath := filepath.Join(rdmPath, "connections.json")
+			global.LOG.Error(filePath)
+			err := ioutil.WriteFile(filePath, bjson, os.ModePerm)
+			if err != nil {
+				global.LOG.Error(err.Error())
+				return nil
+			}
+			connectMap["config_file"] = currentPath
 		}
-		connectMap["config_file"] = currentPath
 	}
 	commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
 	if strings.Contains(commands, "*") {
