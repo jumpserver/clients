@@ -72,7 +72,7 @@ func handleSSH(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
 	if strings.Contains(commands, "*") {
 		commands := strings.Split(commands, "*")
-		return exec.Command(appPath, commands...)
+		return exec.Command(appPath, commands[0], commands[1])
 	} else {
 		commands := strings.Split(commands, " ")
 		return exec.Command(appPath, commands...)

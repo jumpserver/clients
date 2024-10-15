@@ -76,7 +76,7 @@
         "download_url": "https://mobaxterm.mobatek.net/download-home-edition.html",
         "type": "linux",
         "path": "",
-        "arg_format": "-newtab * sshpass -p{value} ssh -o StrictHostKeyChecking=no {username}@{host} -p{port}",
+        "arg_format": "-newtab*sshpass -p{value} ssh -o StrictHostKeyChecking=no {username}@{host} -p{port}",
         "match_first": [],
         "is_internal": false,
         "is_default": false,
@@ -125,16 +125,16 @@
         "is_set": false
       },
       {
-        "name": "filezilla",
-        "display_name": "Filezilla",
+        "name": "securefx",
+        "display_name": "SecureFX",
         "protocol": [
           "sftp"
         ],
         "comment": {
-          "zh": "FileZilla Client是一款免费、开源的 FTP 客户端。它支持FTP、SFTP。",
-          "en": "FileZilla Client is a free, open source FTP client. It supports FTP, SFTP."
+          "zh": "SecureFX 是一款安全的文件传输应用， 拥有一个简单易学的可视化界面。",
+          "en": "SecureFX is a secure file transfer application with an easy-to-learn visual interface."
         },
-        "download_url": "https://filezilla-project.org/download.php?type=client",
+        "download_url": "https://www.vandyke.com/cgi-bin/releases.php?product=securefx",
         "type": "linux",
         "path": "",
         "arg_format": "{protocol}://{username}:{value}@{host}:{port}",
@@ -262,6 +262,25 @@
         "is_internal": false,
         "is_default": false,
         "is_set": false
+      },
+      {
+        "name": "toad",
+        "display_name": "Toad for Oracle",
+        "protocol": [
+          "oracle"
+        ],
+        "comment": {
+          "zh": "Toad for Oracle是业界领先的数据库开发和管理工具。",
+          "en": "Toad for Oracle is an industry-leading database development and management tool."
+        },
+        "download_url": "https://www.quest.com/products/toad-for-oracle/",
+        "type": "databases",
+        "path": "",
+        "arg_format": "-c {username}/{value}@{host}:{port}/{dbname}",
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
       }
     ]
   },
@@ -351,18 +370,38 @@
     ],
     "filetransfer": [
       {
-        "name": "filezilla",
-        "display_name": "Filezilla",
+        "name": "iterm",
+        "display_name": "iTerm2",
+        "protocol": [
+          "ssh",
+          "telnet"
+        ],
+        "comment": {
+          "zh": "iTerm2是MacOS操作系统上的虚拟终端应用软件。\n\n!!!手动下载安装，点击保存启用!!!",
+          "en": "iTerm2 is a virtual terminal application software on the MacOS operating system.\n\n\n!!!Manually download and install, click Save to activate!!!"
+        },
+        "download_url": "https://iterm2.com/downloads.html",
+        "type": "linux",
+        "path": "iTerm2",
+        "arg_format": "{protocol} {username}@{host} -p {port} -P {value}",
+        "match_first": [],
+        "is_internal": true,
+        "is_default": false,
+        "is_set": false
+      },
+      {
+        "name": "securefx",
+        "display_name": "SecureFX",
         "protocol": [
           "sftp"
         ],
         "comment": {
-          "zh": "FileZilla Client是一款免费、开源的 FTP 客户端。它支持FTP、SFTP。\n\n!!!手动下载安装，点击保存启用!!!",
-          "en": "FileZilla Client is a free, open source FTP client. It supports FTP, SFTP.\n\n!!!Manually download and install, click Save to activate!!!"
+          "zh": "SecureFX 是一款安全的文件传输应用， 拥有一个简单易学的可视化界面。\n\n!!!手动下载安装，点击保存启用!!!",
+          "en": "SecureFX is a secure file transfer application with an easy-to-learn visual interface.\n\n!!!Manually download and install, click Save to activate!!!"
         },
-        "download_url": "https://filezilla-project.org/download.php?type=client",
+        "download_url": "https://www.vandyke.com/cgi-bin/releases.php?product=securefx",
         "type": "linux",
-        "path": "/Applications/FileZilla.app/Contents/MacOS/filezilla",
+        "path": "/Applications/SecureFX.app/Contents/MacOS/SecureFX",
         "arg_format": "{protocol}://{username}:{value}@{host}:{port}",
         "match_first": [],
         "is_internal": false,
@@ -502,7 +541,7 @@
         "download_url": "https://github.com/FreeRDP/FreeRDP",
         "type": "windows",
         "path": "xfreerdp",
-        "arg_format": "{file} /cert-ignore",
+        "arg_format": "{file} /cert-ignore /d: /p:",
         "match_first": [],
         "is_internal": true,
         "is_default": false,

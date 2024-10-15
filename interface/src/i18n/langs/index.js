@@ -1,5 +1,5 @@
-import zhLocale from "element-plus/lib/locale/lang/zh-cn";
-import enLocale from "element-plus/lib/locale/lang/en";
+import zhLocale from "element-plus/es/locale/lang/zh-cn";
+import enLocale from "element-plus/es/locale/lang/en";
 import zh from './zh.json'
 import en from './en.json'
 
