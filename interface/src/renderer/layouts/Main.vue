@@ -242,6 +242,12 @@ export default {
   }
 }
 
+.main-wrapper {
+  height: calc(100vh - 30px);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 *::-webkit-scrollbar {
   width: 6px;
   height: 6px;

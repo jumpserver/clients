@@ -9,6 +9,7 @@ require (
 )
 
 require (
+	github.com/adrianriobo/goautoit v0.0.0-20210415141646-fc37def5a975 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	go.uber.org/atomic v1.7.0 // indirect

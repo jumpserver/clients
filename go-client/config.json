@@ -245,6 +245,57 @@
         "is_set": false
       },
       {
+        "name": "ssms19",
+        "display_name": "SQL Server Management Studio 19",
+        "protocol": [
+          "sqlserver"
+        ],
+        "comment": {
+          "zh": "SQL Server Management Studio (SSMS) 是一种集成环境，用于管理从 SQL Server 到 Azure SQL 数据库的任何 SQL 基础结构。",
+          "en": "SQL Server Management Studio (SSMS) is an integrated environment for managing any SQL infrastructure, from SQL Server to Azure SQL Database."
+        },
+        "download_url": "https://download.microsoft.com/download/9/f/8/9f8197f4-0f71-42a3-8717-b2817c77b820/SSMS-Setup-CHS.exe",
+        "type": "databases",
+        "path": "",
+        "arg_format": "",
+        "autoit": [
+          {
+            "cmd": "Wait",
+            "type": "sleep",
+            "element": "[REGEXPTITLE:连接到服务器|Connect]"
+          },
+          {
+            "cmd": "ControlSend",
+            "type": "{host},{port}",
+            "element": "[CLASS:Edit; INSTANCE:1]"
+          },
+          {
+            "cmd": "ControlSend",
+            "type": "SQL Server",
+            "element": "[NAME:comboBoxAuthentication]"
+          },
+          {
+            "cmd": "ControlSend",
+            "type": "{username}",
+            "element": "[CLASS:Edit; INSTANCE:2]"
+          },
+          {
+            "cmd": "ControlSend",
+            "type": "{value}",
+            "element": "[NAME:password]"
+          },
+          {
+            "cmd": "ControlClick",
+            "type": "connect",
+            "element": "[NAME:connect]"
+          }
+        ],
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      },
+      {
         "name": "another_redis",
         "display_name": "Another Redis Desktop Manager",
         "protocol": [

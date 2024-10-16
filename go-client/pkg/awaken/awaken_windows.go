@@ -2,6 +2,7 @@ package awaken
 
 import (
 	"encoding/json"
+	"github.com/adrianriobo/goautoit"
 	"go-client/global"
 	"go-client/pkg/config"
 	"io/ioutil"
@@ -135,13 +136,31 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 			connectMap["config_file"] = currentPath
 		}
 	}
-	commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
-	if strings.Contains(commands, "*") {
-		commands := strings.Split(commands, "*")
-		return exec.Command(appPath, commands...)
+	if len(appItem.AutoIt) == 0 {
+		commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
+		if strings.Contains(commands, "*") {
+			commands := strings.Split(commands, "*")
+			return exec.Command(appPath, commands...)
+		} else {
+			commands := strings.Split(commands, " ")
+			return exec.Command(appPath, commands...)
+		}
 	} else {
-		commands := strings.Split(commands, " ")
-		return exec.Command(appPath, commands...)
+		goautoit.Run(appPath)
+		winTitle := ""
+		for _, item := range appItem.AutoIt {
+			switch item.Cmd {
+			case "Wait":
+				winTitle = item.Element
+				goautoit.WinWait(winTitle, "", 120)
+				goautoit.WinActivate(winTitle)
+			case "ControlSend":
+				goautoit.ControlSend(winTitle, "", item.Element, getCommandFromArgs(connectMap, item.Type))
+			case "ControlClick":
+				goautoit.ControlClick(winTitle, "", item.Element)
+			}
+		}
+		return exec.Command("")
 	}
 }
 

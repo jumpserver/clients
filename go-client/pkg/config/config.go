@@ -22,16 +22,23 @@ type AppType struct {
 }
 
 type AppItem struct {
-	Name        string   `json:"name"`
-	DisplayName string   `json:"display_name"`
-	Protocol    []string `json:"protocol"`
-	Type        string   `json:"type"`
-	MatchFirst  []string `json:"match_first"`
-	Path        string   `json:"path"`
-	ArgFormat   string   `json:"arg_format"`
-	IsInternal  bool     `json:"is_internal"`
-	IsDefault   bool     `json:"is_default"`
-	IsSet       bool     `json:"is_set"`
+	Name        string          `json:"name"`
+	DisplayName string          `json:"display_name"`
+	Protocol    []string        `json:"protocol"`
+	Type        string          `json:"type"`
+	MatchFirst  []string        `json:"match_first"`
+	Path        string          `json:"path"`
+	ArgFormat   string          `json:"arg_format"`
+	AutoIt      []AutoItCommand `json:"autoit"`
+	IsInternal  bool            `json:"is_internal"`
+	IsDefault   bool            `json:"is_default"`
+	IsSet       bool            `json:"is_set"`
+}
+
+type AutoItCommand struct {
+	Cmd     string `json:"cmd"`
+	Type    string `json:"type"`
+	Element string `json:"element"`
 }
 
 func (a *AppItem) IsActive() bool {
