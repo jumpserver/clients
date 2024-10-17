@@ -33,8 +33,7 @@ const (
 	INTDEFAULT         = -2147483647
 	DefaultMouseButton = "left"
 
-	libraryFolder = "external"
-	autoItX3      = "AutoItX3_x64.dll"
+	libraryFolder = ""
 )
 
 // HWND -- window handle
@@ -120,6 +119,10 @@ var (
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Llongfile)
+	autoItX3 := "AutoItX3_x64.dll"
+	if (^uint(0) >> 63) == 0 {
+		autoItX3 = "AutoItX3.dll"
+	}
 	dll64, err := loadLibrary(autoItX3)
 	if err != nil {
 		os.Exit(1)

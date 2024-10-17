@@ -3,6 +3,7 @@ package awaken
 import (
 	"encoding/json"
 	"go-client/global"
+	goautoit "go-client/pkg/autoit"
 	"go-client/pkg/config"
 	"io/ioutil"
 	"os"
