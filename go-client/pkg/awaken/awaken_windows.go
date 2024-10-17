@@ -146,6 +146,7 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 			return exec.Command(appPath, commands...)
 		}
 	} else {
+		autoit.LoadAuto()
 		autoit.Run(appPath)
 		winTitle := ""
 		for _, item := range appItem.AutoIt {
