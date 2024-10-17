@@ -3,7 +3,7 @@ package awaken
 import (
 	"encoding/json"
 	"go-client/global"
-	goautoit "go-client/pkg/autoit"
+	"go-client/pkg/autoit"
 	"go-client/pkg/config"
 	"io/ioutil"
 	"os"
@@ -146,18 +146,18 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 			return exec.Command(appPath, commands...)
 		}
 	} else {
-		goautoit.Run(appPath)
+		autoit.Run(appPath)
 		winTitle := ""
 		for _, item := range appItem.AutoIt {
 			switch item.Cmd {
 			case "Wait":
 				winTitle = item.Element
-				goautoit.WinWait(winTitle, "", 120)
-				goautoit.WinActivate(winTitle)
+				autoit.WinWait(winTitle, "", 120)
+				autoit.WinActivate(winTitle)
 			case "ControlSend":
-				goautoit.ControlSend(winTitle, "", item.Element, getCommandFromArgs(connectMap, item.Type))
+				autoit.ControlSend(winTitle, "", item.Element, getCommandFromArgs(connectMap, item.Type))
 			case "ControlClick":
-				goautoit.ControlClick(winTitle, "", item.Element)
+				autoit.ControlClick(winTitle, "", item.Element)
 			}
 		}
 		return exec.Command("")
