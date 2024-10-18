@@ -227,26 +227,7 @@
       },
       {
         "name": "ssms17",
-        "display_name": "SQL Server Management Studio 17",
-        "protocol": [
-          "sqlserver"
-        ],
-        "comment": {
-          "zh": "SQL Server Management Studio (SSMS) 是一种集成环境，用于管理从 SQL Server 到 Azure SQL 数据库的任何 SQL 基础结构。",
-          "en": "SQL Server Management Studio (SSMS) is an integrated environment for managing any SQL infrastructure, from SQL Server to Azure SQL Database."
-        },
-        "download_url": "https://download.microsoft.com/download/D/D/4/DD495084-ADA7-4827-ADD3-FC566EC05B90/SSMS-Setup-CHS.exe",
-        "type": "databases",
-        "path": "",
-        "arg_format": "-S {host},{port} -U {username} -P {value} -d {dbname}",
-        "match_first": [],
-        "is_internal": false,
-        "is_default": false,
-        "is_set": false
-      },
-      {
-        "name": "ssms19",
-        "display_name": "SQL Server Management Studio 19",
+        "display_name": "SQL Server Management Studio",
         "protocol": [
           "sqlserver"
         ],
