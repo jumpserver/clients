@@ -1,0 +1,14 @@
+:deep(.n-menu-item) {
+  width: 100%;
+
+  .n-menu-item-content::before {
+    border-radius: 15px;
+  }
+}
+
+:deep(.n-thing) {
+  .n-thing-avatar {
+    display: flex;
+    align-items: center;
+  }
+}

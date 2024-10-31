@@ -1,0 +1,29 @@
+:deep(.list-layout .n-scrollbar-content) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 20px;
+
+  .n-list-item {
+    height: 100px;
+    width: 100px;
+
+    .inner-grid {
+      flex-direction: column !important;
+      align-items: center;
+      width: 100%;
+    }
+  }
+}
+
+:deep(.n-list__header) {
+  display: flex;
+  align-items: center;
+  border-bottom: unset !important;
+
+  .n-h:first-child {
+    margin: unset;
+    font-size: 14px;
+  }
+}

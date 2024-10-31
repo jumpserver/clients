@@ -1,0 +1,53 @@
+export default {
+  Common: {
+    JumpServerClient: 'JumpServer客户端',
+    AppDesc: '应用说明',
+    DownloadUrl: '下载地址',
+    AppPath: '应用路径',
+    Priority: '优先匹配',
+    ProtocolPlaceholder: '请选择优先匹配的数据库协议',
+    ProtocolValidate: '协议不能为空',
+    PathValidate: '路径不能为空',
+    PathPlaceholder: '请选择数据库工具启动程序路径',
+    DefaultApp: '默认应用',
+    Configured: '已配置',
+    NotConfigured: '未配置',
+    OracleOCI: '本地客户端连 Oracle 数据库需要使用 21.0 及以上版本 OCI',
+    SystemComesWith: '系统自带'
+  },
+  Dialog: {
+    'Save&Default': '保存且默认',
+    Cancel: '关闭',
+    Save: '保存'
+  },
+  Router: {
+    Terminal: '远程终端',
+    RemoteDesktop: '远程桌面',
+    FileTransfer: '文件传输',
+    Database: '数据库',
+    AboutUs: '关于我们',
+    Language: '语言设置',
+    Back: '返回'
+  },
+  AboutUs: {
+    Author: '作者',
+    Version: '版本',
+    Copyright: '版权公告',
+    AllRightsReserved: '版权所有',
+    OfficialWebsite: '产品官网',
+    OnlineDocumentation: '在线文档',
+    KnowledgeBase: '知识库',
+    AboutUs: '关于我们'
+  },
+  Language: {
+    ChooseLanguage: '选择语言'
+  },
+  Login: {
+    LoginCheck: '登录',
+    Username: '用户名',
+    Password: '密码',
+    Remember: '记住我',
+    EnterUsername: '请输入用户名',
+    EnterPassword: '请输入密码'
+  }
+};
