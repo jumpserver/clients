@@ -27,6 +27,16 @@ const routes: RouteRecordRaw[] = [
         path: 'database',
         name: 'Database',
         component: () => import('@renderer/views/Database/index.vue')
+      },
+      {
+        path: 'history',
+        name: 'History',
+        component: () => import('@renderer/views/History/index.vue')
+      },
+      {
+        path: 'favorite',
+        name: 'Favorite',
+        component: () => import('@renderer/views/Favorite/index.vue')
       }
     ]
   },

@@ -37,29 +37,12 @@
 import { UserAstronaut } from '@vicons/fa';
 import { menuOptions } from './config';
 
-import { RouterLink, useRouter } from 'vue-router';
-import { h, onMounted } from 'vue';
-import { renderIcon } from '@renderer/layouts/components/HeaderSection/helper';
-import { History } from '@vicons/tabler';
+import { useRouter } from 'vue-router';
+import { onMounted } from 'vue';
 
 const router = useRouter();
 
-const staticOption = [
-  {
-    label: () =>
-      h(
-        RouterLink,
-        {
-          to: {
-            name: 'Linux'
-          }
-        },
-        { default: () => 'History' }
-      ),
-    key: 'history-page',
-    icon: renderIcon(History)
-  }
-];
+const staticOption = [];
 
 onMounted(() => {
   router.push({ name: 'Linux' });
