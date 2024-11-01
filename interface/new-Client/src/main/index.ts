@@ -11,6 +11,18 @@ process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 
 const conf = new Conf();
 
+const setDefaultProtocol = () => {
+  if (process.platform === 'darwin') {
+    if (process.defaultApp) {
+      if (process.argv.length >= 2) {
+        app.setAsDefaultProtocolClient('jms', process.execPath, [resolve(process.argv[1])]);
+      }
+    } else {
+      app.setAsDefaultProtocolClient('jms');
+    }
+  }
+};
+
 const createWindow = async (): Promise<void> => {
   mainWindow = new BrowserWindow({
     width: 1300,
@@ -58,17 +70,8 @@ const createWindow = async (): Promise<void> => {
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     await mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
   } else {
+    mainWindow.webContents.openDevTools();
     await mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
-  }
-};
-const setDefaultProtocol = () => {
-  if (process.platform === 'darwin') {
-    const isDefaultApp = process.defaultApp && process.argv.length >= 2;
-    const protocolArgs = isDefaultApp ? [resolve(process.argv[1])] : undefined;
-
-    app.setAsDefaultProtocolClient('test', process.execPath, protocolArgs);
-  } else {
-    app.setAsDefaultProtocolClient('test');
   }
 };
 
@@ -98,7 +101,13 @@ app.whenReady().then(async () => {
     theme: 'light'
   });
 
+  setDefaultProtocol();
   await createWindow();
+
+  mainWindow?.webContents.send(
+    'set-token',
+    'eyJ8eXBlIjogImF1dGgiLCAiYmVhcmVyX3Rva2VuIjogImZpRIA ICJkYXR1X2V4cG1yZWQiOiAxNzMxMDMBOTQBLjYzNzY3Nn0='
+  );
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -132,7 +141,12 @@ app.on('open-url', (_event: Event, url: string) => {
   let subPath: string = '';
   let platForm: string = process.platform;
 
-  console.log(platForm);
+  const match = url.match(/^jms:\/\/(.+)$/);
+  const token = match ? match[1] : null;
+
+  if (token) {
+    mainWindow?.webContents.send('set-token', token);
+  }
 
   is.dev ? (subPath = 'bin') : process.resourcesPath + '/bin';
 
@@ -165,5 +179,3 @@ app.on('open-url', (_event: Event, url: string) => {
     }
   });
 });
-
-setDefaultProtocol();

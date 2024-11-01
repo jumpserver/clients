@@ -1,5 +1,4 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
-import { guard } from './guard';
 import type { RouteRecordRaw } from 'vue-router';
 
 const routes: RouteRecordRaw[] = [
@@ -51,7 +50,5 @@ const router = createRouter({
   history: createWebHashHistory(),
   routes
 });
-
-router.beforeEach((to, from, next) => guard(to, from, next));
 
 export { router };

@@ -77,18 +77,4 @@ export const menuOptions: MenuOption[] = [
     key: 'history-page',
     icon: renderIcon(History)
   }
-  // {
-  //   label: () =>
-  //     h(
-  //       RouterLink,
-  //       {
-  //         to: {
-  //           name: 'LoginPage'
-  //         }
-  //       },
-  //       { default: () => '登录' }
-  //     ),
-  //   key: 'Login-page',
-  //   icon: renderIcon(Users)
-  // }
 ];

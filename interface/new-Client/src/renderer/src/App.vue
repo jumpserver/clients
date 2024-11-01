@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { darkThemeOverrides, lightThemeOverrides } from './overrides';
+import { useUserStore } from '@renderer/store/module/userStore';
 import { darkTheme, lightTheme, zhCN, enUS } from 'naive-ui';
+import { getProfile } from '@renderer/api/modals/user';
 import { onBeforeUnmount, ref, onMounted } from 'vue';
 import { Conf } from 'electron-conf/renderer';
 import mittBus from '@renderer/eventBus';
@@ -10,6 +12,9 @@ const conf = new Conf();
 const iconImage = ref('');
 const defaultLang = ref('');
 const defaultTheme = ref('');
+const showModal = ref(true);
+
+const userStore = useUserStore();
 
 conf.get('defaultSetting').then(res => {
   if (res) {
@@ -22,6 +27,10 @@ conf.get('defaultSetting').then(res => {
   }
 });
 
+/**
+ * @description 切换主题
+ * @param theme
+ */
 const handleThemeChange = async (theme: string) => {
   const currentSettings = (await conf.get('defaultSetting')) as Record<string, any>;
 
@@ -42,15 +51,41 @@ const handleThemeChange = async (theme: string) => {
   });
 };
 
+/**
+ * @description 获取 Logo
+ */
 const getIconImage = async () => {
   const res = await import('@renderer/assets/Logo.svg');
 
   iconImage.value = res.default;
 };
 
-onMounted(() => {
-  getIconImage();
+const getValidate = async () => {
+  try {
+    await getProfile();
+
+    //todo)) 设置 userInfo
+  } catch (e: any) {
+    const status = e.response.status;
+
+    if (status === 401 || status === 403) {
+      window.open('https://jumpserver-test.cmdb.cc/core/auth/login/?next=client');
+    }
+  }
+};
+
+onMounted(async () => {
+  await getIconImage();
   mittBus.on('changeTheme', handleThemeChange);
+
+  await getValidate();
+
+  window.electron.ipcRenderer.on('set-token', (_e, token: string) => {
+    if (token) {
+      showModal.value = false;
+      userStore.setToken(token);
+    }
+  });
 });
 
 onBeforeUnmount(() => {

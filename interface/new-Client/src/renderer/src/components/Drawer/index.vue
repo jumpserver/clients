@@ -37,7 +37,6 @@
               header-style="font-size: 13px;"
               class="rounded-[10px] !bg-secondary"
             >
-              <!-- todo)) 默认展开要依据是否启用 -->
               <n-collapse
                 :accordion="true"
                 :trigger-areas="['extra']"

@@ -29,6 +29,10 @@ const handleCreateDrawer = () => {
   active.value = !active.value;
 };
 
+window.electron.ipcRenderer.on('set-token', (event, message) => {
+  console.log(event, message);
+});
+
 onMounted(() => {
   mittBus.on('createDrawer', handleCreateDrawer);
 });

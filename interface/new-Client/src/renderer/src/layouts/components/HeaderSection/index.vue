@@ -7,7 +7,7 @@
     :class="active ? 'show-drawer' : ''"
   >
     <n-input clearable class="rounded-[10px]" size="medium" placeholder="Find a asset" />
-    <n-flex justify="space-between" align="center" class="w-full h-[40px]">
+    <n-flex justify="flex-end" align="center" class="w-full h-[40px]">
       <!-- New Host 部分，暂不实现 -->
       <n-flex class="h-full" align="center">
         <!--<n-button-group size="small">-->
