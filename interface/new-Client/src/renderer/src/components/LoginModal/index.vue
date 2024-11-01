@@ -1,6 +1,6 @@
 <template>
   <n-modal
-    v-model:show="showModal"
+    :show="showModal"
     :mask-closable="false"
     :show-icon="false"
     :closable="false"
@@ -22,12 +22,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
 import { Warning24Regular } from '@vicons/fluent';
 
-const showModal = ref(false);
+withDefaults(
+  defineProps<{
+    showModal: boolean;
+  }>(),
+  { showModal: false }
+);
 
-const jumpToLogin = () => {};
+const jumpToLogin = () => {
+  window.open('https://jumpserver-test.cmdb.cc/core/auth/login/?next=client');
+};
 </script>
 
 <style scoped lang="scss"></style>

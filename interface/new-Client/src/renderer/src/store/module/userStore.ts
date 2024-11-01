@@ -6,7 +6,12 @@ export const useUserStore = defineStore({
   id: 'client-user',
   state: (): Partial<IUser> => ({
     token: '',
-    loading: false
+    loading: false,
+    userInfo: {
+      username: '',
+      display_name: [],
+      avatar_url: ''
+    }
   }),
   actions: {
     setToken(token: string) {

@@ -1,7 +1,7 @@
 import { join, resolve } from 'path';
 import { execFile } from 'node:child_process';
 import { Conf, useConf } from 'electron-conf/main';
-import icon from '../../resources/icon.png?asset';
+import icon from '../../resources/JumpServer.ico?asset';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import { app, shell, BrowserWindow, ipcMain, session } from 'electron';
 
@@ -104,10 +104,10 @@ app.whenReady().then(async () => {
   setDefaultProtocol();
   await createWindow();
 
-  mainWindow?.webContents.send(
-    'set-token',
-    'eyJ8eXBlIjogImF1dGgiLCAiYmVhcmVyX3Rva2VuIjogImZpRIA ICJkYXR1X2V4cG1yZWQiOiAxNzMxMDMBOTQBLjYzNzY3Nn0='
-  );
+  // mainWindow?.webContents.send(
+  //   'set-token',
+  //   'eyJ0eXBlIjogImF1dGgiLCAiYmVhcmVyX3Rva2VuIjogImZpRlA3Uk82dzd0ZzhSeWtzRE5qS1NqYVdacjkwMFU4ZFZ4VSIsICJkYXRlX2V4cGlyZWQiOiAxNzMxMTAzNjIzLjc4Mjc2N30='
+  // );
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -145,7 +145,17 @@ app.on('open-url', (_event: Event, url: string) => {
   const token = match ? match[1] : null;
 
   if (token) {
-    mainWindow?.webContents.send('set-token', token);
+    const decodedTokenJson = Buffer.from(token, 'base64').toString('utf-8');
+
+    try {
+      const decodedToken = JSON.parse(decodedTokenJson);
+
+      console.log('Bearer Token:', decodedToken.bearer_token);
+
+      mainWindow?.webContents.send('set-token', decodedToken.bearer_token);
+    } catch (error) {
+      console.error('Failed to parse decoded token:', error);
+    }
   }
 
   is.dev ? (subPath = 'bin') : process.resourcesPath + '/bin';

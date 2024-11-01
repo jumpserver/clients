@@ -31,7 +31,7 @@ class RequestHttp {
         userStore.setLoading(config.loading);
 
         if (config.headers && typeof config.headers.set === 'function') {
-          config.headers.set('X-CSRFToken', userStore.token);
+          config.headers['Authorization'] = `Bearer ${userStore.token}`;
         }
 
         return config;

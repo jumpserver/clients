@@ -1,19 +1,25 @@
 <script setup lang="ts">
 import { darkThemeOverrides, lightThemeOverrides } from './overrides';
-import { useUserStore } from '@renderer/store/module/userStore';
 import { darkTheme, lightTheme, zhCN, enUS } from 'naive-ui';
+
+import { useUserStore } from '@renderer/store/module/userStore';
+import { onBeforeUnmount, ref, onMounted, nextTick } from 'vue';
 import { getProfile } from '@renderer/api/modals/user';
-import { onBeforeUnmount, ref, onMounted } from 'vue';
+import { useMessage } from 'naive-ui';
 import { Conf } from 'electron-conf/renderer';
+
 import mittBus from '@renderer/eventBus';
+
+import LoginModal from '@renderer/components/LoginModal/index.vue';
 
 const conf = new Conf();
 
 const iconImage = ref('');
 const defaultLang = ref('');
 const defaultTheme = ref('');
-const showModal = ref(true);
+const showModal = ref(false);
 
+const message = useMessage();
 const userStore = useUserStore();
 
 conf.get('defaultSetting').then(res => {
@@ -69,7 +75,8 @@ const getValidate = async () => {
     const status = e.response.status;
 
     if (status === 401 || status === 403) {
-      window.open('https://jumpserver-test.cmdb.cc/core/auth/login/?next=client');
+      userStore.setToken('');
+      showModal.value = true;
     }
   }
 };
@@ -84,6 +91,24 @@ onMounted(async () => {
     if (token) {
       showModal.value = false;
       userStore.setToken(token);
+
+      nextTick(async () => {
+        try {
+          const res = await getProfile();
+
+          userStore.setUserInfo({
+            username: res?.username,
+            display_name: res?.system_roles.map((item: any) => item.display_name),
+            avatar_url: res?.avatar_url
+          });
+
+          if (res) {
+            message.success('您已登录认证成功!');
+          }
+        } catch (e) {
+          showModal.value = false;
+        }
+      });
     }
   });
 });
@@ -108,6 +133,7 @@ onBeforeUnmount(() => {
             <span class="title text-primary">JumpServer Client</span>
           </div>
         </div>
+        <LoginModal :show-modal="showModal" />
         <router-view />
       </n-message-provider>
     </n-modal-provider>
