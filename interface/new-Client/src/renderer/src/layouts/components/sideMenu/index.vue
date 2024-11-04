@@ -18,10 +18,10 @@
       </n-avatar>
       <div>
         <div>
-          <n-text depth="2">{{ userInfo?.username }}</n-text>
+          <n-text depth="2">{{ userInfo?.username || 'xxx' }}</n-text>
         </div>
         <div style="font-size: 12px">
-          <n-text depth="3">{{ userInfo?.display_name[0] }}</n-text>
+          <n-text depth="3">{{ userInfo?.display_name[0] || 'xxx' }}</n-text>
         </div>
       </div>
     </n-flex>

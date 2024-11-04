@@ -41,6 +41,10 @@ export default defineConfig({
           target: 'http://localhost:5173',
           changeOrigin: true,
           rewrite: path => path.replace(/^\/ui/, '')
+        },
+        '^/static': {
+          target: 'https://jumpserver-test.cmdb.cc',
+          changeOrigin: true
         }
       }
     }
