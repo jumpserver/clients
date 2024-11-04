@@ -7,21 +7,49 @@
         class="w-full flex flex-col items-center"
       />
       <n-divider class="!my-[10px]" />
-      <n-menu :options="staticOption" class="w-full flex flex-col items-center" />
     </n-flex>
 
     <n-flex align="center" justify="center" class="!flex-nowrap">
-      <n-avatar round size="medium" class="cursor-pointer ml-[-15px]" :src="userInfo?.avatar_url">
-        <n-icon>
-          <UserAstronaut />
-        </n-icon>
-      </n-avatar>
-      <div>
+      <n-avatar size="medium" class="cursor-pointer rounded-[5px]" :src="currentUser?.avatar_url" />
+      <div class="flex flex-col w-[60%]">
         <div>
-          <n-text depth="2">{{ userInfo?.username }}</n-text>
+          <n-text depth="1" strong class="!inline-flex !items-center">
+            {{ currentUser?.username }}
+
+            <n-popselect
+              trigger="click"
+              class="w-[300px] rounded-[10px]"
+              :options="userOptions"
+              :render-label="renderLabel"
+              v-model:value="currentUser!.username"
+              @update:value="handleAccountChange"
+            >
+              <n-popover>
+                <template #trigger>
+                  <n-icon
+                    size="14"
+                    :component="ArrowsHorizontal"
+                    class="ml-[10px] cursor-pointer icon-hover"
+                  />
+                </template>
+                切换账号
+              </n-popover>
+              <template #action>
+                <n-button text class="w-full" @click="handleAddAccount"> 新增账号 </n-button>
+              </template>
+            </n-popselect>
+          </n-text>
         </div>
         <div style="font-size: 12px">
-          <n-text depth="3">{{ userInfo?.display_name[0] }}</n-text>
+          <n-popover>
+            <template #trigger>
+              <!-- 默认只展示第一个 -->
+              <n-text depth="2">
+                {{ currentUser?.display_name?.[0] ?? '' }}
+              </n-text>
+            </template>
+            {{ currentUser?.display_name }}
+          </n-popover>
         </div>
       </div>
     </n-flex>
@@ -29,24 +57,93 @@
 </template>
 
 <script setup lang="ts">
-import { UserAstronaut } from '@vicons/fa';
+import { ArrowsHorizontal } from '@vicons/carbon';
+import { NAvatar, NText } from 'naive-ui';
 import { menuOptions } from './config';
 
 import { useUserStore } from '@renderer/store/module/userStore';
+import { onMounted, computed, h } from 'vue';
 import { useRouter } from 'vue-router';
-import { onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
+
+import type { SelectRenderLabel, SelectOption } from 'naive-ui';
+import type { IUserInfo } from '@renderer/store/interface';
 
 const router = useRouter();
 const userStore = useUserStore();
 
-const { userInfo } = storeToRefs(userStore);
+const { currentUser: storeCurrentUser } = storeToRefs(userStore);
 
-// const username = ref('');
-// const avatarUrl = ref('');
-// const displayName = ref('');
+const currentUser = computed(() => storeCurrentUser?.value);
 
-const staticOption = [];
+const userOptions = computed(() => {
+  return (
+    // @ts-ignore
+    userStore?.userInfo.map((item: IUserInfo) => {
+      return {
+        label: item.username,
+        value: item.username,
+        display_name: item.display_name
+      };
+    }) || []
+  );
+});
+
+const handleAccountChange = (value: string, _option: SelectOption) => {
+  if (userStore.userInfo) {
+    const user = userStore.userInfo.find((item: IUserInfo) => item.username === value);
+
+    user ? userStore.setCurrentUser({ ...user }) : '';
+  }
+};
+
+const renderLabel: SelectRenderLabel = option => {
+  return h(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        alignItems: 'center'
+      }
+    },
+    [
+      h(NAvatar, {
+        src: '',
+        size: 'medium',
+        style: {
+          borderRadius: '5px'
+        }
+      }),
+      h(
+        'div',
+        {
+          style: {
+            marginLeft: '12px',
+            padding: '4px 0'
+          }
+        },
+        [
+          h('div', null, [option.label as string]),
+          h(
+            NText,
+            { depth: 3, tag: 'div' },
+            {
+              default: () => option.display_name
+            }
+          )
+        ]
+      )
+    ]
+  );
+};
+
+const handleAddAccount = () => {
+  userStore.setUserInfo({
+    username: 'zhangsan',
+    display_name: ['ad'],
+    avatar_url: ''
+  });
+};
 
 onMounted(() => {
   router.push({ name: 'Linux' });
