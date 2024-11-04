@@ -19,7 +19,6 @@ const defaultLang = ref('');
 const defaultTheme = ref('');
 const showModal = ref(false);
 
-const message = useMessage();
 const userStore = useUserStore();
 
 conf.get('defaultSetting').then(res => {
@@ -103,6 +102,7 @@ onMounted(async () => {
           });
 
           if (res) {
+            const message = useMessage();
             message.success('您已登录认证成功!');
           }
         } catch (e) {

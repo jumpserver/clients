@@ -11,17 +11,17 @@
     </n-flex>
 
     <n-flex align="center" justify="center" class="!flex-nowrap">
-      <n-avatar round size="medium" class="cursor-pointer ml-[-15px]" :src="userInfo.avatar_url">
+      <n-avatar round size="medium" class="cursor-pointer ml-[-15px]" :src="userInfo?.avatar_url">
         <n-icon>
           <UserAstronaut />
         </n-icon>
       </n-avatar>
       <div>
         <div>
-          <n-text depth="2">{{ userInfo.username }}</n-text>
+          <n-text depth="2">{{ userInfo?.username }}</n-text>
         </div>
         <div style="font-size: 12px">
-          <n-text depth="3">{{ userInfo.display_name[0] }}</n-text>
+          <n-text depth="3">{{ userInfo?.display_name[0] }}</n-text>
         </div>
       </div>
     </n-flex>
@@ -34,7 +34,7 @@ import { menuOptions } from './config';
 
 import { useUserStore } from '@renderer/store/module/userStore';
 import { useRouter } from 'vue-router';
-import { onMounted, ref } from 'vue';
+import { onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 
 const router = useRouter();
@@ -42,9 +42,9 @@ const userStore = useUserStore();
 
 const { userInfo } = storeToRefs(userStore);
 
-const username = ref('');
-const avatarUrl = ref('');
-const displayName = ref('');
+// const username = ref('');
+// const avatarUrl = ref('');
+// const displayName = ref('');
 
 const staticOption = [];
 
