@@ -68,8 +68,6 @@ const getIconImage = async () => {
 const getValidate = async () => {
   try {
     await getProfile();
-
-    //todo)) 设置 userInfo
   } catch (e: any) {
     const status = e.response.status;
 
