@@ -1,5 +1,4 @@
 import { join, resolve } from 'path';
-import { execFile } from 'node:child_process';
 import { Conf, useConf } from 'electron-conf/main';
 import icon from '../../resources/JumpServer.ico?asset';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
@@ -9,19 +8,45 @@ let mainWindow: BrowserWindow | null = null;
 
 process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+}
+
 const conf = new Conf();
 
 const setDefaultProtocol = () => {
-  if (process.platform === 'darwin') {
-    if (process.defaultApp) {
-      if (process.argv.length >= 2) {
-        app.setAsDefaultProtocolClient('jms', process.execPath, [resolve(process.argv[1])]);
-      }
-    } else {
-      app.setAsDefaultProtocolClient('jms');
+  if (process.defaultApp) {
+    if (process.argv.length >= 2) {
+      app.setAsDefaultProtocolClient('jms', process.execPath, [resolve(process.argv[1])]);
     }
+  } else {
+    app.setAsDefaultProtocolClient('jms');
   }
 };
+
+function handleUrl(url: string) {
+  const match = url.match(/^jms:\/\/(.+)$/);
+  const token = match ? match[1] : null;
+
+  if (token) {
+    const decodedTokenJson = Buffer.from(token, 'base64').toString('utf-8');
+
+    try {
+      const decodedToken = JSON.parse(decodedTokenJson);
+      mainWindow?.webContents.send('set-token', decodedToken.bearer_token);
+    } catch (error) {
+      console.error('Failed to parse decoded token:', error);
+    }
+  }
+}
+
+// Windows
+function handleArgv(argv) {
+  const offset = app.isPackaged ? 1 : 2;
+  const url = argv.find((arg, i) => i >= offset && arg.startsWith('jms'));
+  if (url) handleUrl(url);
+}
 
 const createWindow = async (): Promise<void> => {
   mainWindow = new BrowserWindow({
@@ -31,7 +56,7 @@ const createWindow = async (): Promise<void> => {
     frame: false, // 无边框窗口
     center: true,
     autoHideMenuBar: true,
-    title: 'JumpServer Player',
+    title: 'JumpServer Client',
     titleBarStyle: 'hidden',
     titleBarOverlay: {
       height: 30,
@@ -77,7 +102,7 @@ const createWindow = async (): Promise<void> => {
 
 app.whenReady().then(async () => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron');
+  electronApp.setAppUserModelId('com.jumpserver');
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -103,11 +128,6 @@ app.whenReady().then(async () => {
 
   setDefaultProtocol();
   await createWindow();
-
-  // mainWindow?.webContents.send(
-  //   'set-token',
-  //   'eyJ0eXBlIjogImF1dGgiLCAiYmVhcmVyX3Rva2VuIjogImZpRlA3Uk82dzd0ZzhSeWtzRE5qS1NqYVdacjkwMFU4ZFZ4VSIsICJkYXRlX2V4cGlyZWQiOiAxNzMxMTAzNjIzLjc4Mjc2N30='
-  // );
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -135,54 +155,19 @@ app.on('window-all-closed', () => {
   }
 });
 
+// @ts-ignore
+app.on('second-instance', (_event: Event, argv: string) => {
+  if (process.platform === 'win32') {
+    handleArgv(argv);
+  }
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  }
+});
+
 // 从 web 唤起 Client
 // @ts-ignore
 app.on('open-url', (_event: Event, url: string) => {
-  let subPath: string = '';
-  let platForm: string = process.platform;
-
-  const match = url.match(/^jms:\/\/(.+)$/);
-  const token = match ? match[1] : null;
-
-  if (token) {
-    const decodedTokenJson = Buffer.from(token, 'base64').toString('utf-8');
-
-    try {
-      const decodedToken = JSON.parse(decodedTokenJson);
-      mainWindow?.webContents.send('set-token', decodedToken.bearer_token);
-    } catch (error) {
-      console.error('Failed to parse decoded token:', error);
-    }
-  }
-
-  is.dev ? (subPath = 'bin') : process.resourcesPath + '/bin';
-
-  switch (platForm) {
-    case 'linux': {
-      switch (process.arch) {
-        // ia32 为 x86
-        case 'ia32':
-        case 'x64':
-          subPath += '/linux-amd64';
-          break;
-        case 'arm':
-        case 'arm64':
-          subPath += '/linux-arm64';
-          break;
-      }
-      break;
-    }
-    case 'darwin': {
-      subPath += '/darwin';
-      break;
-    }
-  }
-
-  let exeFilePath = join(subPath, 'JumpServerClient');
-
-  execFile(exeFilePath, [url], err => {
-    if (err) {
-      console.log('Error in open-url');
-    }
-  });
+  handleUrl(url);
 });
