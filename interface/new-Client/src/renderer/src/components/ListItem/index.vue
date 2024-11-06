@@ -7,6 +7,7 @@
         </div>
         <div class="description-zone">
           <div class="asset-name">{{ itemData.name }}</div>
+          <div class="asset-name">{{ itemData.address }}</div>
         </div>
       </n-flex>
     </n-flex>
@@ -19,30 +20,25 @@ import { Terminal2 } from '@vicons/tabler';
 import { DesktopWindowsFilled } from '@vicons/material';
 import { watch, shallowRef } from 'vue';
 
-const props = withDefaults(
-  defineProps<{ layout: string; itemData: any; generalIconName: string }>(),
-  {
-    layout: '',
-    itemData: {},
-    generalIconName: ''
-  }
-);
+const props = withDefaults(defineProps<{ layout: string; itemData: any }>(), {
+  layout: '',
+  itemData: {}
+});
 
 const renderedIcon = shallowRef();
 
 watch(
-  () => props.generalIconName,
+  () => props.itemData,
   newValue => {
-    switch (newValue) {
-      case 'terminal':
+    switch (newValue.type.value) {
+      case 'linux':
         renderedIcon.value = Terminal2;
         break;
       case 'windows':
         renderedIcon.value = DesktopWindowsFilled;
         break;
-      case 'database':
+      default:
         renderedIcon.value = DataBase;
-        break;
     }
   },
   { immediate: true }

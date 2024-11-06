@@ -6,7 +6,17 @@
     class="px-[20px] pt-[20px] pb-[5px] border-b border-primary bg-primary"
     :class="active ? 'show-drawer' : ''"
   >
-    <n-input clearable class="rounded-[10px]" size="medium" placeholder="Find a asset" />
+    <n-input-group>
+      <n-input
+        clearable
+        class="rounded-[10px]"
+        size="medium"
+        placeholder="Find a asset"
+        v-model:value="searchInput"
+      />
+      <n-button type="primary" @click="handleSearch"> 搜索 </n-button>
+    </n-input-group>
+
     <n-flex justify="flex-end" align="center" class="w-full h-[40px]">
       <!-- New Host 部分，暂不实现 -->
       <n-flex class="h-full" align="center">
@@ -129,6 +139,7 @@ const conf = new Conf();
 const currentTheme = ref('');
 const popSortSelectValue = ref('');
 const popLayoutSelectValue = ref('');
+const searchInput = ref('');
 
 conf.get('defaultSetting').then(res => {
   if (res) {
@@ -203,6 +214,10 @@ const handleChangeTheme = () => {
       }
     }
   });
+};
+
+const handleSearch = () => {
+  mittBus.emit('search', searchInput.value);
 };
 
 // @ts-ignore

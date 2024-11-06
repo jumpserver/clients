@@ -4,6 +4,7 @@ type Event = {
   changeLayout: any;
   createDrawer: any;
   changeTheme: any;
+  search: any;
 };
 
 const mittBus: Emitter<Event> = mitt();

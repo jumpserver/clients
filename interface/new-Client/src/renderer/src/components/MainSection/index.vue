@@ -20,7 +20,6 @@
             :key="index"
             :item-data="item"
             :layout="currentLayout"
-            :general-icon-name="generalIconName"
             :class="{ 'bg-secondary': selectedItem === index }"
             @click="selectAccount(index, $event)"
             @contextmenu="handleItemContextMenu(index, $event)"
@@ -73,11 +72,9 @@ import { Conf } from 'electron-conf/renderer';
 withDefaults(
   defineProps<{
     listData: any;
-    generalIconName: string;
   }>(),
   {
-    listData: [],
-    generalIconName: ''
+    listData: []
   }
 );
 

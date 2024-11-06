@@ -1,27 +1,38 @@
 <template>
-  <MainSection
-    :list-data="listData"
-    :general-icon-name="iconName"
-    :class="active ? 'show-drawer' : ''"
-  />
+  <MainSection :list-data="listData" :class="active ? 'show-drawer' : ''" />
 </template>
 
 <script setup lang="ts">
 import MainSection from '@renderer/components/MainSection/index.vue';
-import { getAsset } from '@renderer/api/modals/user';
-import { onMounted, ref } from 'vue';
+import { getDatabases } from '@renderer/api/modals/asset';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
+import mittBus from '@renderer/eventBus';
 
 defineProps<{
   active: boolean;
 }>();
 
 const listData = ref([]);
-const iconName = 'database';
+let params = {
+  category: 'database',
+  offset: 0,
+  limit: 100,
+  search: ''
+};
 
 onMounted(async () => {
-  const res = await getAsset('database', 0, 100);
-  listData.value = res.results;
+  mittBus.on('search', getAssetsFromServer);
+  await getAssetsFromServer();
 });
+onBeforeUnmount(() => {
+  mittBus.off('search', getAssetsFromServer);
+});
+
+const getAssetsFromServer = async (searchInput?: string) => {
+  if (searchInput) params.search = searchInput;
+  const res = await getDatabases(params);
+  listData.value = res.results;
+};
 </script>
 
 <style scoped lang="scss">
