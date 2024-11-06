@@ -68,9 +68,9 @@ const createWindow = async (): Promise<void> => {
   });
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    mainWindow.webContents.openDevTools();
     await mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
   } else {
-    mainWindow.webContents.openDevTools();
     await mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
   }
 };
@@ -149,9 +149,6 @@ app.on('open-url', (_event: Event, url: string) => {
 
     try {
       const decodedToken = JSON.parse(decodedTokenJson);
-
-      console.log('Bearer Token:', decodedToken.bearer_token);
-
       mainWindow?.webContents.send('set-token', decodedToken.bearer_token);
     } catch (error) {
       console.error('Failed to parse decoded token:', error);

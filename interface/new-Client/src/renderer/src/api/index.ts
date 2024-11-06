@@ -32,6 +32,8 @@ class RequestHttp {
 
         if (config.headers && typeof config.headers.set === 'function') {
           config.headers['Authorization'] = `Bearer ${userStore.token}`;
+          config.headers['X-JMS-ORG'] = '00000000-0000-0000-0000-000000000000';
+          config.headers['X-TZ'] = Intl.DateTimeFormat().resolvedOptions().timeZone;
         }
 
         return config;
@@ -57,13 +59,7 @@ class RequestHttp {
         // 登录失效
         if (status == 401) {
           userStore.setToken('');
-
           message.error('登录认证已失效');
-
-          setTimeout(() => {
-            window.open('https://jumpserver-test.cmdb.cc/core/auth/login/?next=client');
-          }, 2000);
-
           return Promise.reject(data);
         }
 

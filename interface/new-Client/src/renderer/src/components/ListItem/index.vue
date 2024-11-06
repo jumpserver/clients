@@ -6,7 +6,7 @@
           <n-icon :component="renderedIcon" size="30" />
         </div>
         <div class="description-zone">
-          <div class="asset-name">{{ itemData.assetName }}</div>
+          <div class="asset-name">{{ itemData.name }}</div>
         </div>
       </n-flex>
     </n-flex>

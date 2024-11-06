@@ -44,5 +44,5 @@ publish:
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/
 protocols:
-  - name: "JumpServerClient Protocol"
-    schemes: [ "jms" ]
+  - name: 'JumpServerClient Protocol'
+    schemes: ['jms']

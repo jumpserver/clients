@@ -1,4 +1,6 @@
 export interface IUserInfo {
+  name: string;
+
   username: string;
 
   display_name: Array<string>;

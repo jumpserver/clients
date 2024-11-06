@@ -1,6 +1,6 @@
 <template>
   <MainSection
-    :list-data="staticListData"
+    :list-data="listData"
     :general-icon-name="iconName"
     :class="active ? 'show-drawer' : ''"
   />
@@ -8,27 +8,20 @@
 
 <script setup lang="ts">
 import MainSection from '@renderer/components/MainSection/index.vue';
+import { getAsset } from '@renderer/api/modals/asset';
+import { onMounted, ref } from 'vue';
 
 defineProps<{
   active: boolean;
 }>();
 
-const staticListData = [
-  {
-    assetName: 'windows1'
-  },
-  {
-    assetName: 'windows2'
-  },
-  {
-    assetName: 'windows3'
-  },
-  {
-    assetName: 'windows4'
-  }
-];
-
+const listData = ref([]);
 const iconName = 'windows';
+
+onMounted(async () => {
+  const res = await getAsset('windows', 0, 100);
+  listData.value = res.results;
+});
 </script>
 
 <style scoped lang="scss">
