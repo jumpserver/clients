@@ -1,5 +1,5 @@
 export interface IUserInfo {
-  name: string;
+  name?: string;
 
   username: string;
 

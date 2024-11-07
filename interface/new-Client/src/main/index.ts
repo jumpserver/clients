@@ -8,11 +8,6 @@ let mainWindow: BrowserWindow | null = null;
 
 process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 
-const gotTheLock = app.requestSingleInstanceLock();
-if (!gotTheLock) {
-  app.quit();
-}
-
 const conf = new Conf();
 
 const setDefaultProtocol = () => {
@@ -25,7 +20,7 @@ const setDefaultProtocol = () => {
   }
 };
 
-function handleUrl(url: string) {
+const handleUrl = (url: string) => {
   const match = url.match(/^jms:\/\/(.+)$/);
   const token = match ? match[1] : null;
 
@@ -39,14 +34,14 @@ function handleUrl(url: string) {
       console.error('Failed to parse decoded token:', error);
     }
   }
-}
+};
 
-// Windows
-function handleArgv(argv) {
+// Window
+const handleArgv = (argv: any) => {
   const offset = app.isPackaged ? 1 : 2;
   const url = argv.find((arg, i) => i >= offset && arg.startsWith('jms'));
   if (url) handleUrl(url);
-}
+};
 
 const createWindow = async (): Promise<void> => {
   mainWindow = new BrowserWindow({
@@ -94,11 +89,21 @@ const createWindow = async (): Promise<void> => {
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.webContents.openDevTools();
+
+    const token =
+      'eyJ0eXBlIjogImF1dGgiLCAiYmVhcmVyX3Rva2VuIjogImZpRlA3Uk82dzd0ZzhSeWtzRE5qS1NqYVdacjkwMFU4ZFZ4VSIsICJkYXRlX2V4cGlyZWQiOiAxNzMxNjIyMzIwLjgzNjc4Nn0=';
+
+    const decodedTokenJson = Buffer.from(token, 'base64').toString('utf-8');
+    const decodedToken = JSON.parse(decodedTokenJson);
+    mainWindow?.webContents.send('set-token', decodedToken.bearer_token);
+
     await mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
   } else {
     await mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
   }
 };
+
+!app.requestSingleInstanceLock() ? app.quit() : '';
 
 app.whenReady().then(async () => {
   // Set app user model id for windows
@@ -126,8 +131,8 @@ app.whenReady().then(async () => {
     theme: 'light'
   });
 
-  setDefaultProtocol();
   await createWindow();
+  setDefaultProtocol();
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

@@ -1,23 +1,56 @@
 <template>
-  <n-list-item class="h-[60px] group">
+  <n-list-item class="h-[80px] group">
     <n-flex class="h-full w-full" align="center" justify="space-between">
       <n-flex align="center" :class="layout === 'grid' ? 'inner-grid' : ''">
         <div class="icon-zone flex items-center">
-          <n-icon :component="renderedIcon" size="30" />
+          <n-icon :component="renderedIcon" size="35" />
         </div>
-        <div class="description-zone">
-          <div class="asset-name">{{ itemData.name }}</div>
-          <div class="asset-name">{{ itemData.address }}</div>
-        </div>
+        <n-flex vertical align="flex-start" justify="center" class="description-zone">
+          <template v-if="layout !== 'grid'">
+            <n-tag :bordered="false" type="success" round size="small">
+              <template #icon>
+                <n-icon :component="ComputerFilled" size="12" />
+              </template>
+              资产名称: {{ itemData.name }}
+            </n-tag>
+            <n-tag :bordered="false" type="info" round size="small">
+              <template #icon>
+                <n-icon :component="Link" size="12" />
+              </template>
+              资产地址: {{ itemData.address }}
+            </n-tag>
+          </template>
+
+          <template v-else>
+            <n-ellipsis :style="{ maxWidth: layout === 'grid' ? '110px' : '' }">
+              <n-popover>
+                <template #trigger>
+                  {{ itemData.name }}
+                </template>
+                资产名称: {{ itemData.name }}
+              </n-popover>
+            </n-ellipsis>
+            <n-ellipsis :style="{ maxWidth: layout === 'grid' ? '110px' : '' }">
+              <n-popover>
+                <template #trigger>
+                  {{ itemData.address }}
+                </template>
+                资产地址: {{ itemData.address }}
+              </n-popover>
+            </n-ellipsis>
+          </template>
+        </n-flex>
+        <div></div>
       </n-flex>
     </n-flex>
   </n-list-item>
 </template>
 
 <script setup lang="ts">
+import { Link } from '@vicons/fa';
 import { DataBase } from '@vicons/carbon';
 import { Terminal2 } from '@vicons/tabler';
-import { DesktopWindowsFilled } from '@vicons/material';
+import { DesktopWindowsFilled, ComputerFilled } from '@vicons/material';
 import { watch, shallowRef } from 'vue';
 
 const props = withDefaults(defineProps<{ layout: string; itemData: any }>(), {

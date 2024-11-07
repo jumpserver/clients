@@ -6,13 +6,23 @@
   padding: 20px;
 
   .n-list-item {
-    height: 100px;
-    width: 100px;
+    height: 150px;
+    width: 150px;
 
     .inner-grid {
       flex-direction: column !important;
       align-items: center;
       width: 100%;
+
+      .description-zone {
+        flex-direction: column !important;
+        justify-items: center !important;
+      }
+    }
+
+    :deep(.description-zone) {
+      display: flex;
+      flex-direction: column;
     }
   }
 }

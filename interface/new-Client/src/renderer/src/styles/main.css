@@ -12,7 +12,7 @@
 }
 
 .theme-dark {
-  --el-color-primary: #1ab394;
+  --el-color-primary: 26 179 48;
   --el-color-background: 24 24 28;
   --el-color-text: 255 255 255;
   --el-border-color: 30 30 30;
@@ -20,7 +20,7 @@
 }
 
 .theme-light {
-  --el-color-primary: #1ab394;
+  --el-color-primary: 26 179 48;
   --el-color-background: 255 255 255;
   --el-border-color: 239 239 244;
   --el-color-text: 0 0 0;
