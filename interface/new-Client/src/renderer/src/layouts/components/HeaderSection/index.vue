@@ -13,8 +13,9 @@
         size="medium"
         placeholder="Find a asset"
         v-model:value="searchInput"
+        @keypress.native.enter="onKeyEnter"
       />
-      <n-button type="primary" @click="handleSearch"> 搜索 </n-button>
+      <n-button type="primary" @click="handleSearch"> 搜索</n-button>
     </n-input-group>
 
     <n-flex justify="flex-end" align="center" class="w-full h-[40px]">
@@ -228,6 +229,13 @@ const handleNewHost = () => {
 const handleGlobalSetting = () => {
   // showModal.value = true;
   mittBus.emit('createDrawer');
+};
+
+const onKeyEnter = (event: KeyboardEvent) => {
+  if (!event.shiftKey || event.ctrlKey) {
+    event.preventDefault();
+    mittBus.emit('search', searchInput.value);
+  }
 };
 </script>
 

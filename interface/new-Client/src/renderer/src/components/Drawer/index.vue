@@ -157,7 +157,6 @@ watch(
     switch (newValue) {
       case 'Linux':
         currentOption.value = linuxOptions.value;
-
         break;
       case 'Windows':
         currentOption.value = windowsOptions.value;
@@ -165,6 +164,8 @@ watch(
       case 'Database':
         currentOption.value = databaseOptions.value;
         break;
+      default:
+        currentOption.value = [];
     }
   },
   {
