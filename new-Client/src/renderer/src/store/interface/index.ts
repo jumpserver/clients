@@ -8,6 +8,8 @@ export interface IUserInfo {
   avatar_url: string;
 
   value?: string;
+
+  token: string;
 }
 
 export interface IUser {

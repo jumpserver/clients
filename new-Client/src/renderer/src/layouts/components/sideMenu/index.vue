@@ -103,6 +103,8 @@ const handleAccountChange = (value: string, _option: SelectOption) => {
   if (userStore.userInfo) {
     const user = userStore.userInfo.find((item: IUserInfo) => item.username === value);
 
+    userStore.setToken(user.token);
+
     user ? userStore.setCurrentUser({ ...user }) : '';
   }
 };
@@ -119,7 +121,7 @@ const renderLabel: SelectRenderLabel = option => {
     [
       h(NAvatar, {
         //@ ts-ignore
-        src: option.avatar_url,
+        src: option.avatar_url as string,
         round: true,
         size: 'medium',
         style: {
@@ -150,7 +152,6 @@ const renderLabel: SelectRenderLabel = option => {
 };
 
 const handleAddAccount = () => {
-  // todo))
   mittBus.emit('addAccount');
 };
 

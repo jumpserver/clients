@@ -73,7 +73,7 @@ const getIconImage = async () => {
 };
 
 onMounted(async () => {
-  // const token = 'fiFP7RO6w7tg8RyksDNjKSjaWZr900U8dVxU';
+  // const token = 'fiFP7RO6w7tg8RykDNjKSjaWZr900U8dVxU';
 
   await getIconImage();
 
@@ -87,16 +87,20 @@ onMounted(async () => {
       const message = useMessage();
 
       userStore.setUserInfo({
+        token,
         username: res?.username,
         display_name: res?.system_roles.map((item: any) => item.display_name),
         avatar_url: res?.avatar_url
       });
 
       userStore.setCurrentUser({
+        token,
         username: res?.username,
         display_name: res?.system_roles.map((item: any) => item.display_name),
         avatar_url: res?.avatar_url
       });
+
+      console.log(userStore.currentUser);
 
       message.success('您已登录认证成功!');
     }
@@ -119,12 +123,14 @@ onMounted(async () => {
           const res = await getProfile();
 
           userStore.setUserInfo({
+            token,
             username: res?.username,
             display_name: res?.system_roles.map((item: any) => item.display_name),
             avatar_url: res?.avatar_url
           });
 
           userStore.setCurrentUser({
+            token,
             username: res?.username,
             display_name: res?.system_roles.map((item: any) => item.display_name),
             avatar_url: res?.avatar_url
