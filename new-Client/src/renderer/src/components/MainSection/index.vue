@@ -9,13 +9,7 @@
           style="max-height: calc(100vh - 200px)"
           :class="{ 'list-layout': currentLayout !== 'list' }"
         >
-          <n-empty
-            v-if="listData.length === 0"
-            class="w-full absolute top-[50%] left-[50%] -translate-x-[50%] -translate-y-[100%]"
-            description="暂无数据"
-          />
           <ListItem
-            v-else
             v-for="(item, index) of listData"
             :key="index"
             :item-data="item"

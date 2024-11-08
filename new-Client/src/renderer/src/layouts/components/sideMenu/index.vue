@@ -19,12 +19,13 @@
       />
 
       <div v-if="userOptions.length > 0" class="flex flex-col w-[60%]">
-        <div>
-          <n-text depth="1" strong class="!inline-flex !items-center">
+        <div class="flex w-full">
+          <n-text depth="1" strong class="!inline-flex !items-center justify-between w-full">
             {{ currentUser?.username }}
 
             <n-popselect
               trigger="click"
+              placement="right-end"
               class="w-[300px] rounded-[10px]"
               :options="userOptions"
               :render-label="renderLabel"
@@ -75,6 +76,7 @@ import { storeToRefs } from 'pinia';
 
 import type { SelectRenderLabel, SelectOption } from 'naive-ui';
 import type { IUserInfo } from '@renderer/store/interface';
+import mittBus from '@renderer/eventBus';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -90,6 +92,7 @@ const userOptions = computed(() => {
       return {
         label: item.username,
         value: item.username,
+        avatar_url: item.avatar_url,
         display_name: item.display_name
       };
     }) || []
@@ -115,10 +118,12 @@ const renderLabel: SelectRenderLabel = option => {
     },
     [
       h(NAvatar, {
-        src: '',
+        //@ ts-ignore
+        src: option.avatar_url,
+        round: true,
         size: 'medium',
         style: {
-          borderRadius: '5px'
+          cursor: 'pointer'
         }
       }),
       h(
@@ -146,6 +151,7 @@ const renderLabel: SelectRenderLabel = option => {
 
 const handleAddAccount = () => {
   // todo))
+  mittBus.emit('addAccount');
 };
 
 onMounted(() => {

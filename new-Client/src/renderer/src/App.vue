@@ -57,6 +57,13 @@ const handleThemeChange = async (theme: string) => {
 };
 
 /**
+ * @description 添加账号
+ */
+const handleAddAccount = () => {
+  showModal.value = true;
+};
+
+/**
  * @description 获取 Logo
  */
 const getIconImage = async () => {
@@ -72,6 +79,7 @@ onMounted(async () => {
 
   // userStore.setToken(token);
 
+  // todo)) 需要删除，但要保留 catch 逻辑
   try {
     const res = await getProfile();
 
@@ -93,7 +101,7 @@ onMounted(async () => {
       message.success('您已登录认证成功!');
     }
   } catch (e: any) {
-    const status = e.response.status;
+    const status = e.response?.status;
 
     if (status === 401 || status === 403) {
       userStore.setToken('');
@@ -116,6 +124,12 @@ onMounted(async () => {
             avatar_url: res?.avatar_url
           });
 
+          userStore.setCurrentUser({
+            username: res?.username,
+            display_name: res?.system_roles.map((item: any) => item.display_name),
+            avatar_url: res?.avatar_url
+          });
+
           if (res) {
             const message = useMessage();
             message.success('您已登录认证成功!');
@@ -127,10 +141,12 @@ onMounted(async () => {
     }
   });
 
+  mittBus.on('addAccount', handleAddAccount);
   mittBus.on('changeTheme', handleThemeChange);
 });
 
 onBeforeUnmount(() => {
+  mittBus.off('addAccount', handleAddAccount);
   mittBus.off('changeTheme', handleThemeChange);
 });
 </script>

@@ -5,6 +5,7 @@ type Event = {
   createDrawer: any;
   changeTheme: any;
   search: any;
+  addAccount: any;
 };
 
 const mittBus: Emitter<Event> = mitt();

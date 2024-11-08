@@ -31,12 +31,10 @@
               </n-popover>
             </n-ellipsis>
             <n-ellipsis :style="{ maxWidth: layout === 'grid' ? '110px' : '' }">
-              <n-popover>
-                <template #trigger>
-                  {{ itemData.address }}
-                </template>
-                资产地址: {{ itemData.address }}
-              </n-popover>
+              {{ itemData.address }}
+              <template #tooltip>
+                <div style="text-align: center">资产地址: {{ itemData.address }}</div>
+              </template>
             </n-ellipsis>
           </template>
         </n-flex>

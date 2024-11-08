@@ -62,6 +62,8 @@ const jumpToLogin = (): void => {
   if (urlRegex.test(siteLocation.value)) {
     userStore.setCurrentSit(siteLocation.value);
     window.open(`${siteLocation.value}/core/auth/login/?next=client`);
+
+    return;
   }
 
   message.error('请输入正确的站点地址', { closable: true });

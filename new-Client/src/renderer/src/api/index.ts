@@ -27,6 +27,7 @@ class RequestHttp {
 
         config.loading ??= true;
         config.baseURL = userStore.currentSite;
+        config.baseURL = 'https://jumpserver-test.cmdb.cc';
 
         userStore.setLoading(config.loading);
 

@@ -1,37 +1,59 @@
 <template>
-  <MainSection :list-data="listData" :class="active ? 'show-drawer' : ''" />
+  <n-spin :show="loadingStatus" class="w-full h-[80%]">
+    <MainSection :list-data="listData" :class="active ? 'show-drawer' : ''" />
+  </n-spin>
 </template>
 
 <script setup lang="ts">
-import MainSection from '@renderer/components/MainSection/index.vue';
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { getFavorites } from '@renderer/api/modals/asset';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { useMessage } from 'naive-ui';
+
 import mittBus from '@renderer/eventBus';
+import MainSection from '@renderer/components/MainSection/index.vue';
 
 defineProps<{
   active: boolean;
 }>();
 
-const listData = ref([]);
-let params = {
+const message = useMessage();
+const params = {
   offset: 0,
   limit: 100,
   search: ''
+};
+
+const listData = ref([]);
+const loadingStatus = ref(true);
+
+const getAssetsFromServer = async (searchInput?: string) => {
+  if (searchInput) params.search = searchInput;
+
+  loadingStatus.value = true;
+
+  try {
+    const res = await getFavorites(params);
+
+    if (res) {
+      listData.value = res.results;
+
+      await nextTick(() => {
+        loadingStatus.value = false;
+      });
+    }
+  } catch (e) {
+    message.error('获取资产数据列表失败', { closable: true });
+  }
 };
 
 onMounted(async () => {
   mittBus.on('search', getAssetsFromServer);
   await getAssetsFromServer();
 });
+
 onBeforeUnmount(() => {
   mittBus.off('search', getAssetsFromServer);
 });
-
-const getAssetsFromServer = async (searchInput?: string) => {
-  if (searchInput) params.search = searchInput;
-  const res = await getFavorites(params);
-  listData.value = res.results;
-};
 </script>
 
 <style scoped lang="scss">
