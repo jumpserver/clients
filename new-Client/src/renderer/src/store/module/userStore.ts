@@ -9,33 +9,21 @@ export const useUserStore = defineStore({
   state: (): Partial<IUser> => ({
     token: '',
     loading: false,
-    userInfo: [
-      {
-        username: 'ZhaoJiSen',
-        value: 'ZhaoJiSen',
-        display_name: ['Admin'],
-        avatar_url: ''
-      },
-      {
-        username: 'FengQiang',
-        value: 'FengQiang',
-        display_name: ['User'],
-        avatar_url: ''
-      }
-    ],
-    currentUser: {
-      username: 'ZhaoJiSen',
-      value: 'ZhaoJiSen',
-      display_name: ['Admin'],
-      avatar_url: ''
-    }
+    userInfo: [],
+    currentSite: '',
+    currentUser: {}
   }),
   actions: {
     setToken(token: string) {
       this.token = token;
     },
+    setCurrentSit(site: string) {
+      this.currentSite = site;
+    },
     setUserInfo(userInfo: IUserInfo) {
-      this.userInfo?.push(userInfo);
+      if (this.userInfo!.some((item: IUserInfo) => item.username === userInfo.username)) return;
+
+      this.userInfo!.push(userInfo);
     },
     setLoading(status: boolean) {
       this.loading = status;

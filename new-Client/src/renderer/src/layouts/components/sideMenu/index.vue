@@ -10,8 +10,15 @@
     </n-flex>
 
     <n-flex align="center" justify="center" class="!flex-nowrap">
-      <n-avatar size="medium" class="cursor-pointer rounded-[5px]" :src="currentUser?.avatar_url" />
-      <div class="flex flex-col w-[60%]">
+      <n-avatar
+        v-if="currentUser?.avatar_url"
+        round
+        size="medium"
+        class="cursor-pointer"
+        :src="currentUser?.avatar_url"
+      />
+
+      <div v-if="userOptions.length > 0" class="flex flex-col w-[60%]">
         <div>
           <n-text depth="1" strong class="!inline-flex !items-center">
             {{ currentUser?.username }}
@@ -138,11 +145,7 @@ const renderLabel: SelectRenderLabel = option => {
 };
 
 const handleAddAccount = () => {
-  userStore.setUserInfo({
-    username: 'zhangsan',
-    display_name: ['ad'],
-    avatar_url: ''
-  });
+  // todo))
 };
 
 onMounted(() => {

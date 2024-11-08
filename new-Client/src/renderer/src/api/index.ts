@@ -8,7 +8,6 @@ import axios from 'axios';
 const { message } = createDiscreteApi(['message']);
 
 const config = {
-  baseURL: import.meta.env.VITE_CORE as string,
   timeout: 5000,
   withCredentials: true
 };
@@ -27,6 +26,7 @@ class RequestHttp {
         const userStore = useUserStore();
 
         config.loading ??= true;
+        config.baseURL = userStore.currentSite;
 
         userStore.setLoading(config.loading);
 

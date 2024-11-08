@@ -13,6 +13,8 @@ export interface IUserInfo {
 export interface IUser {
   token: string;
 
+  currentSite: string;
+
   userInfo: IUserInfo[];
 
   loading: boolean;

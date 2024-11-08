@@ -65,9 +65,33 @@ const getIconImage = async () => {
   iconImage.value = res.default;
 };
 
-const getValidate = async () => {
+onMounted(async () => {
+  // const token = 'fiFP7RO6w7tg8RyksDNjKSjaWZr900U8dVxU';
+
+  await getIconImage();
+
+  // userStore.setToken(token);
+
   try {
-    await getProfile();
+    const res = await getProfile();
+
+    if (res) {
+      const message = useMessage();
+
+      userStore.setUserInfo({
+        username: res?.username,
+        display_name: res?.system_roles.map((item: any) => item.display_name),
+        avatar_url: res?.avatar_url
+      });
+
+      userStore.setCurrentUser({
+        username: res?.username,
+        display_name: res?.system_roles.map((item: any) => item.display_name),
+        avatar_url: res?.avatar_url
+      });
+
+      message.success('您已登录认证成功!');
+    }
   } catch (e: any) {
     const status = e.response.status;
 
@@ -76,13 +100,6 @@ const getValidate = async () => {
       showModal.value = true;
     }
   }
-};
-
-onMounted(async () => {
-  await getIconImage();
-  mittBus.on('changeTheme', handleThemeChange);
-
-  await getValidate();
 
   window.electron.ipcRenderer.on('set-token', (_e, token: string) => {
     if (token) {
@@ -109,6 +126,8 @@ onMounted(async () => {
       });
     }
   });
+
+  mittBus.on('changeTheme', handleThemeChange);
 });
 
 onBeforeUnmount(() => {
@@ -124,7 +143,7 @@ onBeforeUnmount(() => {
     :themeOverrides="defaultTheme === 'dark' ? darkThemeOverrides : lightThemeOverrides"
   >
     <n-modal-provider>
-      <n-message-provider placement="top-right">
+      <n-message-provider>
         <div class="custom-header ele_drag bg-primary border-b-primary border-b">
           <div class="logo">
             <img :src="iconImage" alt="" />

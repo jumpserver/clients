@@ -6,3 +6,9 @@ interface/node_modules
 interface/yarn.lock
 interface/dist_electron
 interface/dist
+
+interface/new-Client/*
+
+new-Client/node_modules
+new-Client/out
+new-Client/dist

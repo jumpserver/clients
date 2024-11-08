@@ -42,9 +42,10 @@ export default defineConfig({
           changeOrigin: true,
           rewrite: path => path.replace(/^\/ui/, '')
         },
-        '^/static': {
+        '/static': {
           target: 'https://jumpserver-test.cmdb.cc',
-          changeOrigin: true
+          changeOrigin: true,
+          secure: false
         }
       }
     }
