@@ -1,4 +1,4 @@
-appId: com.electron.app
+appId: com.jumpserver.client
 productName: 'JumpServerClient'
 directories:
   buildResources: build
@@ -10,24 +10,24 @@ files:
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
-  - resources/**
+  - bin/**
 win:
-  executableName: new-client
+  executableName: Client
+  icon: build/icons.ico
 nsis:
-  artifactName: ${name}-${version}-setup.${ext}
+  artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: true
 mac:
   entitlementsInherit: build/entitlements.mac.plist
-  extendInfo:
-    - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
-    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
-    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
-  notarize: false
+  icon: build/icons/icon.icns
+  notarize: true
 dmg:
-  artifactName: ${name}-${version}.${ext}
+  artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
 linux:
   target:
     - AppImage
@@ -36,11 +36,8 @@ linux:
   maintainer: electronjs.org
   category: Utility
 appImage:
-  artifactName: ${name}-${version}.${ext}
+  artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
 npmRebuild: false
-publish:
-  provider: generic
-  url: https://example.com/auto-updates
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/
 protocols:

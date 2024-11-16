@@ -26,8 +26,7 @@ class RequestHttp {
         const userStore = useUserStore();
 
         config.loading ??= true;
-        config.baseURL = userStore.currentSite;
-        config.baseURL = 'https://jumpserver-test.cmdb.cc';
+        config.baseURL = userStore.currentSite ?? 'https://jumpserver.local';
 
         userStore.setLoading(config.loading);
 

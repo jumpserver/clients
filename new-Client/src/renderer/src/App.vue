@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { darkThemeOverrides, lightThemeOverrides } from './overrides';
-import { darkTheme, lightTheme, zhCN, enUS } from 'naive-ui';
+import { darkTheme, enUS, lightTheme, useMessage, zhCN } from 'naive-ui';
 
 import { useUserStore } from '@renderer/store/module/userStore';
-import { onBeforeUnmount, ref, onMounted, nextTick } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { getProfile } from '@renderer/api/modals/user';
-import { useMessage } from 'naive-ui';
 import { Conf } from 'electron-conf/renderer';
 
 import mittBus from '@renderer/eventBus';
@@ -73,44 +72,23 @@ const getIconImage = async () => {
 };
 
 onMounted(async () => {
-  // const token = 'fiFP7RO6w7tg8RykDNjKSjaWZr900U8dVxU';
-
   await getIconImage();
 
-  // userStore.setToken(token);
-
-  // todo)) 需要删除，但要保留 catch 逻辑
   try {
     const res = await getProfile();
-
     if (res) {
       const message = useMessage();
-
-      userStore.setUserInfo({
-        token,
-        username: res?.username,
-        display_name: res?.system_roles.map((item: any) => item.display_name),
-        avatar_url: res?.avatar_url
-      });
-
-      userStore.setCurrentUser({
-        token,
-        username: res?.username,
-        display_name: res?.system_roles.map((item: any) => item.display_name),
-        avatar_url: res?.avatar_url
-      });
-
-      console.log(userStore.currentUser);
-
       message.success('您已登录认证成功!');
     }
   } catch (e: any) {
     const status = e.response?.status;
-
     if (status === 401 || status === 403) {
       userStore.setToken('');
       showModal.value = true;
     }
+  }
+  if (userStore.userInfo.length <= 0) {
+    showModal.value = true;
   }
 
   window.electron.ipcRenderer.on('set-token', (_e, token: string) => {

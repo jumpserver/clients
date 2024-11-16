@@ -3,7 +3,6 @@ import { piniaPersistConfig } from '@renderer/store/helper';
 import type { IUser } from '@renderer/store/interface';
 import { IUserInfo } from '@renderer/store/interface';
 
-//todo)) 由于会有多个账号，所有需要在 userInfo 中去设置 token
 export const useUserStore = defineStore({
   id: 'client-user',
   state: (): Partial<IUser> => ({

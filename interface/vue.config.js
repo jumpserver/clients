@@ -1,119 +1,114 @@
-const path = require('path')
-function resolve (dir) {
-  return path.join(__dirname, dir)
+const path = require("path");
+function resolve(dir) {
+  return path.join(__dirname, dir);
 }
 
 module.exports = {
   configureWebpack: {
-    devtool: 'nosources-source-map'
+    devtool: "nosources-source-map",
   },
-  chainWebpack: config => {
+  chainWebpack: (config) => {
     config.resolve.alias
-        .set('@', resolve('src/renderer'))
-        .set('~', resolve('src'))
-        .set('root', resolve('./'))
+      .set("@", resolve("src/renderer"))
+      .set("~", resolve("src"))
+      .set("root", resolve("./"));
   },
   pluginOptions: {
     electronBuilder: {
       nodeIntegration: true,
-      customFileProtocol: './',
+      customFileProtocol: "./",
       builderOptions: {
-        productName: 'JumpServerClient',
-        appId: 'com.jumpserver.client',
+        productName: "JumpServerClient",
+        appId: "com.jumpserver.client",
         afterSign: "build/sign/notarize.js",
-        asar: false,
-        extraResources: [
-          "bin/**"
-        ],
+        asar: true,
+        extraResources: ["bin/**"],
         dmg: {
           sign: false,
           contents: [
             {
               x: 410,
               y: 150,
-              type: 'link',
-              path: '/Applications'
+              type: "link",
+              path: "/Applications",
             },
             {
               x: 130,
               y: 150,
-              type: 'file'
-            }
-          ]
+              type: "file",
+            },
+          ],
         },
         deb: {
-          afterInstall:"build/linux/after-install.sh",
+          afterInstall: "build/linux/after-install.sh",
         },
         mac: {
-          icon: 'build/icons/icon.icns',
+          icon: "build/icons/icon.icns",
           extendInfo: {
-            LSUIElement: 0
+            LSUIElement: 0,
           },
-          target: [{
-            target: 'dmg',
-            arch: [
-              'x64',
-              'arm64'
-            ]
-          }],
+          target: [
+            {
+              target: "dmg",
+              arch: ["x64", "arm64"],
+            },
+          ],
           // eslint-disable-next-line no-template-curly-in-string
-          artifactName: 'JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}',
+          artifactName:
+            "JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}",
           protocols: {
             name: "Jms",
-            schemes: ["jms"]
+            schemes: ["jms"],
           },
         },
         win: {
-          icon: 'build/icons/icon.ico',
+          icon: "build/icons/icon.ico",
           // eslint-disable-next-line no-template-curly-in-string
-          artifactName: 'JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}',
-          target: [{
-            target: 'nsis',
-            arch: [
-              'x64',
-              'ia32'
-            ]
-          },{
-            target: 'msiWrapped',
-            arch: [
-              'x64',
-              'ia32'
-            ]
-          }]
+          artifactName:
+            "JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}",
+          target: [
+            {
+              target: "nsis",
+              arch: ["x64", "ia32"],
+            },
+            {
+              target: "msiWrapped",
+              arch: ["x64", "ia32"],
+            },
+          ],
         },
         nsis: {
           oneClick: false,
           allowToChangeInstallationDirectory: true,
           deleteAppDataOnUninstall: true,
-          include: "build/win/installer.nsh"
+          include: "build/win/installer.nsh",
         },
         linux: {
-          icon: 'build/icons/',
+          icon: "build/icons/",
           // eslint-disable-next-line no-template-curly-in-string
-          artifactName: 'JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}',
-          target: [{
-            target: 'deb',
-            arch: [
-              'x64',
-              'arm64'
-            ]
-          }]
+          artifactName:
+            "JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}",
+          target: [
+            {
+              target: "deb",
+              arch: ["x64", "arm64"],
+            },
+          ],
         },
       },
       chainWebpackMainProcess: (config) => {
         config.resolve.alias
-            .set('@', resolve('src/renderer'))
-            .set('~', resolve('src'))
-            .set('root', resolve('./'))
+          .set("@", resolve("src/renderer"))
+          .set("~", resolve("src"))
+          .set("root", resolve("./"));
         config.output.filename((file) => {
-          if (file.chunk.name === 'index') {
-            return 'background.js';
+          if (file.chunk.name === "index") {
+            return "background.js";
           } else {
-            return '[name].js';
+            return "[name].js";
           }
         });
-      }
-    }
-  }
-}
-
+      },
+    },
+  },
+};

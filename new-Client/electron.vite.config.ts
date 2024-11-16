@@ -34,20 +34,6 @@ export default defineConfig({
       Components({
         resolvers: [NaiveUiResolver()]
       })
-    ],
-    server: {
-      proxy: {
-        'http://192.168.200.8:8080/ui/': {
-          target: 'http://localhost:5173',
-          changeOrigin: true,
-          rewrite: path => path.replace(/^\/ui/, '')
-        },
-        '/static': {
-          target: 'https://jumpserver-test.cmdb.cc',
-          changeOrigin: true,
-          secure: false
-        }
-      }
-    }
+    ]
   }
 });

@@ -43,7 +43,7 @@
                 切换账号
               </n-popover>
               <template #action>
-                <n-button text class="w-full" @click="handleAddAccount"> 新增账号 </n-button>
+                <n-button text class="w-full" @click="handleAddAccount"> 新增账号</n-button>
               </template>
             </n-popselect>
           </n-text>
@@ -66,15 +66,14 @@
 
 <script setup lang="ts">
 import { ArrowsHorizontal } from '@vicons/carbon';
+import type { SelectOption, SelectRenderLabel } from 'naive-ui';
 import { NAvatar, NText } from 'naive-ui';
 import { menuOptions } from './config';
 
 import { useUserStore } from '@renderer/store/module/userStore';
-import { onMounted, computed, h } from 'vue';
+import { computed, h, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
-
-import type { SelectRenderLabel, SelectOption } from 'naive-ui';
 import type { IUserInfo } from '@renderer/store/interface';
 import mittBus from '@renderer/eventBus';
 
@@ -103,7 +102,7 @@ const handleAccountChange = (value: string, _option: SelectOption) => {
   if (userStore.userInfo) {
     const user = userStore.userInfo.find((item: IUserInfo) => item.username === value);
 
-    userStore.setToken(user.token);
+    user ? userStore.setToken(user.token) : '';
 
     user ? userStore.setCurrentUser({ ...user }) : '';
   }
