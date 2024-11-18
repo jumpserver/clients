@@ -3,9 +3,9 @@
     :show="showModal"
     :mask-closable="false"
     :show-icon="false"
-    :closable="false"
     preset="dialog"
     class="rounded-[10px]"
+    @close="handleCloseClick"
     @mask-click="handleMaskClick"
   >
     <template #header>
@@ -46,6 +46,8 @@ withDefaults(
   { showModal: false }
 );
 
+const emit = defineEmits(['CloseClick']);
+
 const urlRegex =
   /^(https?:\/\/)?((([a-zA-Z0-9-]{1,63}\.)+[a-zA-Z]{2,})|((\d{1,3}\.){3}\d{1,3}(?!\d))|(\[?([a-fA-F0-9]{1,4}:){1,7}[a-fA-F0-9]{1,4}\]?))$/;
 
@@ -58,11 +60,14 @@ const handleMaskClick = (): void => {
   message.error('请输入站点地址', { closable: true });
 };
 
+const handleCloseClick = (): void => {
+  emit('CloseClick');
+};
+
 const jumpToLogin = (): void => {
   if (urlRegex.test(siteLocation.value)) {
     userStore.setCurrentSit(siteLocation.value);
     window.open(`${siteLocation.value}/core/auth/login/?next=client`);
-
     return;
   }
 

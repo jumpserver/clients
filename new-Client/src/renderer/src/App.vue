@@ -62,6 +62,11 @@ const handleAddAccount = () => {
   showModal.value = true;
 };
 
+const handleDialogClose = () => {
+  // @ts-ignore
+  if (userStore?.userInfo.length >= 0) showModal.value = false;
+};
+
 /**
  * @description 获取 Logo
  */
@@ -87,9 +92,8 @@ onMounted(async () => {
       showModal.value = true;
     }
   }
-  if (userStore.userInfo.length <= 0) {
-    showModal.value = true;
-  }
+  // @ts-ignore
+  if (userStore?.userInfo.length <= 0) showModal.value = true;
 
   window.electron.ipcRenderer.on('set-token', (_e, token: string) => {
     if (token) {
@@ -150,7 +154,7 @@ onBeforeUnmount(() => {
             <span class="title text-primary">JumpServer Client</span>
           </div>
         </div>
-        <LoginModal :show-modal="showModal" />
+        <LoginModal :show-modal="showModal" @CloseClick="handleDialogClose" />
         <router-view />
       </n-message-provider>
     </n-modal-provider>

@@ -26,17 +26,3 @@ build-client:
 	cp -R $(BUILDDIR)/* $(BASEPATH)/../interface/bin/
 	cp $(BASEPATH)/config.json $(BASEPATH)/../interface/bin/
 	cp $(BASEPATH)/putty.exe $(BASEPATH)/../interface/bin/windows/
-
-build-client:
-	set  CGO_ENABLED=0
-	set  GOARCH=amd64
-	set  GOOS=windows
-	go build -trimpath -ldflags "-w -s -H windowsgui" -o build/windows/JumpServerClient.exe ./cmd/awaken/
-	set  GOARCH=386
-	go build -trimpath -ldflags "-w -s -H windowsgui" -o build/windows/JumpServerClient32.exe ./cmd/awaken/
-
-
-	cp -R $(BASEPATH)/Scripts $(BUILDDIR)/darwin
-	cp -R $(BUILDDIR)/* $(BASEPATH)/../interface/bin/
-	cp $(BASEPATH)/config.json $(BASEPATH)/../interface/bin/
-	cp $(BASEPATH)/putty.exe $(BASEPATH)/../interface/bin/windows/

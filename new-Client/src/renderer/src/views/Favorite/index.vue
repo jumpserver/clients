@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
-import { getFavorites } from '@renderer/api/modals/asset';
+import { getFavoriteAssets } from '@renderer/api/modals/asset';
 import { useMessage } from 'naive-ui';
 
 import mittBus from '@renderer/eventBus';
@@ -32,7 +32,7 @@ const getAssetsFromServer = async (searchInput?: string) => {
   loadingStatus.value = true;
 
   try {
-    const res = await getFavorites(params);
+    const res = await getFavoriteAssets(params);
 
     if (res) {
       listData.value = res.results;
