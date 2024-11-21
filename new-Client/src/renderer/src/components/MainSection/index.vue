@@ -3,7 +3,7 @@
     <n-flex class="h-[calc(100vh-135px)]">
       <n-list hoverable clickable :show-divider="false" class="w-full h-full">
         <template #header>
-          <n-h3 class="h-full" strong> Hosts </n-h3>
+          <n-h3 class="h-full" strong> Hosts</n-h3>
         </template>
         <n-scrollbar
           style="max-height: calc(100vh - 200px)"
@@ -15,8 +15,8 @@
             :item-data="item"
             :layout="currentLayout"
             :class="{ 'bg-secondary': selectedItem === index }"
-            @click="selectAccount(index, $event)"
-            @contextmenu="handleItemContextMenu(index, $event)"
+            @click="selectAccount(index, item, $event)"
+            @contextmenu="handleItemContextMenu(index, item, $event)"
           />
         </n-scrollbar>
       </n-list>
@@ -27,6 +27,8 @@
       placement="bottom-start"
       trigger="manual"
       size="small"
+      label-field="name"
+      key-field="username"
       :x="xLeft"
       :y="yLeft"
       :show-arrow="true"
@@ -57,11 +59,14 @@
 <script setup lang="ts">
 import mittBus from '@renderer/eventBus';
 import ListItem from '../ListItem/index.vue';
-import { onBeforeUnmount, onMounted, ref, nextTick } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 
-import type { SelectOption } from 'naive-ui';
+import { createDiscreteApi, SelectOption } from 'naive-ui';
 
 import { Conf } from 'electron-conf/renderer';
+import { createConnectToken, getAssetDetail } from '@renderer/api/modals/asset';
+
+const { message } = createDiscreteApi(['message']);
 
 withDefaults(
   defineProps<{
@@ -80,42 +85,10 @@ const yRight = ref(0);
 const currentLayout = ref('');
 const showLeftDropdown = ref(false);
 const showRightDropdown = ref(false);
-const selectedItem = ref<number | null>(null);
+const selectedItem = ref(null);
 
-const leftOptions = [
-  {
-    type: 'group',
-    label: '本地账户',
-    kay: 'local-account',
-    children: [
-      {
-        label: 'root',
-        key: 'root'
-      },
-      {
-        label: 'Administrator',
-        key: 'administrator'
-      }
-    ]
-  }
-];
-const rightOptions = [
-  {
-    type: 'group',
-    label: '连接方式',
-    kay: 'connect-type',
-    children: [
-      {
-        label: 'SSH',
-        key: 'ssh'
-      },
-      {
-        label: 'SFTP',
-        key: 'sftp'
-      }
-    ]
-  }
-];
+const leftOptions = ref([]);
+const rightOptions = ref([]);
 
 // 初始值
 conf.get('defaultSetting').then(res => {
@@ -136,21 +109,30 @@ const handleLayoutChange = async (layout: string) => {
   });
 };
 
-const selectAccount = (index: number, e: MouseEvent) => {
-  showLeftDropdown.value = false;
-  selectedItem.value = index;
+const getAssetDetailFromServer = async (id: string) => {
+  try {
+    const res = await getAssetDetail(id);
+    if (res) {
+      leftOptions.value = res.permed_accounts;
+    }
+  } catch (e) {
+    message.error('获取资产数据列表失败', { closable: true });
+  }
+};
 
-  nextTick().then(() => {
+const selectAccount = (index: number, item: any, e: MouseEvent) => {
+  showLeftDropdown.value = false;
+  selectedItem.value = item;
+
+  getAssetDetailFromServer(item.id).then(() => {
     showLeftDropdown.value = true;
     xLeft.value = e.clientX;
     yLeft.value = e.clientY;
   });
 };
 
-const handleItemContextMenu = (index: number, e: MouseEvent) => {
+const handleItemContextMenu = (index: number, item: any, e: MouseEvent) => {
   showRightDropdown.value = true;
-
-  selectedItem.value = index;
 
   nextTick().then(() => {
     showRightDropdown.value = true;
@@ -170,8 +152,12 @@ const onClickRightOutside = () => {
 
 const handleSelect = (_key: string, _option: SelectOption) => {
   showLeftDropdown.value = false;
+  createConnectToken(selectedItem.value?.id, _option, 'ssh_client', 'ssh').then(res => {
+    if (res) {
+      message.success('连接成功', { closable: true });
+    }
+  });
 };
-
 onMounted(() => {
   mittBus.on('changeLayout', handleLayoutChange);
 });
