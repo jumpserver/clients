@@ -1,8 +1,10 @@
-import { join, resolve } from 'path';
+import path, { join, resolve } from 'path';
 import { Conf, useConf } from 'electron-conf/main';
 import icon from '../../resources/JumpServer.ico?asset';
-import { electronApp, optimizer, is } from '@electron-toolkit/utils';
-import { app, shell, BrowserWindow, ipcMain, session } from 'electron';
+import { electronApp, is, optimizer } from '@electron-toolkit/utils';
+import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
+
+import { execFile } from 'child_process';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -115,8 +117,35 @@ app.whenReady().then(async () => {
     optimizer.watchWindowShortcuts(window);
   });
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'));
+  ipcMain.on('open-client', (_, url) => {
+    if (url) {
+      let subPath = process.resourcesPath + '/bin';
+      if (is.dev && !process.env.IS_TEST) {
+        subPath = 'bin';
+      }
+      if (process.platform === 'linux') {
+        switch (process.arch) {
+          case 'x64':
+            subPath += '/linux-amd64';
+            break;
+          case 'arm':
+          case 'arm64':
+            subPath += '/linux-arm64';
+            break;
+        }
+      } else if (process.platform === 'darwin') {
+        subPath += '/darwin';
+      } else {
+        subPath += '/windows';
+      }
+      let exeFilePath = path.join(subPath, 'JumpServerClient');
+      execFile(exeFilePath, [url], error => {
+        if (error) {
+          console.log(error);
+        }
+      });
+    }
+  });
 
   conf.registerRendererListener();
   useConf();

@@ -64,7 +64,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { createDiscreteApi, SelectOption } from 'naive-ui';
 
 import { Conf } from 'electron-conf/renderer';
-import { createConnectToken, getAssetDetail } from '@renderer/api/modals/asset';
+import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
 
 const { message } = createDiscreteApi(['message']);
 
@@ -120,7 +120,7 @@ const getAssetDetailFromServer = async (id: string) => {
   }
 };
 
-const selectAccount = (index: number, item: any, e: MouseEvent) => {
+const selectAccount = (_: number, item: any, e: MouseEvent) => {
   showLeftDropdown.value = false;
   selectedItem.value = item;
 
@@ -131,7 +131,7 @@ const selectAccount = (index: number, item: any, e: MouseEvent) => {
   });
 };
 
-const handleItemContextMenu = (index: number, item: any, e: MouseEvent) => {
+const handleItemContextMenu = (_: number, item: any, e: MouseEvent) => {
   showRightDropdown.value = true;
 
   nextTick().then(() => {
@@ -150,13 +150,35 @@ const onClickRightOutside = () => {
   showRightDropdown.value = false;
 };
 
-const handleSelect = (_key: string, _option: SelectOption) => {
+const handleSelect = async (_key: string, _option: SelectOption) => {
   showLeftDropdown.value = false;
-  createConnectToken(selectedItem.value?.id, _option, 'ssh_client', 'ssh').then(res => {
-    if (res) {
-      message.success('连接成功', { closable: true });
+  let method: string;
+  if (selectedItem) {
+    switch (selectedItem.value.type.value) {
+      case 'linux':
+        method = 'ssh_client';
+        break;
+      case 'windows':
+        method = 'mstsc';
+        break;
+      default:
+        method = 'db_client';
     }
-  });
+    if (selectedItem.value.id) {
+      const token = await createConnectToken(
+        selectedItem.value.id,
+        _option as { name?: string },
+        '',
+        method,
+        'rdp'
+      );
+      message.success('连接成功', { closable: true });
+      const res = await getLocalClientUrl(token);
+      if (res) {
+        window.electron.ipcRenderer.send('open-client', res.url);
+      }
+    }
+  }
 };
 onMounted(() => {
   mittBus.on('changeLayout', handleLayoutChange);

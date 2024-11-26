@@ -22,3 +22,27 @@ export function getCsrfTokenFromCookie(): string {
   const name = `${prefix}csrftoken`;
   return getCookie(name);
 }
+
+export function cleanRDPParams(params): Object {
+  const cleanedParams = {};
+  const { rdp_resolution, rdp_client_option, rdp_smart_size, rdp_color_quality } = params.graphics;
+
+  if (rdp_resolution && rdp_resolution.indexOf('x') > -1) {
+    const [width, height] = rdp_resolution.split('x');
+    cleanedParams['width'] = width;
+    cleanedParams['height'] = height;
+  }
+  if (rdp_client_option.includes('full_screen')) {
+    cleanedParams['full_screen'] = '1';
+  }
+  if (rdp_client_option.includes('multi_screen')) {
+    cleanedParams['multi_mon'] = '1';
+  }
+  if (rdp_client_option.includes('drives_redirect')) {
+    cleanedParams['drives_redirect'] = '1';
+  }
+
+  cleanedParams['rdp_smart_size'] = rdp_smart_size;
+  cleanedParams['rdp_color_quality'] = rdp_color_quality;
+  return cleanedParams;
+}
