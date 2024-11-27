@@ -20,6 +20,8 @@ const showModal = ref(false);
 
 const userStore = useUserStore();
 
+let avatarImage: string;
+
 conf.get('defaultSetting').then(res => {
   if (res) {
     // @ts-ignore
@@ -62,6 +64,13 @@ const handleAddAccount = () => {
   showModal.value = true;
 };
 
+const handleRemoveAccount = () => {
+  userStore.removeCurrentUser();
+  userStore?.userInfo.length <= 0
+    ? (showModal.value = true)
+    : userStore.setCurrentUser(userStore?.userInfo[0]);
+};
+
 const handleDialogClose = () => {
   // @ts-ignore
   if (userStore?.userInfo.length >= 0) showModal.value = false;
@@ -76,8 +85,15 @@ const getIconImage = async () => {
   iconImage.value = res.default;
 };
 
+const getAvatraImage = async () => {
+  const res = await import('@renderer/assets/avatar.png');
+
+  avatarImage = res.default;
+};
+
 onMounted(async () => {
   await getIconImage();
+  await getAvatraImage();
 
   try {
     const res = await getProfile();
@@ -108,14 +124,14 @@ onMounted(async () => {
             token,
             username: res?.username,
             display_name: res?.system_roles.map((item: any) => item.display_name),
-            avatar_url: res?.avatar_url
+            avatar_url: avatarImage
           });
 
           userStore.setCurrentUser({
             token,
             username: res?.username,
             display_name: res?.system_roles.map((item: any) => item.display_name),
-            avatar_url: res?.avatar_url
+            avatar_url: avatarImage
           });
 
           if (res) {
@@ -130,11 +146,13 @@ onMounted(async () => {
   });
 
   mittBus.on('addAccount', handleAddAccount);
+  mittBus.on('removeAccount', handleRemoveAccount);
   mittBus.on('changeTheme', handleThemeChange);
 });
 
 onBeforeUnmount(() => {
   mittBus.off('addAccount', handleAddAccount);
+  mittBus.off('removeAccount', handleRemoveAccount);
   mittBus.off('changeTheme', handleThemeChange);
 });
 </script>

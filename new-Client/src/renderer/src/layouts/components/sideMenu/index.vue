@@ -43,7 +43,8 @@
                 切换账号
               </n-popover>
               <template #action>
-                <n-button text class="w-full" @click="handleAddAccount"> 新增账号</n-button>
+                <n-button text class="w-[50%]" @click="handleAddAccount"> 新增账号</n-button>
+                <n-button text class="w-[50%]" @click="handleRemoveAccount"> 移除账号</n-button>
               </template>
             </n-popselect>
           </n-text>
@@ -152,6 +153,10 @@ const renderLabel: SelectRenderLabel = option => {
 
 const handleAddAccount = () => {
   mittBus.emit('addAccount');
+};
+
+const handleRemoveAccount = () => {
+  mittBus.emit('removeAccount');
 };
 
 onMounted(() => {

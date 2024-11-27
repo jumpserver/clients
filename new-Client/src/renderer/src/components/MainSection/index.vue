@@ -5,9 +5,11 @@
         <template #header>
           <n-h3 class="h-full" strong> Hosts</n-h3>
         </template>
-        <n-scrollbar
+        <n-infinite-scroll
           style="max-height: calc(100vh - 200px)"
           :class="{ 'list-layout': currentLayout !== 'list' }"
+          :distance="10"
+          @load="handleLoad"
         >
           <ListItem
             v-for="(item, index) of listData"
@@ -16,9 +18,8 @@
             :layout="currentLayout"
             :class="{ 'bg-secondary': selectedItem === index }"
             @click="selectAccount(index, item, $event)"
-            @contextmenu="handleItemContextMenu(index, item, $event)"
           />
-        </n-scrollbar>
+        </n-infinite-scroll>
       </n-list>
     </n-flex>
 
@@ -59,7 +60,7 @@
 <script setup lang="ts">
 import mittBus from '@renderer/eventBus';
 import ListItem from '../ListItem/index.vue';
-import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 
 import { createDiscreteApi, SelectOption } from 'naive-ui';
 
@@ -67,6 +68,16 @@ import { Conf } from 'electron-conf/renderer';
 import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
 
 const { message } = createDiscreteApi(['message']);
+
+interface Itype {
+  value: string;
+  label: string;
+}
+
+interface Item {
+  id?: string;
+  type?: Itype;
+}
 
 withDefaults(
   defineProps<{
@@ -85,7 +96,7 @@ const yRight = ref(0);
 const currentLayout = ref('');
 const showLeftDropdown = ref(false);
 const showRightDropdown = ref(false);
-const selectedItem = ref(null);
+const selectedItem = ref<Item>({});
 
 const leftOptions = ref([]);
 const rightOptions = ref([]);
@@ -131,19 +142,19 @@ const selectAccount = (_: number, item: any, e: MouseEvent) => {
   });
 };
 
-const handleItemContextMenu = (_: number, item: any, e: MouseEvent) => {
-  showRightDropdown.value = true;
-
-  nextTick().then(() => {
-    showRightDropdown.value = true;
-    xRight.value = e.clientX;
-    yRight.value = e.clientY;
-  });
-};
+// const handleItemContextMenu = (_: number, item: any, e: MouseEvent) => {
+//   showRightDropdown.value = true;
+//
+//   nextTick().then(() => {
+//     showRightDropdown.value = true;
+//     xRight.value = e.clientX;
+//     yRight.value = e.clientY;
+//   });
+// };
 
 const onClickLeftOutside = () => {
   showLeftDropdown.value = false;
-  selectedItem.value = null;
+  selectedItem.value = {};
 };
 
 const onClickRightOutside = () => {
@@ -153,16 +164,20 @@ const onClickRightOutside = () => {
 const handleSelect = async (_key: string, _option: SelectOption) => {
   showLeftDropdown.value = false;
   let method: string;
+  let protcol: string;
   if (selectedItem) {
     switch (selectedItem.value.type.value) {
       case 'linux':
         method = 'ssh_client';
+        protcol = 'ssh';
         break;
       case 'windows':
         method = 'mstsc';
+        protcol = 'rdp';
         break;
       default:
         method = 'db_client';
+        protcol = 'mysql';
     }
     if (selectedItem.value.id) {
       const token = await createConnectToken(
@@ -170,7 +185,7 @@ const handleSelect = async (_key: string, _option: SelectOption) => {
         _option as { name?: string },
         '',
         method,
-        'rdp'
+        protcol
       );
       message.success('连接成功', { closable: true });
       const res = await getLocalClientUrl(token);

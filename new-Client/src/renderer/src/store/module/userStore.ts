@@ -29,6 +29,11 @@ export const useUserStore = defineStore({
     },
     setCurrentUser(currentUser: IUserInfo) {
       this.currentUser = currentUser;
+    },
+    removeCurrentUser() {
+      this.userInfo = this.userInfo.filter(
+        (item: IUserInfo) => item.username !== this.currentUser.username
+      );
     }
   },
   persist: piniaPersistConfig('client-user')
