@@ -44,8 +44,8 @@ func getEncoder() zapcore.Encoder {
 }
 
 func getLogWriter() zapcore.WriteSyncer {
-	filePath := filepath.Join(filepath.Dir(os.Args[0]), "client.log")
+	dir, _ := os.UserConfigDir()
+	filePath := filepath.Join(dir, "jumpserver-client", "client.log")
 	file, _ := os.Create(filePath)
-	//ws := io.MultiWriter(file, os.Stdout)
 	return zapcore.AddSync(file)
 }

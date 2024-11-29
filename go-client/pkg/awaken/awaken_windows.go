@@ -122,7 +122,8 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 			conList = append(conList, ss)
 
 			bjson, _ := json.Marshal(conList)
-			currentPath := filepath.Dir(os.Args[0])
+			dir, _ := os.UserConfigDir()
+			currentPath := filepath.Join(dir, "jumpserver-client")
 			rdmPath := filepath.Join(currentPath, ".rdm")
 			EnsureDirExist(rdmPath)
 			filePath := filepath.Join(rdmPath, "connections.json")
