@@ -23,3 +23,11 @@ export interface IUser {
 
   currentUser: Partial<IUserInfo>;
 }
+
+export interface ISetting {
+  charset: string;
+
+  rdp_resolution: string;
+
+  is_backspace_as_ctrl_h: number;
+}

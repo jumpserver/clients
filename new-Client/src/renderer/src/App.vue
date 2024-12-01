@@ -28,8 +28,6 @@ conf.get('defaultSetting').then(res => {
     defaultTheme.value = res?.theme;
     // @ts-ignore
     defaultLang.value = res?.language;
-
-    return;
   }
 });
 
