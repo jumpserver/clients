@@ -101,6 +101,8 @@ const selectedItem = ref<Item>({});
 const leftOptions = ref([]);
 const rightOptions = ref([]);
 
+const emit = defineEmits(['loadMore']);
+
 // 初始值
 conf.get('defaultSetting').then(res => {
   if (res) {
@@ -108,6 +110,10 @@ conf.get('defaultSetting').then(res => {
     currentLayout.value = res.layout;
   }
 });
+
+const handleLoad = () => {
+  emit('loadMore');
+};
 
 const handleLayoutChange = async (layout: string) => {
   const currentSettings = (await conf.get('defaultSetting')) as Record<string, any>;
@@ -141,16 +147,6 @@ const selectAccount = (_: number, item: any, e: MouseEvent) => {
     yLeft.value = e.clientY;
   });
 };
-
-// const handleItemContextMenu = (_: number, item: any, e: MouseEvent) => {
-//   showRightDropdown.value = true;
-//
-//   nextTick().then(() => {
-//     showRightDropdown.value = true;
-//     xRight.value = e.clientX;
-//     yRight.value = e.clientY;
-//   });
-// };
 
 const onClickLeftOutside = () => {
   showLeftDropdown.value = false;

@@ -1,6 +1,10 @@
 <template>
   <n-spin :show="loadingStatus" class="w-full h-[80%]">
-    <MainSection :list-data="listData" :class="active ? 'show-drawer' : ''" />
+    <MainSection
+      :list-data="listData"
+      :class="active ? 'show-drawer' : ''"
+      @loadMore="handleScroll"
+    />
   </n-spin>
 </template>
 
@@ -20,29 +24,44 @@ const message = useMessage();
 const params = {
   type: 'linux',
   offset: 0,
-  limit: 100,
+  limit: 20,
   search: ''
 };
 
 const listData = ref([]);
 const loadingStatus = ref(true);
+const hasMore = ref(true);
+
+const handleScroll = async () => {
+  if (!hasMore.value || loadingStatus.value) return;
+  params.offset += 20;
+  await getAssetsFromServer();
+};
 
 const getAssetsFromServer = async (searchInput?: string) => {
-  if (searchInput) params.search = searchInput;
+  if (searchInput !== undefined) {
+    params.offset = 0;
+    params.search = searchInput;
+    listData.value = [];
+    hasMore.value = true;
+  }
 
   loadingStatus.value = true;
 
   try {
     const res = await getAssets(params);
-
     if (res) {
-      listData.value = res.results;
-
+      const { results, total } = res;
+      listData.value = params.offset === 0 ? results : [...listData.value, ...results];
+      // 检查是否还有更多数据
+      hasMore.value = listData.value.length < total;
       await nextTick(() => {
         loadingStatus.value = false;
       });
     }
   } catch (e) {
+    loadingStatus.value = false;
+    hasMore.value = false;
     message.error('获取资产数据列表失败', { closable: true });
   }
 };
