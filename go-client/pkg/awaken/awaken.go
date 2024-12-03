@@ -83,7 +83,7 @@ func (r *Rouse) getName() string {
 func removeCurRdpFile() {
 	re := regexp.MustCompile(".*\\.rdp$")
 	dir, _ := os.UserConfigDir()
-	rd, _ := ioutil.ReadDir(dir)
+	rd, _ := ioutil.ReadDir(filepath.Join(dir, "jumpserver-client"))
 	for _, v := range rd {
 		if !v.IsDir() && re.MatchString(v.Name()) {
 			os.Remove(filepath.Join(dir, "jumpserver-client", v.Name()))

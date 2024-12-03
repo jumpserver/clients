@@ -29,5 +29,13 @@ export interface ISetting {
 
   rdp_resolution: string;
 
-  is_backspace_as_ctrl_h: number;
+  is_backspace_as_ctrl_h: boolean;
+
+  keyboard_layout: string;
+
+  rdp_client_option: string[];
+
+  rdp_color_quality: string;
+
+  rdp_smart_size: string;
 }

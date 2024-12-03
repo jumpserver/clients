@@ -35,7 +35,7 @@ type AppItem struct {
 }
 
 func (a *AppItem) IsActive() bool {
-	if a.IsDefault && a.IsSet {
+	if a.IsSet {
 		return true
 	}
 	return false

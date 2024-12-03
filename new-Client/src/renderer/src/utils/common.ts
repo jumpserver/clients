@@ -25,7 +25,8 @@ export function getCsrfTokenFromCookie(): string {
 
 export function cleanRDPParams(params): Object {
   const cleanedParams = {};
-  const { rdp_resolution, rdp_client_option, rdp_smart_size, rdp_color_quality } = params.graphics;
+
+  const { rdp_resolution, rdp_client_option, rdp_smart_size, rdp_color_quality } = params;
 
   if (rdp_resolution && rdp_resolution.indexOf('x') > -1) {
     const [width, height] = rdp_resolution.split('x');

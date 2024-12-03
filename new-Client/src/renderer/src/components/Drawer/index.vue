@@ -32,7 +32,7 @@
             <n-card
               v-for="item of currentOption"
               :bordered="false"
-              :key="item.value"
+              :key="item"
               size="small"
               header-style="font-size: 13px;"
               class="rounded-[10px] !bg-secondary"
@@ -57,8 +57,18 @@
                   <n-form :model="item">
                     <n-form-item label="应用路径:" label-style="font-size: 13px">
                       <n-input-group>
-                        <n-input v-model:value="item.path" size="small" disabled />
-                        <n-button type="primary" ghost size="small" disabled>
+                        <n-input
+                          v-model:value="item.path"
+                          size="small"
+                          :disabled="item.is_internal || platform === 'darwin'"
+                        />
+                        <n-button
+                          type="primary"
+                          ghost
+                          size="small"
+                          @click="openFile"
+                          :disabled="item.is_internal || platform === 'darwin'"
+                        >
                           <n-icon :component="Folder28Regular" size="14" />
                         </n-button>
                       </n-input-group>
@@ -96,6 +106,13 @@
                         {{ item.download_url }}
                       </n-popover>
                     </n-form-item>
+                    <input
+                      type="file"
+                      name="filename"
+                      id="select-exe"
+                      style="display: none"
+                      @change="changeFile(item)"
+                    />
                   </n-form>
                 </n-collapse-item>
               </n-collapse>
@@ -147,7 +164,7 @@ import { Folder28Regular } from '@vicons/fluent';
 import { ArrowBarRight } from '@vicons/tabler';
 
 import type { Ref } from 'vue';
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useMessage } from 'naive-ui';
 import { useRoute } from 'vue-router';
 import { useSettingStore } from '@renderer/store/module/settingStore';
@@ -156,7 +173,7 @@ import {
   boolOptions,
   charsetOptions,
   databaseOptions,
-  ICustomFrom,
+  IClient,
   linuxOptions,
   resolutionsOptions,
   windowsOptions
@@ -167,7 +184,8 @@ const props = withDefaults(defineProps<{ active: boolean }>(), { active: false }
 const route = useRoute();
 const message = useMessage();
 const settingStore = useSettingStore();
-const currentOption: Ref<ICustomFrom[] | null> = ref(null);
+const currentOption: Ref<IClient[] | null> = ref(null);
+const platform = ref();
 const charset = ref(settingStore.charset);
 const is_backspace_as_ctrl_h = ref(settingStore.is_backspace_as_ctrl_h);
 const rdp_resolution = ref(settingStore.rdp_resolution);
@@ -214,12 +232,27 @@ const expandedNames = computed(() => {
   return enabledItem ? [enabledItem.display_name] : [];
 });
 
-const handleThemeChange = async (theme: string) => {
-  const currentSettings = (await conf.get('defaultSetting')) as Record<string, any>;
+const handleItemChange = async (item: IClient) => {
+  const configName = platform.value + '.' + item.type;
+  let newList = [];
+  currentOption.value?.forEach(option => {
+    if (option.type === item.type) {
+      newList.push(toRaw(option));
+    }
+  });
+  await conf.set(configName, newList);
+};
 
-  await conf.set('defaultSetting', {
-    ...currentSettings,
-    theme: defaultTheme.value
+const openFile = () => {
+  window.document.getElementById('select-exe')!.click();
+};
+
+const changeFile = (item: IClient) => {
+  const exe = window.document.getElementById('select-exe');
+  // @ts-ignore
+  item.path = exe.files[0].path;
+  handleItemChange(item).then(() => {
+    message.success('修改成功');
   });
 };
 
@@ -242,7 +275,7 @@ const closeDrawer = () => {
  *
  * @param item
  */
-const handleSwitchValueChange = (item: ICustomFrom) => {
+const handleSwitchValueChange = (item: IClient) => {
   nextTick(() => {
     const enabledOptions = currentOption.value?.filter(option => option.is_set);
 
@@ -266,10 +299,16 @@ const handleSwitchValueChange = (item: ICustomFrom) => {
 };
 
 window.electron.ipcRenderer.on('platform-response', (_event, _platform) => {
+  platform.value = _platform;
   conf.get(_platform).then(res => {
-    linuxOptions.value = [...res.terminal, ...res.filetransfer];
-    windowsOptions.value = res.remotedesktop;
-    databaseOptions.value = res.databases;
+    if (res) {
+      // @ts-ignore
+      linuxOptions.value = [...res?.terminal, ...res?.filetransfer];
+      // @ts-ignore
+      windowsOptions.value = res?.remotedesktop;
+      // @ts-ignore
+      databaseOptions.value = res?.databases;
+    }
   });
 });
 

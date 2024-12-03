@@ -1,22 +1,25 @@
 import type { Ref } from 'vue';
 import { ref } from 'vue';
 
-export interface ICustomFrom {
+export interface IClient {
   path: string;
   comment: object;
+  name: string;
+  display_name: string;
   download_url: string;
   protocol: any;
   arg_format: string;
+  type: string;
   is_internal: boolean;
   is_set: boolean;
   is_default: boolean;
 }
 
-export const linuxOptions: Ref<Array<ICustomFrom>> = ref([]);
+export const linuxOptions: Ref<Array<IClient>> = ref([]);
 
-export const windowsOptions: Ref<Array<ICustomFrom>> = ref([]);
+export const windowsOptions: Ref<Array<IClient>> = ref([]);
 
-export const databaseOptions: Ref<Array<ICustomFrom>> = ref([]);
+export const databaseOptions: Ref<Array<IClient>> = ref([]);
 
 export const charsetOptions = [
   { label: 'Default', value: 'default' },
@@ -35,6 +38,6 @@ export const resolutionsOptions = [
 ];
 
 export const boolOptions = [
-  { label: 'Yes', value: 1 },
-  { label: 'No', value: 0 }
+  { label: 'Yes', value: true },
+  { label: 'No', value: false }
 ];

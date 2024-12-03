@@ -15,7 +15,7 @@ const platform =
 process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 
 const configFilePath = path.join(app.getPath('userData'), 'config.json');
-let defaults = null;
+let defaults = {};
 if (!existsSync(configFilePath)) {
   let subPath = path.join(process.resourcesPath, 'bin');
   if (is.dev) {

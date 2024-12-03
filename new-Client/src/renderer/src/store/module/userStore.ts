@@ -31,8 +31,8 @@ export const useUserStore = defineStore({
       this.currentUser = currentUser;
     },
     removeCurrentUser() {
-      this.userInfo = this.userInfo.filter(
-        (item: IUserInfo) => item.username !== this.currentUser.username
+      this.userInfo = this.userInfo!.filter(
+        (item: IUserInfo) => item.username !== this.currentUser!.username
       );
     }
   },

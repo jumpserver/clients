@@ -1,12 +1,16 @@
 import { defineStore } from 'pinia';
-import type { ISetting } from '@/store/interface';
+import type { ISetting } from '@renderer/store/interface';
 import { piniaPersistConfig } from '@renderer/store/helper';
 
 export const useSettingStore = defineStore('setting', {
-  state: (): ISetting => ({
+  state: (): Partial<ISetting> => ({
     charset: 'default',
+    is_backspace_as_ctrl_h: false,
     rdp_resolution: 'auto',
-    is_backspace_as_ctrl_h: 0
+    keyboard_layout: 'en-us-qwerty',
+    rdp_client_option: ['multi_screen', 'full_screen'],
+    rdp_color_quality: '32',
+    rdp_smart_size: '0'
   }),
   actions: {
     setCharset(charset: string) {
@@ -15,8 +19,20 @@ export const useSettingStore = defineStore('setting', {
     setRdpResolution(rdp_resolution: string) {
       this.rdp_resolution = rdp_resolution;
     },
-    setBackspaceAsCtrlH(is_backspace_as_ctrl_h: number) {
+    setBackspaceAsCtrlH(is_backspace_as_ctrl_h: boolean) {
       this.is_backspace_as_ctrl_h = is_backspace_as_ctrl_h;
+    },
+    setKeyboardLayout(layout: string) {
+      this.keyboard_layout = layout;
+    },
+    setRdpClientOption(options: string[]) {
+      this.rdp_client_option = options;
+    },
+    setRdpColorQuality(quality: string) {
+      this.rdp_color_quality = quality;
+    },
+    setRdpSmartSize(size: string) {
+      this.rdp_smart_size = size;
     }
   },
   persist: piniaPersistConfig('setting')

@@ -39,21 +39,6 @@
       @select="handleSelect"
       class="w-[150px]"
     />
-
-    <!-- 右键点击下拉菜单 -->
-    <n-dropdown
-      placement="bottom-start"
-      trigger="manual"
-      size="small"
-      :x="xRight"
-      :y="yRight"
-      :show-arrow="true"
-      :options="rightOptions"
-      :show="showRightDropdown"
-      :on-clickoutside="onClickRightOutside"
-      @select="handleSelect"
-      class="w-[150px]"
-    />
   </div>
 </template>
 
@@ -91,15 +76,11 @@ withDefaults(
 const conf = new Conf();
 const xLeft = ref(0);
 const yLeft = ref(0);
-const xRight = ref(0);
-const yRight = ref(0);
 const currentLayout = ref('');
 const showLeftDropdown = ref(false);
-const showRightDropdown = ref(false);
 const selectedItem = ref<Item>({});
 
 const leftOptions = ref([]);
-const rightOptions = ref([]);
 
 const emit = defineEmits(['loadMore']);
 
@@ -153,16 +134,12 @@ const onClickLeftOutside = () => {
   selectedItem.value = {};
 };
 
-const onClickRightOutside = () => {
-  showRightDropdown.value = false;
-};
-
 const handleSelect = async (_key: string, _option: SelectOption) => {
   showLeftDropdown.value = false;
   let method: string;
   let protcol: string;
   if (selectedItem) {
-    switch (selectedItem.value.type.value) {
+    switch (selectedItem.value.type!.value) {
       case 'linux':
         method = 'ssh_client';
         protcol = 'ssh';

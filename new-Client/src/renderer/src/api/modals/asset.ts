@@ -1,7 +1,8 @@
 import request from '../index';
-import { ConnectionToken } from '../model';
-import { encryptPassword } from '@renderer/utils/crypto'; // import { cleanRDPParams } from '@renderer/utils/common';
-// import { cleanRDPParams } from '@renderer/utils/common';
+import { encryptPassword } from '@renderer/utils/crypto';
+import { cleanRDPParams } from '@renderer/utils/common';
+import { useSettingStore } from '@renderer/store/module/settingStore';
+import { useUserStore } from '@renderer/store/module/userStore';
 
 export const getFavoriteAssets = (params: object) => {
   return request.get('/api/v1/perms/users/self/nodes/favorite/assets/', params);
@@ -36,26 +37,28 @@ export const createConnectToken = (
   const _secret = encryptPassword(secret);
   const data = {
     asset: asset_id,
-    account: account.name,
+    account: account.username,
     protocol: protocol,
     input_username: username,
     input_secret: _secret,
     connect_method: method,
     connect_options: connectOption
   };
-  return request.post<ConnectionToken>(url, data);
+  return request.post(url, data);
 };
 
-export const getLocalClientUrl = (token, params: Object = {}) => {
+export const getLocalClientUrl = token => {
+  const userStore = useUserStore();
+  const settingStore = useSettingStore();
   const url = new URL(
     `/api/v1/authentication/connection-token/${token.id}/client-url/`,
-    window.location.origin
+    userStore.currentSite ?? 'https://jumpserver.local'
   );
-  // params = cleanRDPParams(params);
+  let params = cleanRDPParams(settingStore);
   if (params) {
     for (const [k, v] of Object.entries(params)) {
       url.searchParams.append(k, v);
     }
   }
-  return request.get(url.pathname);
+  return request.get(url.href);
 };

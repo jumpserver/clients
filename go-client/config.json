@@ -20,7 +20,7 @@
           "en": "PuTTY is a Telnet, SSH, rlogin, pure TCP and serial interface connection software."
         },
         "download_url": "",
-        "type": "linux",
+        "type": "terminal",
         "path": "putty.exe",
         "arg_format": "-{protocol} {username}@{host} -P {port} -pw {value}",
         "match_first": [],
@@ -40,7 +40,7 @@
           "en": "XShell is a powerful secure terminal simulation software that supports SSH and TELNET protocols."
         },
         "download_url": "https://www.xshell.com/zh/xshell-download/",
-        "type": "linux",
+        "type": "terminal",
         "path": "",
         "arg_format": "-newtab {name} -url {protocol}://{username}:{value}@{host}:{port}",
         "match_first": [],
@@ -60,7 +60,7 @@
           "en": "SecureCRT is an SSH, Telnet client and virtual terminal software developed and sold by VanDyke Software."
         },
         "download_url": "https://www.vandyke.com/cgi-bin/releases.php?product=securecrt",
-        "type": "linux",
+        "type": "terminal",
         "path": "",
         "arg_format": "/N {name} /T /SSH2 /ACCEPTHOSTKEYS /p {port} /password {value} /L {username} {host}",
         "match_first": [],
@@ -80,7 +80,7 @@
           "en": "MobaXterm is a feature-rich remote computer management tool, including SSH client, FTP client, remote desktop, etc."
         },
         "download_url": "https://mobaxterm.mobatek.net/download-home-edition.html",
-        "type": "linux",
+        "type": "terminal",
         "path": "",
         "arg_format": "-newtab*sshpass -p{value} ssh -o StrictHostKeyChecking=no {username}@{host} -p{port}",
         "match_first": [],
@@ -122,7 +122,7 @@
           "en": "WinSCP is an open source graphical SFTP client that uses SSH in a Windows environment and supports the SCP protocol."
         },
         "download_url": "https://winscp.net/eng/index.php",
-        "type": "linux",
+        "type": "filetransfer",
         "path": "",
         "arg_format": "{protocol}://{username}:{value}@{host}:{port}",
         "match_first": [],
@@ -141,7 +141,7 @@
           "en": "SecureFX is a secure file transfer application with an easy-to-learn visual interface."
         },
         "download_url": "https://www.vandyke.com/cgi-bin/releases.php?product=securefx",
-        "type": "linux",
+        "type": "filetransfer",
         "path": "",
         "arg_format": "{protocol}://{username}:{value}@{host}:{port}",
         "match_first": [],
@@ -160,7 +160,7 @@
           "en": "Xftp is a powerful SFTP and FTP file transfer software."
         },
         "download_url": "https://www.xshell.com/zh/xftp-download/",
-        "type": "linux",
+        "type": "filetransfer",
         "path": "",
         "arg_format": "-newwin {protocol}://{username}:{value}@{host}:{port}",
         "match_first": [],
@@ -304,7 +304,7 @@
           "en": "Terminal is a virtual terminal application software on the MacOS operating system, located in the \"Utilities\" folder."
         },
         "download_url": "",
-        "type": "linux",
+        "type": "terminal",
         "path": "Terminal",
         "arg_format": "{protocol} {username}@{host} -p {port} -P {value}",
         "match_first": [],
@@ -324,7 +324,7 @@
           "en": "iTerm2 is a virtual terminal application software on the MacOS operating system.\n\n\n!!!Manually download and install, click Save to activate!!!"
         },
         "download_url": "https://iterm2.com/downloads.html",
-        "type": "linux",
+        "type": "terminal",
         "path": "iTerm2",
         "arg_format": "{protocol} {username}@{host} -p {port} -P {value}",
         "match_first": [],
@@ -344,7 +344,7 @@
           "en": "SecureCRT is an SSH, Telnet client and virtual terminal software developed and sold by VanDyke Software.\n\n!!!Manually download and install, click Save to activate!!!"
         },
         "download_url": "https://www.vandyke.com/cgi-bin/releases.php?product=securecrt",
-        "type": "linux",
+        "type": "terminal",
         "path": "/Applications/SecureCRT.app/Contents/MacOS/SecureCRT",
         "arg_format": "/N {name} /T /SSH2 /ACCEPTHOSTKEYS /p {port} /password {value} /L {username} {host}",
         "match_first": [],
@@ -387,7 +387,7 @@
           "en": "iTerm2 is a virtual terminal application software on the MacOS operating system.\n\n\n!!!Manually download and install, click Save to activate!!!"
         },
         "download_url": "https://iterm2.com/downloads.html",
-        "type": "linux",
+        "type": "filetransfer",
         "path": "iTerm2",
         "arg_format": "{protocol} {username}@{host} -p {port} -P {value}",
         "match_first": [],
@@ -406,7 +406,7 @@
           "en": "SecureFX is a secure file transfer application with an easy-to-learn visual interface.\n\n!!!Manually download and install, click Save to activate!!!"
         },
         "download_url": "https://www.vandyke.com/cgi-bin/releases.php?product=securefx",
-        "type": "linux",
+        "type": "filetransfer",
         "path": "/Applications/SecureFX.app/Contents/MacOS/SecureFX",
         "arg_format": "{protocol}://{username}:{value}@{host}:{port}",
         "match_first": [],
@@ -432,7 +432,7 @@
           "en": "Terminal is a virtual terminal application software on the MacOS operating system, located in the \"Utilities\" folder."
         },
         "download_url": "",
-        "type": "linux",
+        "type": "terminal",
         "path": "Terminal",
         "arg_format": "",
         "match_first": [
@@ -505,7 +505,7 @@
           "en": "Terminal is a virtual terminal application software on the Linux operating system."
         },
         "download_url": "",
-        "type": "linux",
+        "type": "terminal",
         "path": "Terminal",
         "arg_format": "{protocol} {username}@{host} -p {port} -P {value}",
         "match_first": [],
@@ -572,7 +572,7 @@
           "en": "Terminal is a virtual terminal application software on the Linux operating system."
         },
         "download_url": "",
-        "type": "linux",
+        "type": "terminal",
         "path": "Terminal",
         "arg_format": "",
         "match_first": [
