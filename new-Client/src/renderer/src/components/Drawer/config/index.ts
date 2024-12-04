@@ -10,6 +10,7 @@ export interface IClient {
   protocol: any;
   arg_format: string;
   type: string;
+  match_first: any;
   is_internal: boolean;
   is_set: boolean;
   is_default: boolean;

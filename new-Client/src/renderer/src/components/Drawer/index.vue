@@ -10,7 +10,7 @@
     :mask-closable="false"
     class="!rounded-[unset] bg-primary border-l-primary border-l"
   >
-    <n-drawer-content footer-style="border: unset;" body-content-style="padding: 15px 5px">
+    <n-drawer-content footer-style="border: unset;" body-content-style="padding: 15px 5px 40px">
       <template #header>
         <n-flex align="center" justify="space-between">
           <n-text depth="1">默认配置</n-text>
@@ -37,12 +37,7 @@
               header-style="font-size: 13px;"
               class="rounded-[10px] !bg-secondary"
             >
-              <n-collapse
-                :accordion="true"
-                :trigger-areas="['extra']"
-                :default-expanded-names="enabledItems"
-                :expanded-names="expandedNames"
-              >
+              <n-collapse :trigger-areas="['extra']" :default-expanded-names="enabledItems">
                 <n-collapse-item :name="item.display_name" :title="item.display_name">
                   <template #header-extra>
                     <n-switch
@@ -62,16 +57,31 @@
                           size="small"
                           :disabled="item.is_internal || platform === 'darwin'"
                         />
+                        <input
+                          type="file"
+                          name="filename"
+                          :id="item.name"
+                          style="display: none"
+                          @change="changeFile(item)"
+                        />
                         <n-button
                           type="primary"
                           ghost
                           size="small"
-                          @click="openFile"
+                          @click="openFile(item)"
                           :disabled="item.is_internal || platform === 'darwin'"
                         >
                           <n-icon :component="Folder28Regular" size="14" />
                         </n-button>
                       </n-input-group>
+                    </n-form-item>
+                    <n-form-item label="协议:" label-style="font-size: 13px">
+                      <n-select
+                        v-model:value="item.match_first"
+                        multiple
+                        @update:value="handleItemChange(item)"
+                        :options="item.protocol.map(value => ({ label: value, value: value }))"
+                      />
                     </n-form-item>
                     <n-form-item
                       label="应用说明:"
@@ -106,13 +116,6 @@
                         {{ item.download_url }}
                       </n-popover>
                     </n-form-item>
-                    <input
-                      type="file"
-                      name="filename"
-                      id="select-exe"
-                      style="display: none"
-                      @change="changeFile(item)"
-                    />
                   </n-form>
                 </n-collapse-item>
               </n-collapse>
@@ -164,7 +167,7 @@ import { Folder28Regular } from '@vicons/fluent';
 import { ArrowBarRight } from '@vicons/tabler';
 
 import type { Ref } from 'vue';
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useMessage } from 'naive-ui';
 import { useRoute } from 'vue-router';
 import { useSettingStore } from '@renderer/store/module/settingStore';
@@ -185,7 +188,7 @@ const route = useRoute();
 const message = useMessage();
 const settingStore = useSettingStore();
 const currentOption: Ref<IClient[] | null> = ref(null);
-const platform = ref();
+const platform = ref('');
 const charset = ref(settingStore.charset);
 const is_backspace_as_ctrl_h = ref(settingStore.is_backspace_as_ctrl_h);
 const rdp_resolution = ref(settingStore.rdp_resolution);
@@ -197,27 +200,23 @@ watch([charset, is_backspace_as_ctrl_h, rdp_resolution], () => {
   settingStore.rdp_resolution = rdp_resolution.value;
 });
 
-watch(
-  () => route.name,
-  newValue => {
-    switch (newValue) {
-      case 'Linux':
-        currentOption.value = linuxOptions.value;
-        break;
-      case 'Windows':
-        currentOption.value = windowsOptions.value;
-        break;
-      case 'Database':
-        currentOption.value = databaseOptions.value;
-        break;
-      default:
-        currentOption.value = [];
-    }
-  },
-  {
-    immediate: true // Execute immediately on component mount
+const updateCurrentOptions = (newValue: string | null) => {
+  switch (newValue) {
+    case 'Linux':
+      currentOption.value = linuxOptions.value;
+      break;
+    case 'Windows':
+      currentOption.value = windowsOptions.value;
+      break;
+    case 'Database':
+      currentOption.value = databaseOptions.value;
+      break;
+    default:
+      currentOption.value = [];
   }
-);
+};
+
+watch(() => route.name, updateCurrentOptions, { immediate: true });
 
 const enabledItems = computed(() => {
   // 获取所有启用状态的 item 标签作为展开的名称
@@ -226,31 +225,29 @@ const enabledItems = computed(() => {
     : [];
 });
 
-const expandedNames = computed(() => {
-  const enabledItem = currentOption.value?.find(item => item.is_set);
-
-  return enabledItem ? [enabledItem.display_name] : [];
-});
-
 const handleItemChange = async (item: IClient) => {
-  const configName = platform.value + '.' + item.type;
-  let newList = [];
-  currentOption.value?.forEach(option => {
-    if (option.type === item.type) {
-      newList.push(toRaw(option));
-    }
-  });
+  const configName = `${platform.value}.${item.type}`;
+  const newList =
+    currentOption.value
+      ?.filter(option => option.type === item.type)
+      .map(option => {
+        if (option.name !== item.name) {
+          // 过滤掉 `item.match_first` 中的匹配项
+          option.match_first = option.match_first.filter(i => !item.match_first.includes(i));
+        }
+        return toRaw(option);
+      }) || [];
+
   await conf.set(configName, newList);
 };
 
-const openFile = () => {
-  window.document.getElementById('select-exe')!.click();
+const openFile = (item: IClient) => {
+  window.document.getElementById(item.name)!.click();
 };
 
 const changeFile = (item: IClient) => {
-  const exe = window.document.getElementById('select-exe');
-  // @ts-ignore
-  item.path = exe.files[0].path;
+  const fileInput = window.document.getElementById(item.name) as HTMLInputElement;
+  item.path = fileInput?.files?.[0]?.path || '';
   handleItemChange(item).then(() => {
     message.success('修改成功');
   });
@@ -278,45 +275,33 @@ const closeDrawer = () => {
 const handleSwitchValueChange = (item: IClient) => {
   nextTick(() => {
     const enabledOptions = currentOption.value?.filter(option => option.is_set);
-
     if (enabledOptions && enabledOptions.length === 0) {
       message.warning('请至少启用一个选项');
       item.is_set = true;
       return;
     }
-
-    // 当前的为 true 其他的为 false
-    if (enabledOptions && enabledOptions.length > 0) {
-      item.is_set = true;
-
-      currentOption.value?.forEach(option => {
-        if (option !== item) {
-          option.is_set = false;
-        }
-      });
-    }
+    handleItemChange(item).then(() => {
+      message.success('修改成功');
+    });
   });
 };
 
-window.electron.ipcRenderer.on('platform-response', (_event, _platform) => {
-  platform.value = _platform;
-  conf.get(_platform).then(res => {
-    if (res) {
-      // @ts-ignore
-      linuxOptions.value = [...res?.terminal, ...res?.filetransfer];
-      // @ts-ignore
-      windowsOptions.value = res?.remotedesktop;
-      // @ts-ignore
-      databaseOptions.value = res?.databases;
-    }
-  });
-});
+const initPlatformData = async () => {
+  const platformData = await conf.get(platform.value);
+  if (platformData) {
+    linuxOptions.value = [...platformData.terminal, ...platformData.filetransfer];
+    windowsOptions.value = platformData.remotedesktop;
+    databaseOptions.value = platformData.databases;
+  }
+};
 
 onMounted(() => {
   window.electron.ipcRenderer.send('get-platform');
+  window.electron.ipcRenderer.on('platform-response', (_event, _platform) => {
+    platform.value = _platform;
+    initPlatformData();
+  });
 });
-
-onBeforeUnmount(() => {});
 </script>
 
 <style lang="scss" scoped>
