@@ -39,3 +39,15 @@ export interface ISetting {
 
   rdp_smart_size: string;
 }
+
+export interface ISession {
+  id: string;
+  name: string;
+  address: string;
+  comment: string;
+  type: {
+    value: string;
+    label: string;
+  };
+  org_name: string;
+}

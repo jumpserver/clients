@@ -1,3 +1,5 @@
+import { LocalStorageService } from '@renderer/utils/localstorage';
+
 export function getCookie(name: string): string {
   let cookieValue = '';
   if (document.cookie && document.cookie !== '') {
@@ -46,4 +48,55 @@ export function cleanRDPParams(params): Object {
   cleanedParams['rdp_smart_size'] = rdp_smart_size;
   cleanedParams['rdp_color_quality'] = rdp_color_quality;
   return cleanedParams;
+}
+
+export function loadOriManualAuthInfo() {
+  const manualAuthInfoKey = 'ManualAuthInfo';
+  const authInfos = LocalStorageService.get(manualAuthInfoKey);
+  if (!authInfos) {
+    return;
+  }
+  if (authInfos && typeof authInfos === 'object') {
+    for (const [key, auths] of Object.entries(authInfos)) {
+      const newKey = `JMS_MA_${key}`;
+      LocalStorageService.set(newKey, auths);
+    }
+  }
+  LocalStorageService.delete(manualAuthInfoKey);
+}
+
+export function setPreConnectData(asset, connectData) {
+  const { account, protocol, connectMethod, manualAuthInfo, connectOption } = connectData;
+  const key = `JMS_PRE_${asset.id}`;
+
+  const saveData = {
+    account: { alias: account.alias, username: account.username, has_secret: account.has_secret },
+    connectMethod: { value: connectMethod.value },
+    protocol: { name: protocol.name },
+    downloadRDP: connectData.downloadRDP,
+    autoLogin: connectData.autoLogin,
+    connectOption
+  };
+  setAccountLocalAuth(asset, account, manualAuthInfo);
+  LocalStorageService.set(key, saveData);
+}
+
+export function getPreConnectData(asset: Asset) {
+  const key = `JMS_PRE_${asset.id}`;
+  const connectData = LocalStorageService.get(key) as ConnectData;
+  if (!connectData) {
+    return null;
+  }
+  connectData.manualAuthInfo = new AuthInfo();
+  if (connectData.account.has_secret) {
+    return connectData;
+  }
+  if (connectData.account) {
+    const auths = getAccountLocalAuth(asset.id);
+    const matched = auths.find(item => item.alias === connectData.account.alias);
+    if (matched) {
+      connectData.manualAuthInfo = matched;
+    }
+  }
+  return connectData;
 }

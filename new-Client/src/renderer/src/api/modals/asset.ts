@@ -47,9 +47,10 @@ export const createConnectToken = (
   return request.post(url, data);
 };
 
+const userStore = useUserStore();
+const settingStore = useSettingStore();
+
 export const getLocalClientUrl = token => {
-  const userStore = useUserStore();
-  const settingStore = useSettingStore();
   const url = new URL(
     `/api/v1/authentication/connection-token/${token.id}/client-url/`,
     userStore.currentSite ?? 'https://jumpserver.local'

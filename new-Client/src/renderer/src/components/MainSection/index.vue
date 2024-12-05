@@ -46,11 +46,10 @@
 import mittBus from '@renderer/eventBus';
 import ListItem from '../ListItem/index.vue';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
-
 import { createDiscreteApi, SelectOption } from 'naive-ui';
-
 import { Conf } from 'electron-conf/renderer';
 import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
+import { useHistoryStore } from '@renderer/store/module/historyStore';
 
 const { message } = createDiscreteApi(['message']);
 
@@ -74,12 +73,12 @@ withDefaults(
 );
 
 const conf = new Conf();
+const historyStore = useHistoryStore();
 const xLeft = ref(0);
 const yLeft = ref(0);
 const currentLayout = ref('');
 const showLeftDropdown = ref(false);
 const selectedItem = ref<Item>({});
-
 const leftOptions = ref([]);
 
 const emit = defineEmits(['loadMore']);
@@ -161,6 +160,7 @@ const handleSelect = async (_key: string, _option: SelectOption) => {
         protcol
       );
       message.success('连接成功', { closable: true });
+      historyStore.setHistorySession({ ...selectedItem.value });
       const res = await getLocalClientUrl(token);
       if (res) {
         window.electron.ipcRenderer.send('open-client', res.url);
