@@ -12,8 +12,13 @@ export const useHistoryStore = defineStore('history', {
       this.history_session!.unshift(s);
       this.history_session!.slice(0, 50);
     },
-    getHistorySession(name: string) {
-      return this.history_session;
+    getHistorySession(keyWord: string) {
+      if (!keyWord) return this.history_session;
+      return this.history_session.filter(item => {
+        return Object.values(item).some(
+          value => typeof value === 'string' && value.includes(keyWord)
+        );
+      });
     }
   },
   persist: piniaPersistConfig('history')

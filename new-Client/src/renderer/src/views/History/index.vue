@@ -24,7 +24,7 @@ const getHistoriesFromCache = async (searchInput?: string) => {
     listData.value = [];
   }
   loadingStatus.value = true;
-  listData.value = historyStore.history_session;
+  listData.value = historyStore.getHistorySession(searchInput);
   loadingStatus.value = false;
 };
 

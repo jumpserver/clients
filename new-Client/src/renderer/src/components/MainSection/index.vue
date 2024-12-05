@@ -39,6 +39,8 @@
       @select="handleSelect"
       class="w-[150px]"
     />
+
+    <ConnectModal show-modal="" @CloseClick="" />
   </div>
 </template>
 
@@ -50,6 +52,7 @@ import { createDiscreteApi, SelectOption } from 'naive-ui';
 import { Conf } from 'electron-conf/renderer';
 import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
 import { useHistoryStore } from '@renderer/store/module/historyStore';
+import ConnectModal from '@renderer/components/ConnectModal/index.vue';
 
 const { message } = createDiscreteApi(['message']);
 
