@@ -45,7 +45,12 @@ const handleUrl = (url: string) => {
 
     try {
       const decodedToken = JSON.parse(decodedTokenJson);
-      mainWindow?.webContents.send('set-token', decodedToken.bearer_token);
+      if ('bearer_token' in decodedToken) {
+        mainWindow?.webContents.send('set-token', decodedToken.bearer_token);
+      } else {
+        handleClientPullUp(url);
+      }
+      console.error();
     } catch (error) {
       console.error('Failed to parse decoded token:', error);
     }
@@ -57,6 +62,36 @@ const handleArgv = (argv: any) => {
   const offset = app.isPackaged ? 1 : 2;
   const url = argv.find((arg, i) => i >= offset && arg.startsWith('jms'));
   if (url) handleUrl(url);
+};
+
+const handleClientPullUp = (url: string) => {
+  if (url) {
+    let subPath = process.resourcesPath + '/bin';
+    if (is.dev && !process.env.IS_TEST) {
+      subPath = 'bin';
+    }
+    if (process.platform === 'linux') {
+      switch (process.arch) {
+        case 'x64':
+          subPath += '/linux-amd64';
+          break;
+        case 'arm':
+        case 'arm64':
+          subPath += '/linux-arm64';
+          break;
+      }
+    } else if (process.platform === 'darwin') {
+      subPath += '/darwin';
+    } else {
+      subPath += '/windows';
+    }
+    let exeFilePath = path.join(subPath, 'JumpServerClient');
+    execFile(exeFilePath, [url], error => {
+      if (error) {
+        console.log(error);
+      }
+    });
+  }
 };
 
 const createWindow = async (): Promise<void> => {
@@ -181,33 +216,7 @@ app.on('open-url', (_event: Event, url: string) => {
 });
 
 ipcMain.on('open-client', (_, url) => {
-  if (url) {
-    let subPath = process.resourcesPath + '/bin';
-    if (is.dev && !process.env.IS_TEST) {
-      subPath = 'bin';
-    }
-    if (process.platform === 'linux') {
-      switch (process.arch) {
-        case 'x64':
-          subPath += '/linux-amd64';
-          break;
-        case 'arm':
-        case 'arm64':
-          subPath += '/linux-arm64';
-          break;
-      }
-    } else if (process.platform === 'darwin') {
-      subPath += '/darwin';
-    } else {
-      subPath += '/windows';
-    }
-    let exeFilePath = path.join(subPath, 'JumpServerClient');
-    execFile(exeFilePath, [url], error => {
-      if (error) {
-        console.log(error);
-      }
-    });
-  }
+  handleClientPullUp(url);
 });
 
 //增改本地文件
