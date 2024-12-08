@@ -3,6 +3,7 @@ package awaken
 import (
 	"encoding/json"
 	"go-client/global"
+	"go-client/pkg/autoit"
 	"go-client/pkg/config"
 	"io/ioutil"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func EnsureDirExist(path string) {
@@ -136,13 +138,44 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 			connectMap["config_file"] = currentPath
 		}
 	}
-	commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
-	if strings.Contains(commands, "*") {
-		commands := strings.Split(commands, "*")
-		return exec.Command(appPath, commands...)
+	if len(appItem.AutoIt) == 0 {
+		commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
+		if strings.Contains(commands, "*") {
+			commands := strings.Split(commands, "*")
+			return exec.Command(appPath, commands...)
+		} else {
+			commands := strings.Split(commands, " ")
+			return exec.Command(appPath, commands...)
+		}
 	} else {
-		commands := strings.Split(commands, " ")
-		return exec.Command(appPath, commands...)
+		autoit.LoadAuto()
+		autoit.Run(appPath)
+		for _, item := range appItem.AutoIt {
+			time.Sleep(300 * time.Millisecond)
+			switch item.Cmd {
+			case "Wait":
+				sleepTime, _ := strconv.Atoi(item.Type)
+				winTitle := item.Element
+				maxRetry := 0
+				for {
+					ret := autoit.WinWaitActive(winTitle, "", sleepTime)
+					if ret != 0 || maxRetry > 3 {
+						break
+					}
+					maxRetry++
+				}
+			case "ControlSend":
+				autoit.ControlSend("", "", item.Element, getCommandFromArgs(connectMap, item.Type))
+			case "ControlSetText":
+				autoit.ControlSetText("", "", item.Element, getCommandFromArgs(connectMap, item.Type))
+			case "ControlClick":
+				pos := strings.Split(item.Type, ",")
+				x, _ := strconv.Atoi(pos[0])
+				y, _ := strconv.Atoi(pos[1])
+				autoit.ControlClick("", "", item.Element, x, y)
+			}
+		}
+		return exec.Command("")
 	}
 }
 

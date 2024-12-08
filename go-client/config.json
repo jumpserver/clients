@@ -171,6 +171,76 @@
     ],
     "databases": [
       {
+        "name": "navicat17",
+        "display_name": "Navicat premium Lite 17",
+        "protocol": [
+          "oracle",
+          "mysql",
+          "postgresql",
+          "mariadb",
+          "sqlserver"
+        ],
+        "comment": {
+          "zh": "数据库管理软件",
+          "en": "Database management software."
+        },
+        "download_url": "https://www.navicat.com.cn/products",
+        "type": "databases",
+        "path": "",
+        "arg_format": "",
+        "autoit": [
+          {
+            "cmd": "Wait",
+            "type": "15",
+            "element": "[REGEXPTITLE:Navicat|Navicat]"
+          },
+          {
+            "cmd": "ControlClick",
+            "type": "30,30",
+            "element": "[CLASS:TActionToolBar; INSTANCE:1]"
+          },
+          {
+            "cmd": "ControlClick",
+            "type": "135,8",
+            "element": "[CLASS:TButton; INSTANCE:5]"
+          },
+          {
+            "cmd": "ControlSend",
+            "type": "{url}",
+            "element": "[CLASS:TTextHintMemo; INSTANCE:1]"
+          },
+          {
+            "cmd": "ControlClick",
+            "type": "135,8",
+            "element": "[CLASS:TButton; INSTANCE:5]"
+          },
+          {
+            "cmd": "ControlClick",
+            "type": "35,15",
+            "element": "[CLASS:TButton; INSTANCE:2]"
+          },
+          {
+            "cmd": "ControlSend",
+            "type": "{value}",
+            "element": "[CLASS:TButtonedEdit; INSTANCE:1]"
+          },
+          {
+            "cmd": "ControlClick",
+            "type": "7,7",
+            "element": "[CLASS:TCheckBox; INSTANCE:1]"
+          },
+          {
+            "cmd": "ControlClick",
+            "type": "36,13",
+            "element": "[CLASS:TButton; INSTANCE:2]"
+          }
+        ],
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      },
+      {
         "name": "plsql",
         "display_name": "PL/SQL Developer",
         "protocol": [
@@ -233,7 +303,7 @@
       },
       {
         "name": "ssms17",
-        "display_name": "SQL Server Management Studio 17",
+        "display_name": "SQL Server Management Studio",
         "protocol": [
           "sqlserver"
         ],
@@ -241,10 +311,42 @@
           "zh": "SQL Server Management Studio (SSMS) 是一种集成环境，用于管理从 SQL Server 到 Azure SQL 数据库的任何 SQL 基础结构。",
           "en": "SQL Server Management Studio (SSMS) is an integrated environment for managing any SQL infrastructure, from SQL Server to Azure SQL Database."
         },
-        "download_url": "https://download.microsoft.com/download/D/D/4/DD495084-ADA7-4827-ADD3-FC566EC05B90/SSMS-Setup-CHS.exe",
+        "download_url": "https://download.microsoft.com/download/9/f/8/9f8197f4-0f71-42a3-8717-b2817c77b820/SSMS-Setup-CHS.exe",
         "type": "databases",
         "path": "",
-        "arg_format": "-S {host},{port} -U {username} -P {value} -d {dbname}",
+        "arg_format": "",
+        "autoit": [
+          {
+            "cmd": "Wait",
+            "type": "15",
+            "element": "[REGEXPTITLE:连接到服务器|Connect]"
+          },
+          {
+            "cmd": "ControlSend",
+            "type": "{host},{port}",
+            "element": "[CLASS:Edit; INSTANCE:1]"
+          },
+          {
+            "cmd": "ControlSend",
+            "type": "SQL Server",
+            "element": "[NAME:comboBoxAuthentication]"
+          },
+          {
+            "cmd": "ControlSetText",
+            "type": "{username}",
+            "element": "[CLASS:Edit; INSTANCE:2]"
+          },
+          {
+            "cmd": "ControlSend",
+            "type": "{value}",
+            "element": "[NAME:password]"
+          },
+          {
+            "cmd": "ControlClick",
+            "type": "connect",
+            "element": "[NAME:connect]"
+          }
+        ],
         "match_first": [],
         "is_internal": false,
         "is_default": false,
