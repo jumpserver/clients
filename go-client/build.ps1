@@ -10,3 +10,4 @@ go build -trimpath -ldflags "-w -s -H windowsgui" -o build/windows/JumpServerCli
 Copy-Item -Path "build/*" -Destination "../interface/bin/" -Recurse -Force
 Copy-Item -Path config.json -Destination "../interface/bin/" -Force
 Copy-Item -Path putty.exe -Destination "../interface/bin/windows/" -Force
+Copy-Item -Path "pkg/autoit/*.dll" -Destination "../interface/bin/windows/" -Force
