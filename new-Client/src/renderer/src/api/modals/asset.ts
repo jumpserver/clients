@@ -1,6 +1,6 @@
 import request from '../index';
 import { encryptPassword } from '@renderer/utils/crypto';
-import { cleanRDPParams } from '@renderer/utils/common';
+import { cleanRDPParams, getConnectOption } from '@renderer/utils/common';
 import { useSettingStore } from '@renderer/store/module/settingStore';
 import { useUserStore } from '@renderer/store/module/userStore';
 
@@ -21,34 +21,24 @@ export const getAssetDetail = (id: string) => {
   return request.get(url);
 };
 
-export const createConnectToken = (
-  asset_id: string,
-  account: { name?: string; username?: string },
-  secret: string,
-  method: string,
-  protocol: string,
-  createTicket = false,
-  connectOption = {}
-) => {
+const userStore = useUserStore();
+const settingStore = useSettingStore();
+
+export const createConnectToken = (connectData: any, method: string, createTicket = false) => {
   const params = createTicket ? '?create_ticket=1' : '';
   const url = '/api/v1/authentication/connection-token/' + params;
-  // account.username.startsWith('@') ? manualAuthInfo.username :
-  const username = account.username;
-  const _secret = encryptPassword(secret);
+  const _secret = encryptPassword(connectData.input_secret);
   const data = {
-    asset: asset_id,
-    account: account.username,
-    protocol: protocol,
-    input_username: username,
+    asset: connectData.asset,
+    account: connectData.account,
+    protocol: connectData.protocol,
+    input_username: connectData.input_username,
     input_secret: _secret,
     connect_method: method,
-    connect_options: connectOption
+    connect_options: getConnectOption(settingStore)
   };
   return request.post(url, data);
 };
-
-const userStore = useUserStore();
-const settingStore = useSettingStore();
 
 export const getLocalClientUrl = token => {
   const url = new URL(

@@ -50,6 +50,21 @@ export function cleanRDPParams(params): Object {
   return cleanedParams;
 }
 
+export function getConnectOption(params): Object {
+  const connectOption = {};
+  const { charset, is_backspace_as_ctrl_h, rdp_resolution, keyboard_layout } = params;
+
+  if (rdp_resolution && rdp_resolution.indexOf('x') > -1) {
+    connectOption['resolution'] = rdp_resolution;
+  }
+
+  connectOption['charset'] = charset;
+  connectOption['is_backspace_as_ctrl_h'] = is_backspace_as_ctrl_h;
+  connectOption['keyboard_layout'] = keyboard_layout;
+
+  return connectOption;
+}
+
 export function loadOriManualAuthInfo() {
   const manualAuthInfoKey = 'ManualAuthInfo';
   const authInfos = LocalStorageService.get(manualAuthInfoKey);

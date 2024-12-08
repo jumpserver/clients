@@ -51,3 +51,17 @@ export interface ISession {
   };
   org_name: string;
 }
+
+export interface IConnectData {
+  asset: string;
+  account: string;
+  protocol: string;
+  input_username: string;
+  input_secret: string;
+  connect_method?: string;
+  connect_options?: {
+    charset: string;
+    resolution: string;
+    backspaceAsCtrlH: boolean;
+  };
+}

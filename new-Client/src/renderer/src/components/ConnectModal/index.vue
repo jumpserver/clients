@@ -1,64 +1,153 @@
 <template>
   <n-modal
-    :show="true"
+    :show="showModal"
     :mask-closable="false"
     :show-icon="false"
     preset="dialog"
     class="rounded-[10px]"
     @close="handleCloseClick"
-    @mask-click="handleMaskClick"
   >
     <template #header>
       <n-flex align="center">
-        <n-text depth="1">登录</n-text>
+        <n-text depth="1">连接</n-text>
+        <n-text depth="1">{{ permedData.name }}</n-text>
       </n-flex>
     </template>
 
     <template #default>
-      <n-flex vertical justify="space-evenly" align="flex-start" class="w-full h-[70px]">
-        <n-input
-          v-model:value="siteLocation"
-          clearable
-          placeholder="请输入 IP 地址或域名作为登录站点"
-          class="rounded-[10px]"
-        />
+      <n-flex vertical align="flex-start" class="w-full min-h-[120px]">
+        <n-tabs v-model:value="connectData.protocol">
+          <n-tab v-for="tab in protocols" :key="tab.name" :name="tab.name">
+            {{ tab.name.toUpperCase() }}
+          </n-tab>
+        </n-tabs>
+        <n-form size="small" class="w-full">
+          <n-form-item label="选择账号">
+            <n-select
+              class="rounded-[10px]"
+              size="small"
+              label-field="name"
+              key-field="username"
+              placeholder="请选择账号"
+              v-model:value="accountSelected"
+              :options="accounts"
+              @update:value="handleItemChange"
+            />
+          </n-form-item>
+
+          <n-form-item v-if="showManualUsernameInput" label="用户名">
+            <n-input v-model:value="connectData.input_username" placeholder="请输入用户名" />
+          </n-form-item>
+          <n-form-item v-if="showManualPasswdInput" label="密码">
+            <n-input
+              v-model:value="connectData.input_secret"
+              type="password"
+              show-password-on="mousedown"
+              placeholder="请输入密码"
+            />
+          </n-form-item>
+        </n-form>
       </n-flex>
     </template>
     <template #action>
-      <n-button round :disabled="!siteLocation" size="small" type="primary" @click="jumpToLogin">
-        登录
-      </n-button>
+      <n-button round size="small" type="primary" @click="connectAsset"> 连接</n-button>
     </template>
   </n-modal>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useMessage } from 'naive-ui';
-import { Add24Regular } from '@vicons/fluent';
+import { computed, ref, watch } from 'vue';
+import { IConnectData } from '@renderer/store/interface';
 import { useUserStore } from '@renderer/store/module/userStore';
+import { storeToRefs } from 'pinia';
 
-withDefaults(
+const emit = defineEmits(['CloseClick', 'ConnectAsset']);
+
+const props = withDefaults(
   defineProps<{
     showModal: boolean;
+    permedData: object;
   }>(),
-  { showModal: false }
+  {
+    showModal: false,
+    permedData: {
+      permed_protocols: [],
+      permed_accounts: []
+    }
+  }
 );
+const showManualUsernameInput = ref(false);
+const showManualPasswdInput = ref(false);
+const accountSelected = ref(null);
+const connectData = ref<IConnectData>({});
 
-const emit = defineEmits(['CloseClick']);
-
-const message = useMessage();
 const userStore = useUserStore();
+const { currentUser: storeCurrentUser } = storeToRefs(userStore);
+const currentUser = computed(() => storeCurrentUser?.value);
 
-const siteLocation = ref('');
+const protocols = computed(() => {
+  if (props.permedData.permed_protocols?.length) {
+    const protocol_enabled = props.permedData.permed_protocols.filter(item => item.public);
+    if (protocol_enabled.length > 0) {
+      connectData.value.protocol = protocol_enabled[0].name;
+    }
+    return protocol_enabled;
+  }
+  return [];
+});
 
-const handleMaskClick = (): void => {
-  message.error('请输入站点地址', { closable: true });
-};
+const accounts = computed(() => {
+  if (props.permedData.permed_accounts?.length) {
+    return props.permedData.permed_accounts.filter(item => item.alias !== '@ANON');
+  }
+  return [];
+});
+
+watch(
+  () => props.showModal,
+  () => {
+    accountSelected.value = null;
+    connectData.value = {
+      protocol: protocols.value[0]?.name || '',
+      asset: '',
+      account: '',
+      input_username: '',
+      input_secret: ''
+    };
+  }
+);
 
 const handleCloseClick = (): void => {
   emit('CloseClick');
 };
+
+const handleItemChange = (_, option): void => {
+  accountSelected.value =
+    option.name +
+    (option.alias === option.username || option.alias.startsWith('@')
+      ? ''
+      : '(' + option.username + ')');
+  connectData.value.input_username = '';
+  connectData.value.input_secret = '';
+  connectData.value.asset = props.permedData.id;
+  connectData.value.account = option.username;
+  showManualPasswdInput.value = !option.has_secret;
+  if (option.username === '@INPUT') {
+    showManualUsernameInput.value = true;
+  } else if (option.username === '@USER') {
+    connectData.value.input_username = currentUser.value!.username;
+  } else {
+    connectData.value.account = option.name;
+    showManualUsernameInput.value = false;
+  }
+};
+const connectAsset = (): void => {
+  emit('ConnectAsset', connectData.value);
+};
 </script>
 
-<style scoped lang="scss"></style>
+<style lang="scss" scoped>
+:deep(.n-form-item-feedback-wrapper) {
+  min-height: 10px;
+}
+</style>
