@@ -7,6 +7,7 @@
       <n-layout-content>
         <header-section :active="active" />
         <router-view :active="active" />
+        <div id="drawer-target"></div>
       </n-layout-content>
     </n-layout>
   </n-layout>

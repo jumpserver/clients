@@ -23,7 +23,10 @@
         "type": "terminal",
         "path": "putty.exe",
         "arg_format": "-{protocol} {username}@{host} -P {port} -pw {value}",
-        "match_first": [],
+        "match_first": [
+          "ssh",
+          "telnet"
+        ],
         "is_internal": true,
         "is_default": true,
         "is_set": true
@@ -104,7 +107,9 @@
         "type": "windows",
         "path": "mstsc.exe",
         "arg_format": "{file}",
-        "match_first": [],
+        "match_first": [
+          "rdp"
+        ],
         "is_internal": true,
         "is_default": true,
         "is_set": true
@@ -409,7 +414,10 @@
         "type": "terminal",
         "path": "Terminal",
         "arg_format": "{protocol} {username}@{host} -p {port} -P {value}",
-        "match_first": [],
+        "match_first": [
+          "ssh",
+          "telnet"
+        ],
         "is_internal": true,
         "is_default": true,
         "is_set": true
@@ -470,7 +478,9 @@
         "type": "windows",
         "path": "/Applications/Microsoft Remote Desktop.app",
         "arg_format": "{file}",
-        "match_first": [],
+        "match_first": [
+          "rdp"
+        ],
         "is_internal": true,
         "is_default": true,
         "is_set": true
@@ -610,7 +620,8 @@
         "type": "terminal",
         "path": "Terminal",
         "arg_format": "{protocol} {username}@{host} -p {port} -P {value}",
-        "match_first": [],
+        "match_first": [          "ssh",
+          "telnet"],
         "is_internal": true,
         "is_default": true,
         "is_set": true
