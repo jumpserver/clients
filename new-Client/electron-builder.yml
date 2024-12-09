@@ -9,10 +9,10 @@ files:
   - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.cjs,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
-asarUnpack:
-  - bin/**
+extraResources:
+  - from: 'bin'
 win:
-  executableName: Client
+  executableName: JumpServerClient
   icon: build/icons.ico
 nsis:
   artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
