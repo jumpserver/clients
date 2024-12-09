@@ -22,8 +22,10 @@ build-client:
 	GOARCH=arm64 GOOS=linux $(CLIENTBUILD) -ldflags "$(LDFLAGS)" -o $(BUILDDIR)/linux-arm64/JumpServerClient $(CLIENTSRCFILE)
 	GOARCH=arm64 GOOS=linux $(CLIENTBUILD) -ldflags "$(LDFLAGS)" -o $(BUILDDIR)/linux-arm64/client $(SSHCSRCFILE)
 
+	mkdir -p $(BASEPATH)/../ui/bin/
+
 	cp -R $(BASEPATH)/Scripts $(BUILDDIR)/darwin
-	cp -R $(BUILDDIR)/* $(BASEPATH)/../interface/bin/
-	cp $(BASEPATH)/config.json $(BASEPATH)/../interface/bin/
-	cp $(BASEPATH)/putty.exe $(BASEPATH)/../interface/bin/windows/
-	cp $(BASEPATH)/pkg/autoit/*.dll $(BASEPATH)/../interface/bin/windows/
+	cp -R $(BUILDDIR)/* $(BASEPATH)/../ui/bin/
+	cp $(BASEPATH)/config.json $(BASEPATH)/../ui/bin/
+	cp $(BASEPATH)/putty.exe $(BASEPATH)/../ui/bin/windows/
+	cp $(BASEPATH)/pkg/autoit/*.dll $(BASEPATH)/../ui/bin/windows/

@@ -23,7 +23,7 @@ func awakenRDPCommand(filePath string, cfg *config.AppConfig) *exec.Cmd {
 	var appItem *config.AppItem
 	appLst := cfg.Linux.RemoteDesktop
 	for _, app := range appLst {
-		if app.IsSet && app.IsMatchProtocol(r.Protocol) {
+		if app.IsSet && app.IsMatchProtocol("rdp") {
 			appItem = &app
 			break
 		}
