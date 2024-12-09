@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func EnsureDirExist(path string) {
@@ -46,7 +47,7 @@ func handleSSH(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	}
 
 	for _, app := range appLst {
-		if app.IsActive() && app.IsSupportProtocol(r.Protocol) {
+		if app.IsSet && app.IsMatchProtocol(r.Protocol) {
 			appItem = &app
 			break
 		}
@@ -123,7 +124,8 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 			conList = append(conList, ss)
 
 			bjson, _ := json.Marshal(conList)
-			currentPath := filepath.Dir(os.Args[0])
+			dir, _ := os.UserConfigDir()
+			currentPath := filepath.Join(dir, "jumpserver-client")
 			rdmPath := filepath.Join(currentPath, ".rdm")
 			EnsureDirExist(rdmPath)
 			filePath := filepath.Join(rdmPath, "connections.json")
@@ -148,17 +150,29 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	} else {
 		autoit.LoadAuto()
 		autoit.Run(appPath)
-		winTitle := ""
 		for _, item := range appItem.AutoIt {
+			time.Sleep(300 * time.Millisecond)
 			switch item.Cmd {
 			case "Wait":
-				winTitle = item.Element
-				autoit.WinWait(winTitle, "", 120)
-				autoit.WinActivate(winTitle)
+				sleepTime, _ := strconv.Atoi(item.Type)
+				winTitle := item.Element
+				maxRetry := 0
+				for {
+					ret := autoit.WinWaitActive(winTitle, "", sleepTime)
+					if ret != 0 || maxRetry > 3 {
+						break
+					}
+					maxRetry++
+				}
 			case "ControlSend":
-				autoit.ControlSend(winTitle, "", item.Element, getCommandFromArgs(connectMap, item.Type))
+				autoit.ControlSend("", "", item.Element, getCommandFromArgs(connectMap, item.Type))
+			case "ControlSetText":
+				autoit.ControlSetText("", "", item.Element, getCommandFromArgs(connectMap, item.Type))
 			case "ControlClick":
-				autoit.ControlClick(winTitle, "", item.Element)
+				pos := strings.Split(item.Type, ",")
+				x, _ := strconv.Atoi(pos[0])
+				y, _ := strconv.Atoi(pos[1])
+				autoit.ControlClick("", "", item.Element, x, y)
 			}
 		}
 		return exec.Command("")

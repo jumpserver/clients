@@ -1,0 +1,45 @@
+appId: com.jumpserver.client
+productName: 'JumpServerClient'
+directories:
+  buildResources: build
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.cjs,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+extraResources:
+  - from: 'bin'
+win:
+  executableName: JumpServerClient
+  icon: build/icons.ico
+nsis:
+  artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: true
+mac:
+  entitlementsInherit: build/entitlements.mac.plist
+  icon: build/icons/icon.icns
+  notarize: true
+dmg:
+  artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
+linux:
+  target:
+    - AppImage
+    - snap
+    - deb
+  maintainer: electronjs.org
+  category: Utility
+appImage:
+  artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
+npmRebuild: false
+electronDownload:
+  mirror: https://npmmirror.com/mirrors/electron/
+protocols:
+  - name: 'JumpServerClient Protocol'
+    schemes: ['jms']

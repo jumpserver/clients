@@ -36,7 +36,7 @@ func awakenSSHCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	}
 
 	for _, app := range appLst {
-		if app.IsActive() && app.IsSupportProtocol(r.Protocol) {
+		if app.IsSet && app.IsMatchProtocol(r.Protocol) {
 			appItem = &app
 			break
 		}

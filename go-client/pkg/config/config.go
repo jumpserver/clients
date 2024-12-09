@@ -42,7 +42,7 @@ type AutoItCommand struct {
 }
 
 func (a *AppItem) IsActive() bool {
-	if a.IsDefault && a.IsSet {
+	if a.IsSet {
 		return true
 	}
 	return false
@@ -76,10 +76,8 @@ func GetConf() AppConfig {
 var GlobalConfig *AppConfig
 
 func getDefaultConfig() AppConfig {
-	filePath := filepath.Join(filepath.Dir(os.Args[0]), "../config.json")
-	if os.Getenv("DEBUG") == "True" {
-		filePath = filepath.Join("../interface/bin/config.json")
-	}
+	dir, _ := os.UserConfigDir()
+	filePath := filepath.Join(dir, "jumpserver-client", "config.json")
 	jsonFile, err := os.Open(filePath)
 	if err != nil {
 		global.LOG.Error(err.Error())

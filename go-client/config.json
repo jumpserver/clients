@@ -1,5 +1,11 @@
 {
   "filename": "Jumpserve Clients Config",
+  "version": 1,
+  "defaultSetting": {
+    "layout": "list",
+    "language": "en",
+    "theme": "light"
+  },
   "windows": {
     "terminal": [
       {
@@ -14,10 +20,13 @@
           "en": "PuTTY is a Telnet, SSH, rlogin, pure TCP and serial interface connection software."
         },
         "download_url": "",
-        "type": "linux",
+        "type": "terminal",
         "path": "putty.exe",
         "arg_format": "-{protocol} {username}@{host} -P {port} -pw {value}",
-        "match_first": [],
+        "match_first": [
+          "ssh",
+          "telnet"
+        ],
         "is_internal": true,
         "is_default": true,
         "is_set": true
@@ -34,7 +43,7 @@
           "en": "XShell is a powerful secure terminal simulation software that supports SSH and TELNET protocols."
         },
         "download_url": "https://www.xshell.com/zh/xshell-download/",
-        "type": "linux",
+        "type": "terminal",
         "path": "",
         "arg_format": "-newtab {name} -url {protocol}://{username}:{value}@{host}:{port}",
         "match_first": [],
@@ -54,7 +63,7 @@
           "en": "SecureCRT is an SSH, Telnet client and virtual terminal software developed and sold by VanDyke Software."
         },
         "download_url": "https://www.vandyke.com/cgi-bin/releases.php?product=securecrt",
-        "type": "linux",
+        "type": "terminal",
         "path": "",
         "arg_format": "/N {name} /T /SSH2 /ACCEPTHOSTKEYS /p {port} /password {value} /L {username} {host}",
         "match_first": [],
@@ -74,7 +83,7 @@
           "en": "MobaXterm is a feature-rich remote computer management tool, including SSH client, FTP client, remote desktop, etc."
         },
         "download_url": "https://mobaxterm.mobatek.net/download-home-edition.html",
-        "type": "linux",
+        "type": "terminal",
         "path": "",
         "arg_format": "-newtab*sshpass -p{value} ssh -o StrictHostKeyChecking=no {username}@{host} -p{port}",
         "match_first": [],
@@ -98,7 +107,9 @@
         "type": "windows",
         "path": "mstsc.exe",
         "arg_format": "{file}",
-        "match_first": [],
+        "match_first": [
+          "rdp"
+        ],
         "is_internal": true,
         "is_default": true,
         "is_set": true
@@ -116,7 +127,7 @@
           "en": "WinSCP is an open source graphical SFTP client that uses SSH in a Windows environment and supports the SCP protocol."
         },
         "download_url": "https://winscp.net/eng/index.php",
-        "type": "linux",
+        "type": "filetransfer",
         "path": "",
         "arg_format": "{protocol}://{username}:{value}@{host}:{port}",
         "match_first": [],
@@ -135,7 +146,7 @@
           "en": "SecureFX is a secure file transfer application with an easy-to-learn visual interface."
         },
         "download_url": "https://www.vandyke.com/cgi-bin/releases.php?product=securefx",
-        "type": "linux",
+        "type": "filetransfer",
         "path": "",
         "arg_format": "{protocol}://{username}:{value}@{host}:{port}",
         "match_first": [],
@@ -154,7 +165,7 @@
           "en": "Xftp is a powerful SFTP and FTP file transfer software."
         },
         "download_url": "https://www.xshell.com/zh/xftp-download/",
-        "type": "linux",
+        "type": "filetransfer",
         "path": "",
         "arg_format": "-newwin {protocol}://{username}:{value}@{host}:{port}",
         "match_first": [],
@@ -164,6 +175,76 @@
       }
     ],
     "databases": [
+      {
+        "name": "navicat17",
+        "display_name": "Navicat premium Lite 17",
+        "protocol": [
+          "oracle",
+          "mysql",
+          "postgresql",
+          "mariadb",
+          "sqlserver"
+        ],
+        "comment": {
+          "zh": "数据库管理软件",
+          "en": "Database management software."
+        },
+        "download_url": "https://www.navicat.com.cn/products",
+        "type": "databases",
+        "path": "",
+        "arg_format": "",
+        "autoit": [
+          {
+            "cmd": "Wait",
+            "type": "15",
+            "element": "[REGEXPTITLE:Navicat|Navicat]"
+          },
+          {
+            "cmd": "ControlClick",
+            "type": "30,30",
+            "element": "[CLASS:TActionToolBar; INSTANCE:1]"
+          },
+          {
+            "cmd": "ControlClick",
+            "type": "135,8",
+            "element": "[CLASS:TButton; INSTANCE:5]"
+          },
+          {
+            "cmd": "ControlSend",
+            "type": "{url}",
+            "element": "[CLASS:TTextHintMemo; INSTANCE:1]"
+          },
+          {
+            "cmd": "ControlClick",
+            "type": "135,8",
+            "element": "[CLASS:TButton; INSTANCE:5]"
+          },
+          {
+            "cmd": "ControlClick",
+            "type": "35,15",
+            "element": "[CLASS:TButton; INSTANCE:2]"
+          },
+          {
+            "cmd": "ControlSend",
+            "type": "{value}",
+            "element": "[CLASS:TButtonedEdit; INSTANCE:1]"
+          },
+          {
+            "cmd": "ControlClick",
+            "type": "7,7",
+            "element": "[CLASS:TCheckBox; INSTANCE:1]"
+          },
+          {
+            "cmd": "ControlClick",
+            "type": "36,13",
+            "element": "[CLASS:TButton; INSTANCE:2]"
+          }
+        ],
+        "match_first": [],
+        "is_internal": false,
+        "is_default": false,
+        "is_set": false
+      },
       {
         "name": "plsql",
         "display_name": "PL/SQL Developer",
@@ -242,7 +323,7 @@
         "autoit": [
           {
             "cmd": "Wait",
-            "type": "sleep",
+            "type": "15",
             "element": "[REGEXPTITLE:连接到服务器|Connect]"
           },
           {
@@ -256,7 +337,7 @@
             "element": "[NAME:comboBoxAuthentication]"
           },
           {
-            "cmd": "ControlSend",
+            "cmd": "ControlSetText",
             "type": "{username}",
             "element": "[CLASS:Edit; INSTANCE:2]"
           },
@@ -330,10 +411,13 @@
           "en": "Terminal is a virtual terminal application software on the MacOS operating system, located in the \"Utilities\" folder."
         },
         "download_url": "",
-        "type": "linux",
+        "type": "terminal",
         "path": "Terminal",
         "arg_format": "{protocol} {username}@{host} -p {port} -P {value}",
-        "match_first": [],
+        "match_first": [
+          "ssh",
+          "telnet"
+        ],
         "is_internal": true,
         "is_default": true,
         "is_set": true
@@ -350,7 +434,7 @@
           "en": "iTerm2 is a virtual terminal application software on the MacOS operating system.\n\n\n!!!Manually download and install, click Save to activate!!!"
         },
         "download_url": "https://iterm2.com/downloads.html",
-        "type": "linux",
+        "type": "terminal",
         "path": "iTerm2",
         "arg_format": "{protocol} {username}@{host} -p {port} -P {value}",
         "match_first": [],
@@ -370,7 +454,7 @@
           "en": "SecureCRT is an SSH, Telnet client and virtual terminal software developed and sold by VanDyke Software.\n\n!!!Manually download and install, click Save to activate!!!"
         },
         "download_url": "https://www.vandyke.com/cgi-bin/releases.php?product=securecrt",
-        "type": "linux",
+        "type": "terminal",
         "path": "/Applications/SecureCRT.app/Contents/MacOS/SecureCRT",
         "arg_format": "/N {name} /T /SSH2 /ACCEPTHOSTKEYS /p {port} /password {value} /L {username} {host}",
         "match_first": [],
@@ -394,7 +478,9 @@
         "type": "windows",
         "path": "/Applications/Microsoft Remote Desktop.app",
         "arg_format": "{file}",
-        "match_first": [],
+        "match_first": [
+          "rdp"
+        ],
         "is_internal": true,
         "is_default": true,
         "is_set": true
@@ -413,7 +499,7 @@
           "en": "iTerm2 is a virtual terminal application software on the MacOS operating system.\n\n\n!!!Manually download and install, click Save to activate!!!"
         },
         "download_url": "https://iterm2.com/downloads.html",
-        "type": "linux",
+        "type": "filetransfer",
         "path": "iTerm2",
         "arg_format": "{protocol} {username}@{host} -p {port} -P {value}",
         "match_first": [],
@@ -432,7 +518,7 @@
           "en": "SecureFX is a secure file transfer application with an easy-to-learn visual interface.\n\n!!!Manually download and install, click Save to activate!!!"
         },
         "download_url": "https://www.vandyke.com/cgi-bin/releases.php?product=securefx",
-        "type": "linux",
+        "type": "filetransfer",
         "path": "/Applications/SecureFX.app/Contents/MacOS/SecureFX",
         "arg_format": "{protocol}://{username}:{value}@{host}:{port}",
         "match_first": [],
@@ -458,7 +544,7 @@
           "en": "Terminal is a virtual terminal application software on the MacOS operating system, located in the \"Utilities\" folder."
         },
         "download_url": "",
-        "type": "linux",
+        "type": "terminal",
         "path": "Terminal",
         "arg_format": "",
         "match_first": [
@@ -531,10 +617,11 @@
           "en": "Terminal is a virtual terminal application software on the Linux operating system."
         },
         "download_url": "",
-        "type": "linux",
+        "type": "terminal",
         "path": "Terminal",
         "arg_format": "{protocol} {username}@{host} -p {port} -P {value}",
-        "match_first": [],
+        "match_first": [          "ssh",
+          "telnet"],
         "is_internal": true,
         "is_default": true,
         "is_set": true
@@ -598,7 +685,7 @@
           "en": "Terminal is a virtual terminal application software on the Linux operating system."
         },
         "download_url": "",
-        "type": "linux",
+        "type": "terminal",
         "path": "Terminal",
         "arg_format": "",
         "match_first": [
