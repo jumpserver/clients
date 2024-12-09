@@ -24,7 +24,7 @@ if (!existsSync(configFilePath)) {
   const data = readFileSync(path.join(subPath, 'config.json'), 'utf8');
   defaults = JSON.parse(data);
 }
-const conf = new Conf({ defaults: defaults });
+const conf = new Conf({ defaults: defaults! });
 
 const setDefaultProtocol = () => {
   if (process.defaultApp) {

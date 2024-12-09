@@ -83,7 +83,7 @@ const getIconImage = async () => {
   iconImage.value = res.default;
 };
 
-const getAvatraImage = async () => {
+const getAvatarImage = async () => {
   const res = await import('@renderer/assets/avatar.png');
 
   avatarImage = res.default;
@@ -91,7 +91,7 @@ const getAvatraImage = async () => {
 
 onMounted(async () => {
   await getIconImage();
-  await getAvatraImage();
+  await getAvatarImage();
 
   try {
     const res = await getProfile();
