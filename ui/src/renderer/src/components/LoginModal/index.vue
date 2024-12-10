@@ -51,7 +51,7 @@ withDefaults(
 const emit = defineEmits(['CloseClick']);
 
 const urlRegex =
-  /^(https?:\/\/)?((([a-zA-Z0-9-]{1,63}\.)+[a-zA-Z]{2,})|((\d{1,3}\.){3}\d{1,3}(?!\d))|(\[?([a-fA-F0-9]{1,4}:){1,7}[a-fA-F0-9]{1,4}\]?))$/;
+  /^(https?:\/\/)?((([a-zA-Z0-9-]{1,63}\.)+[a-zA-Z]{2,})|(\d{1,3}\.){3}\d{1,3}|\[?[a-fA-F0-9]{1,4}:([a-fA-F0-9]{1,4}:){1,7}[a-fA-F0-9]{1,4}\]?)$/;
 
 const message = useMessage();
 const userStore = useUserStore();
@@ -76,9 +76,18 @@ const handleCloseClick = (): void => {
  * @description 登录按钮的回调
  */
 const jumpToLogin = (): void => {
+  // 判断是 IP 地址还是域名
+  const isIpAddress = /^(\d{1,3}\.){3}\d{1,3}$/.test(siteLocation.value);
+
+  // 如果是域名并且没有协议，补全协议
+  if (!isIpAddress && !/^https?:\/\//i.test(siteLocation.value)) {
+    siteLocation.value = `http://${siteLocation.value}`;
+  }
+
   if (urlRegex.test(siteLocation.value)) {
     userStore.setCurrentSit(siteLocation.value);
     window.open(`${siteLocation.value}/core/auth/login/?next=client`);
+
     return;
   }
 
