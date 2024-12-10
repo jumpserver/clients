@@ -23,6 +23,7 @@
     "@electron-toolkit/utils": "^3.0.0",
     "alova": "^3.1.0",
     "axios": "^1.7.7",
+    "clipboard-polyfill": "^4.1.0",
     "electron-conf": "^1.2.1",
     "electron-store": "^10.0.0",
     "electron-updater": "^6.1.7",
@@ -51,11 +52,13 @@
     "@vue/eslint-config-prettier": "^9.0.0",
     "@vue/eslint-config-typescript": "^13.0.0",
     "autoprefixer": "^10.4.20",
+    "crypto-js": "^4.2.0",
     "electron": "^31.0.2",
     "electron-builder": "^24.13.3",
     "electron-vite": "^2.3.0",
     "eslint": "^8.57.0",
     "eslint-plugin-vue": "^9.26.0",
+    "jsencrypt": "^3.2.1",
     "naive-ui": "^2.40.1",
     "normalize.css": "^8.0.1",
     "postcss": "^8.4.47",
@@ -66,8 +69,6 @@
     "unplugin-vue-components": "^0.27.4",
     "vite": "^5.4.10",
     "vue": "^3.4.30",
-    "vue-tsc": "^2.0.22",
-    "crypto-js": "^4.2.0",
-    "jsencrypt": "^3.2.1"
+    "vue-tsc": "^2.0.22"
   }
 }

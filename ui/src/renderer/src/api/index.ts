@@ -25,6 +25,10 @@ class RequestHttp {
       (config: CustomAxiosRequestConfig) => {
         const userStore = useUserStore();
 
+        if (!userStore.token) {
+          return Promise.reject();
+        }
+
         config.loading ??= true;
         config.baseURL = userStore.currentSite ?? 'https://jumpserver.local';
 

@@ -1,11 +1,12 @@
 import mitt, { Emitter } from 'mitt';
 
 type Event = {
-  changeLayout: any;
-  createDrawer: any;
-  changeTheme: any;
   search: any;
   addAccount: any;
+  changeTheme: any;
+  changeLayout: any;
+  createDrawer: any;
+  removeAccount: any;
 };
 
 const mittBus: Emitter<Event> = mitt();
