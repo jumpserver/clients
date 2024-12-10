@@ -34,10 +34,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
 import { useMessage } from 'naive-ui';
-import { Warning24Regular } from '@vicons/fluent';
+import { readText } from 'clipboard-polyfill';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useUserStore } from '@renderer/store/module/userStore';
+
+import { Warning24Regular } from '@vicons/fluent';
 
 withDefaults(
   defineProps<{
@@ -56,14 +58,23 @@ const userStore = useUserStore();
 
 const siteLocation = ref('');
 
+/**
+ * @description 不输入站点之前不允许关闭遮罩
+ */
 const handleMaskClick = (): void => {
   message.error('请输入站点地址', { closable: true });
 };
 
+/**
+ * @description 关闭遮罩
+ */
 const handleCloseClick = (): void => {
   emit('CloseClick');
 };
 
+/**
+ * @description 登录按钮的回调
+ */
 const jumpToLogin = (): void => {
   if (urlRegex.test(siteLocation.value)) {
     userStore.setCurrentSit(siteLocation.value);
@@ -73,6 +84,32 @@ const jumpToLogin = (): void => {
 
   message.error('请输入正确的站点地址', { closable: true });
 };
+
+/**
+ * @description 组织鼠标右键默认行为，改为右键粘贴 ip 内容
+ */
+const handleContextMenu = async () => {
+  try {
+    const text = await readText();
+
+    if (text) {
+      if (urlRegex.test(text)) {
+        siteLocation.value = text;
+      } else {
+        siteLocation.value = text;
+        message.error(`${text} 站点信息不符合规则`, { closable: true });
+      }
+    }
+  } catch (e) {}
+};
+
+onMounted(() => {
+  window.addEventListener('contextmenu', handleContextMenu, false);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('contextmenu', handleContextMenu, false);
+});
 </script>
 
 <style scoped lang="scss"></style>

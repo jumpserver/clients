@@ -7,13 +7,13 @@
         </div>
         <n-flex vertical align="flex-start" justify="center" class="description-zone">
           <template v-if="layout !== 'grid'">
-            <n-tag :bordered="false" type="success" round size="small">
+            <n-tag :bordered="false" type="success" round size="small" style="letter-spacing: 1px">
               <template #icon>
                 <n-icon :component="ComputerFilled" size="12" />
               </template>
               资产名称: {{ itemData.name }}
             </n-tag>
-            <n-tag :bordered="false" type="info" round size="small">
+            <n-tag :bordered="false" type="info" round size="small" style="letter-spacing: 1px">
               <template #icon>
                 <n-icon :component="Link" size="12" />
               </template>
