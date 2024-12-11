@@ -13,7 +13,6 @@
       <template v-if="userOptions.length === 0">
         <n-button text strong class="flex w-full h-8"> 未登录 </n-button>
       </template>
-
       <template v-else>
         <n-avatar
           v-if="currentUser?.avatar_url"

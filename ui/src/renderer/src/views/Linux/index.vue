@@ -17,6 +17,8 @@ import { useMessage } from 'naive-ui';
 import mittBus from '@renderer/eventBus';
 import MainSection from '@renderer/components/MainSection/index.vue';
 
+import type { IListItem } from '@renderer/components/MainSection/interface';
+
 defineProps<{
   active: boolean;
 }>();
@@ -30,7 +32,7 @@ const params = {
   search: ''
 };
 
-const listData = ref([]);
+const listData = ref<IListItem[]>([]);
 const hasMore = ref(true);
 const loadingStatus = ref(true);
 
@@ -65,11 +67,15 @@ const getAssetsFromServer = async (searchInput?: string) => {
 
   try {
     const res = await getAssets(params);
+
     if (res) {
       const { results, total } = res;
+
       listData.value = params.offset === 0 ? results : [...listData.value, ...results];
+
       // 检查是否还有更多数据
       hasMore.value = listData.value.length < total;
+
       await nextTick(() => {
         loadingStatus.value = false;
       });
