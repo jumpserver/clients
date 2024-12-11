@@ -109,11 +109,6 @@ const createWindow = async (): Promise<void> => {
     autoHideMenuBar: true,
     title: 'JumpServer Client',
     titleBarStyle: 'hidden',
-    titleBarOverlay: {
-      height: 30,
-      color: '#1f1f1f',
-      symbolColor: '#ffffff'
-    },
     ...(process.platform === 'linux' ? { icon } : { icon }),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -151,10 +146,12 @@ const createWindow = async (): Promise<void> => {
 
     const decodedTokenJson = Buffer.from(token, 'base64').toString('utf-8');
     const decodedToken = JSON.parse(decodedTokenJson);
+
     mainWindow?.webContents.send('set-token', decodedToken.bearer_token);
 
     await mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
   } else {
+    mainWindow.webContents.openDevTools();
     await mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
   }
 };

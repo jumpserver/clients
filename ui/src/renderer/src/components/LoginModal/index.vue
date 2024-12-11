@@ -20,7 +20,8 @@
         <n-input
           v-model:value="siteLocation"
           clearable
-          placeholder="请输入 IP 地址或域名作为登录站点"
+          :status="inputStatus"
+          placeholder="请填写完整的域名或者 ip 站点地址"
           class="rounded-[10px]"
         />
       </n-flex>
@@ -60,6 +61,7 @@ const urlRegex =
 const message = useMessage();
 const userStore = useUserStore();
 
+const inputStatus = ref('');
 const siteLocation = ref('');
 
 /**
@@ -74,29 +76,37 @@ const handleMaskClick = (): void => {
     return;
   }
 
+  if (siteLocation.value) {
+    message.error('请点击登录进行认证');
+    return;
+  }
+
   message.error('请输入站点地址', { closable: true });
 };
 
 /**
  * @description 登录按钮的回调
  */
-const jumpToLogin = (): void => {
-  // 判断是 IP 地址还是域名
+const jumpToLogin = () => {
   const isIpAddress = /^(\d{1,3}\.){3}\d{1,3}$/.test(siteLocation.value);
 
-  // 如果是域名并且没有协议，补全协议
   if (!isIpAddress && !/^https?:\/\//i.test(siteLocation.value)) {
-    siteLocation.value = `http://${siteLocation.value}`;
+    message.error('请输入带有 http:// 或 https:// 协议的站点地址', { closable: true });
+    inputStatus.value = 'error';
+    return;
   }
 
   if (urlRegex.test(siteLocation.value)) {
     userStore.setCurrentSit(siteLocation.value);
+    inputStatus.value = 'success';
+
     window.open(`${siteLocation.value}/core/auth/login/?next=client`);
 
     return;
   }
 
   message.error('请输入正确的站点地址', { closable: true });
+  inputStatus.value = 'success';
 };
 
 /**

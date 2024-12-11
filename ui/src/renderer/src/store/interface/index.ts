@@ -10,6 +10,8 @@ export interface IUserInfo {
   value?: string;
 
   token: string;
+
+  currentSite?: string;
 }
 
 export interface IUser {

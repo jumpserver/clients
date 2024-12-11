@@ -34,12 +34,25 @@ const listData = ref([]);
 const hasMore = ref(true);
 const loadingStatus = ref(true);
 
+/**
+ * @description 滚动加载
+ */
 const handleScroll = async () => {
   if (!hasMore.value || loadingStatus.value) return;
+
   params.offset += 20;
-  await getAssetsFromServer();
+
+  try {
+    await getAssetsFromServer();
+  } catch (e) {
+    message.error('获取列表数据异常，请刷新后重试', { closable: true });
+  }
 };
 
+/**
+ * @description 获取 list 数据
+ * @param searchInput
+ */
 const getAssetsFromServer = async (searchInput?: string) => {
   if (searchInput !== undefined) {
     params.offset = 0;
@@ -68,8 +81,12 @@ const getAssetsFromServer = async (searchInput?: string) => {
   }
 };
 
+/**
+ * @description 移除账号
+ */
 const handleRemoveAccount = () => {
   const userInfo = userStore.userInfo;
+
   if (userInfo && userInfo.length === 0) {
     listData.value = [];
     userStore.setToken('');
@@ -77,6 +94,10 @@ const handleRemoveAccount = () => {
 };
 
 onMounted(async () => {
+  const userInfo = userStore.userInfo;
+
+  if (userInfo && userInfo.length === 0) return;
+
   await getAssetsFromServer();
   mittBus.on('search', getAssetsFromServer);
   mittBus.on('removeAccount', handleRemoveAccount);
