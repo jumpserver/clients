@@ -10,80 +10,82 @@
     </n-flex>
 
     <n-flex align="center" justify="center" class="!flex-nowrap">
-      <n-avatar
-        v-if="currentUser?.avatar_url"
-        round
-        size="medium"
-        class="cursor-pointer"
-        :src="currentUser?.avatar_url"
-      />
+      <template v-if="userOptions.length === 0">
+        <n-button text strong class="flex w-full h-8"> 未登录 </n-button>
+      </template>
 
-      <div v-if="userOptions.length > 0" class="flex flex-col w-[60%]">
-        <div class="flex w-full">
-          <n-text depth="1" strong class="!inline-flex !items-center justify-between w-full">
-            {{ currentUser?.username }}
+      <template v-else>
+        <n-avatar
+          v-if="currentUser?.avatar_url"
+          round
+          size="medium"
+          class="cursor-pointer"
+          :src="currentUser?.avatar_url"
+        />
 
-            <n-popselect
-              trigger="click"
-              placement="right-end"
-              class="w-[300px] rounded-[10px]"
-              :options="userOptions"
-              :render-label="renderLabel"
-              v-model:value="currentUser!.username"
-              @update:value="handleAccountChange"
-            >
-              <n-popover>
-                <template #trigger>
-                  <n-icon
-                    size="14"
-                    :component="ArrowsHorizontal"
-                    class="ml-[10px] cursor-pointer icon-hover"
-                  />
+        <div v-if="userOptions.length > 0" class="flex flex-col w-[60%]">
+          <div class="flex w-full">
+            <n-text depth="1" strong class="!inline-flex !items-center justify-between w-full">
+              {{ currentUser?.username }}
+
+              <n-popselect
+                trigger="click"
+                placement="right-end"
+                class="w-[300px] rounded-[10px]"
+                :options="userOptions"
+                :render-label="renderLabel"
+                v-model:value="currentUser!.username"
+                @update:value="handleAccountChange"
+              >
+                <n-popover>
+                  <template #trigger>
+                    <n-icon
+                      size="14"
+                      :component="ArrowsHorizontal"
+                      class="ml-[10px] cursor-pointer icon-hover"
+                    />
+                  </template>
+                  切换账号
+                </n-popover>
+                <template #action>
+                  <n-button text class="w-1/2" @click="handleAddAccount"> 新增账号 </n-button>
+                  <n-button text class="w-1/2" @click="handleRemoveAccount"> 移除账号 </n-button>
                 </template>
-                切换账号
-              </n-popover>
-              <template #action>
-                <n-button text class="w-1/2" @click="handleAddAccount"> 新增账号 </n-button>
-                <n-button
-                  text
-                  class="w-1/2"
-                  @click="handleRemoveAccount"
-                  :disabled="userOptions.length === 1"
-                >
-                  移除账号
-                </n-button>
+              </n-popselect>
+            </n-text>
+          </div>
+
+          <div style="font-size: 12px">
+            <n-popover>
+              <template #trigger>
+                <!-- 默认只展示第一个 -->
+                <n-text depth="2">
+                  {{ currentUser?.display_name?.[0] ?? '' }}
+                </n-text>
               </template>
-            </n-popselect>
-          </n-text>
+              {{ currentUser?.display_name }}
+            </n-popover>
+          </div>
         </div>
-        <div style="font-size: 12px">
-          <n-popover>
-            <template #trigger>
-              <!-- 默认只展示第一个 -->
-              <n-text depth="2">
-                {{ currentUser?.display_name?.[0] ?? '' }}
-              </n-text>
-            </template>
-            {{ currentUser?.display_name }}
-          </n-popover>
-        </div>
-      </div>
+      </template>
     </n-flex>
   </n-flex>
 </template>
 
 <script setup lang="ts">
 import { ArrowsHorizontal } from '@vicons/carbon';
-import type { SelectOption, SelectRenderLabel } from 'naive-ui';
 import { NAvatar, NText } from 'naive-ui';
 import { menuOptions } from './config';
 
+import mittBus from '@renderer/eventBus';
+
+import { storeToRefs } from 'pinia';
+import { useRouter } from 'vue-router';
 import { useUserStore } from '@renderer/store/module/userStore';
 import { computed, h, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { storeToRefs } from 'pinia';
+
+import type { SelectOption, SelectRenderLabel } from 'naive-ui';
 import type { IUserInfo } from '@renderer/store/interface';
-import mittBus from '@renderer/eventBus';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -106,6 +108,11 @@ const userOptions = computed(() => {
   );
 });
 
+/**
+ * @description 切换账号的逻辑
+ * @param value
+ * @param _option
+ */
 const handleAccountChange = (value: string, _option: SelectOption) => {
   if (userStore.userInfo) {
     const user = userStore.userInfo.find((item: IUserInfo) => item.username === value);

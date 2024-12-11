@@ -10,6 +10,7 @@
 
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useUserStore } from '@renderer/store/module/userStore';
 import { getAssets } from '@renderer/api/modals/asset';
 import { useMessage } from 'naive-ui';
 
@@ -21,6 +22,7 @@ defineProps<{
 }>();
 
 const message = useMessage();
+const userStore = useUserStore();
 const params = {
   type: 'linux',
   offset: 0,
@@ -29,8 +31,8 @@ const params = {
 };
 
 const listData = ref([]);
-const loadingStatus = ref(true);
 const hasMore = ref(true);
+const loadingStatus = ref(true);
 
 const handleScroll = async () => {
   if (!hasMore.value || loadingStatus.value) return;
@@ -66,13 +68,23 @@ const getAssetsFromServer = async (searchInput?: string) => {
   }
 };
 
+const handleRemoveAccount = () => {
+  const userInfo = userStore.userInfo;
+  if (userInfo && userInfo.length === 0) {
+    listData.value = [];
+    userStore.setToken('');
+  }
+};
+
 onMounted(async () => {
   await getAssetsFromServer();
   mittBus.on('search', getAssetsFromServer);
+  mittBus.on('removeAccount', handleRemoveAccount);
 });
 
 onBeforeUnmount(() => {
   mittBus.off('search', getAssetsFromServer);
+  mittBus.off('removeAccount', handleRemoveAccount);
 });
 </script>
 
