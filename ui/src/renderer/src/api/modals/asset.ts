@@ -1,5 +1,4 @@
 import request from '../index';
-import { encryptPassword } from '@renderer/utils/crypto';
 import { cleanRDPParams, getConnectOption } from '@renderer/utils/common';
 import { useSettingStore } from '@renderer/store/module/settingStore';
 import { useUserStore } from '@renderer/store/module/userStore';
@@ -27,13 +26,13 @@ const settingStore = useSettingStore();
 export const createConnectToken = (connectData: any, method: string, createTicket = false) => {
   const params = createTicket ? '?create_ticket=1' : '';
   const url = '/api/v1/authentication/connection-token/' + params;
-  const _secret = encryptPassword(connectData.input_secret);
+  // const _secret = encryptPassword(connectData.input_secret);
   const data = {
     asset: connectData.asset,
     account: connectData.account,
     protocol: connectData.protocol,
     input_username: connectData.input_username,
-    input_secret: _secret,
+    input_secret: connectData.input_secret,
     connect_method: method,
     connect_options: getConnectOption(settingStore)
   };
