@@ -66,9 +66,9 @@ const handleAddAccount = () => {
  * @description 移除账号
  */
 const handleRemoveAccount = () => {
-  const userInfo = userStore.userInfo;
-
   userStore.removeCurrentUser();
+
+  const userInfo = userStore.userInfo;
 
   if (userInfo && userInfo.length > 0) {
     userStore.setCurrentUser(userInfo[0]);
