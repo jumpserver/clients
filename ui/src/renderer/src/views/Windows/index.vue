@@ -15,12 +15,14 @@ import { useMessage } from 'naive-ui';
 
 import mittBus from '@renderer/eventBus';
 import MainSection from '@renderer/components/MainSection/index.vue';
+import { useUserStore } from '@renderer/store/module/userStore';
 
 defineProps<{
   active: boolean;
 }>();
 
 const message = useMessage();
+const userStore = useUserStore();
 const params = {
   type: 'windows',
   offset: 0,
@@ -66,13 +68,23 @@ const getAssetsFromServer = async (searchInput?: string) => {
   }
 };
 
+const handleRemoveAccount = () => {
+  const userInfo = userStore.userInfo;
+  if (userInfo && userInfo.length === 0) {
+    listData.value = [];
+    userStore.setToken('');
+  }
+};
+
 onMounted(async () => {
   await getAssetsFromServer();
   mittBus.on('search', getAssetsFromServer);
+  mittBus.on('removeAccount', handleRemoveAccount);
 });
 
 onBeforeUnmount(() => {
   mittBus.off('search', getAssetsFromServer);
+  mittBus.off('removeAccount', handleRemoveAccount);
 });
 </script>
 
