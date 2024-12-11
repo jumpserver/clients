@@ -71,7 +71,9 @@ const handleRemoveAccount = () => {
   const userInfo = userStore.userInfo;
 
   if (userInfo && userInfo.length > 0) {
-    userStore.setCurrentUser(userInfo[0]);
+    userStore.setCurrentUser({
+      ...userInfo[0]
+    });
   } else {
     showModal.value = true;
   }
@@ -106,6 +108,33 @@ onMounted(async () => {
   await getIconImage();
   await getAvatarImage();
 
+  // await nextTick(async () => {
+  //   try {
+  //     const res = await getProfile();
+  //
+  //     userStore.setUserInfo({
+  //       token,
+  //       username: res?.username,
+  //       display_name: res?.system_roles.map((item: any) => item.display_name),
+  //       avatar_url: avatarImage
+  //     });
+  //
+  //     userStore.setCurrentUser({
+  //       token,
+  //       username: res?.username,
+  //       display_name: res?.system_roles.map((item: any) => item.display_name),
+  //       avatar_url: avatarImage
+  //     });
+  //
+  //     if (res) {
+  //       const message = useMessage();
+  //       message.success('您已登录认证成功!');
+  //     }
+  //   } catch (e) {
+  //     showModal.value = false;
+  //   }
+  // });
+
   try {
     const res = await getProfile();
     if (res) {
@@ -136,19 +165,23 @@ onMounted(async () => {
             token,
             username: res?.username,
             display_name: res?.system_roles.map((item: any) => item.display_name),
-            avatar_url: avatarImage
+            avatar_url: avatarImage,
+            currentSite: userStore.currentSite
           });
 
           userStore.setCurrentUser({
             token,
             username: res?.username,
             display_name: res?.system_roles.map((item: any) => item.display_name),
-            avatar_url: avatarImage
+            avatar_url: avatarImage,
+            currentSite: userStore.currentSite
           });
 
           if (res) {
             const message = useMessage();
             message.success('您已登录认证成功!');
+
+            mittBus.emit('search');
           }
         } catch (e) {
           showModal.value = false;

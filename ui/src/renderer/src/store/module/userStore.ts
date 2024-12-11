@@ -20,7 +20,7 @@ export const useUserStore = defineStore({
       this.currentSite = site;
     },
     setUserInfo(userInfo: IUserInfo) {
-      if (this.userInfo!.some((item: IUserInfo) => item.username === userInfo.username)) return;
+      if (this.userInfo!.some((item: IUserInfo) => item.token === userInfo.token)) return;
 
       this.userInfo!.push(userInfo);
     },
@@ -32,7 +32,7 @@ export const useUserStore = defineStore({
     },
     removeCurrentUser() {
       this.userInfo = this.userInfo!.filter(
-        (item: IUserInfo) => item.username !== this.currentUser!.username
+        (item: IUserInfo) => item.token !== this.currentUser!.token
       );
     }
   },

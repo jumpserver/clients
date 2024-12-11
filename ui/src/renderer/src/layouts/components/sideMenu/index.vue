@@ -34,7 +34,7 @@
                 class="w-[300px] rounded-[10px]"
                 :options="userOptions"
                 :render-label="renderLabel"
-                v-model:value="currentUser!.username"
+                v-model:value="currentUser!.token"
                 @update:value="handleAccountChange"
               >
                 <n-popover>
@@ -63,7 +63,12 @@
                   {{ currentUser?.display_name?.[0] ?? '' }}
                 </n-text>
               </template>
-              {{ currentUser?.display_name }}
+
+              <template #default>
+                <span v-for="item of currentUser?.display_name" :key="item">
+                  {{ item }}
+                </span>
+              </template>
             </n-popover>
           </div>
         </div>
@@ -82,7 +87,7 @@ import mittBus from '@renderer/eventBus';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@renderer/store/module/userStore';
-import { computed, h, onMounted } from 'vue';
+import { computed, h, nextTick, onMounted } from 'vue';
 
 import type { SelectOption, SelectRenderLabel } from 'naive-ui';
 import type { IUserInfo } from '@renderer/store/interface';
@@ -100,7 +105,7 @@ const userOptions = computed(() => {
     userStore?.userInfo.map((item: IUserInfo) => {
       return {
         label: item.username,
-        value: item.username,
+        value: item.token,
         avatar_url: item.avatar_url,
         display_name: item.display_name
       };
@@ -115,11 +120,17 @@ const userOptions = computed(() => {
  */
 const handleAccountChange = (value: string, _option: SelectOption) => {
   if (userStore.userInfo) {
-    const user = userStore.userInfo.find((item: IUserInfo) => item.username === value);
+    const user = userStore.userInfo.find((item: IUserInfo) => item.token === value);
 
-    user ? userStore.setToken(user.token) : '';
+    if (user) {
+      userStore.setToken(user.token);
+      userStore.setCurrentUser({ ...user });
+      userStore.setCurrentSit(user.currentSite as string);
 
-    user ? userStore.setCurrentUser({ ...user }) : '';
+      nextTick(() => {
+        mittBus.emit('search');
+      });
+    }
   }
 };
 

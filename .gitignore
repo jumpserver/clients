@@ -12,3 +12,6 @@ interface/new-Client/*
 new-Client/node_modules
 new-Client/out
 new-Client/dist
+
+ui/node_modules
+ui/dist/
