@@ -1,11 +1,11 @@
 <template>
   <n-modal
     :show="showModal"
-    :mask-closable="false"
     :show-icon="false"
+    :closable="false"
+    :mask-closable="false"
     preset="dialog"
     class="rounded-[10px]"
-    @close="handleCloseClick"
     @mask-click="handleMaskClick"
   >
     <template #header>
@@ -25,6 +25,7 @@
         />
       </n-flex>
     </template>
+
     <template #action>
       <n-button round :disabled="!siteLocation" size="small" type="primary" @click="jumpToLogin">
         登录
@@ -48,7 +49,10 @@ withDefaults(
   { showModal: false }
 );
 
-const emit = defineEmits(['CloseClick']);
+// const emit = defineEmits(['CloseClick']);
+const emits = defineEmits<{
+  (e: 'close-mask'): void;
+}>();
 
 const urlRegex =
   /^(https?:\/\/)?((([a-zA-Z0-9-]{1,63}\.)+[a-zA-Z]{2,})|(\d{1,3}\.){3}\d{1,3}|\[?[a-fA-F0-9]{1,4}:([a-fA-F0-9]{1,4}:){1,7}[a-fA-F0-9]{1,4}\]?)$/;
@@ -62,14 +66,15 @@ const siteLocation = ref('');
  * @description 不输入站点之前不允许关闭遮罩
  */
 const handleMaskClick = (): void => {
-  message.error('请输入站点地址', { closable: true });
-};
+  const userInfo = userStore.userInfo;
 
-/**
- * @description 关闭遮罩
- */
-const handleCloseClick = (): void => {
-  emit('CloseClick');
+  if (userInfo && userInfo.length > 0) {
+    emits('close-mask');
+
+    return;
+  }
+
+  message.error('请输入站点地址', { closable: true });
 };
 
 /**
