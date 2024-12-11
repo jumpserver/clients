@@ -9,11 +9,14 @@ export const useHistoryStore = defineStore('history', {
   actions: {
     setHistorySession(s: ISession) {
       if (this.history_session!.some((item: ISession) => item.id === s.id)) return;
+
+      // @ts-ignore
       this.history_session!.unshift(s);
       this.history_session!.slice(0, 50);
     },
     getHistorySession(keyWord: string) {
       if (!keyWord) return this.history_session;
+
       return this.history_session.filter(item => {
         return Object.values(item).some(
           value => typeof value === 'string' && value.includes(keyWord)
