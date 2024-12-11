@@ -620,8 +620,10 @@
         "type": "terminal",
         "path": "Terminal",
         "arg_format": "{protocol} {username}@{host} -p {port} -P {value}",
-        "match_first": [          "ssh",
-          "telnet"],
+        "match_first": [
+          "ssh",
+          "telnet"
+        ],
         "is_internal": true,
         "is_default": true,
         "is_set": true

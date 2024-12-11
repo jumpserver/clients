@@ -62,16 +62,19 @@ const handleAddAccount = () => {
   showModal.value = true;
 };
 
+/**
+ * @description 移除账号
+ */
 const handleRemoveAccount = () => {
-  userStore.removeCurrentUser();
-  userStore?.userInfo.length <= 0
-    ? (showModal.value = true)
-    : userStore.setCurrentUser(userStore?.userInfo[0]);
-};
+  const userInfo = userStore.userInfo;
 
-const handleDialogClose = () => {
-  // @ts-ignore
-  if (userStore?.userInfo.length >= 0) showModal.value = false;
+  userStore.removeCurrentUser();
+
+  if (userInfo && userInfo.length > 0) {
+    userStore.setCurrentUser(userInfo[0]);
+  } else {
+    showModal.value = true;
+  }
 };
 
 /**
@@ -83,10 +86,20 @@ const getIconImage = async () => {
   iconImage.value = res.default;
 };
 
+/**
+ * @description 获取头像
+ */
 const getAvatarImage = async () => {
   const res = await import('@renderer/assets/avatar.png');
 
   avatarImage = res.default;
+};
+
+/**
+ * @description 关闭遮罩
+ */
+const handleCloseMask = () => {
+  showModal.value = !showModal.value;
 };
 
 onMounted(async () => {
@@ -106,6 +119,7 @@ onMounted(async () => {
       showModal.value = true;
     }
   }
+
   // @ts-ignore
   if (userStore?.userInfo.length <= 0) showModal.value = true;
 
@@ -170,7 +184,7 @@ onBeforeUnmount(() => {
             <span class="title text-primary">JumpServer Client</span>
           </div>
         </div>
-        <LoginModal :show-modal="showModal" @CloseClick="handleDialogClose" />
+        <LoginModal :show-modal="showModal" @close-mask="handleCloseMask" />
         <router-view />
       </n-message-provider>
     </n-modal-provider>
