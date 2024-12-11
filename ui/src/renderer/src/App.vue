@@ -108,7 +108,7 @@ onMounted(async () => {
   await getIconImage();
   await getAvatarImage();
 
-  // await nextTick(async () => {
+  // await nextTick(() => {
   //   try {
   //     const res = await getProfile();
   //
@@ -116,14 +116,16 @@ onMounted(async () => {
   //       token,
   //       username: res?.username,
   //       display_name: res?.system_roles.map((item: any) => item.display_name),
-  //       avatar_url: avatarImage
+  //       avatar_url: avatarImage,
+  //       currentSite: 'https://jumpserver-test.cmdb.cc'
   //     });
   //
   //     userStore.setCurrentUser({
   //       token,
   //       username: res?.username,
   //       display_name: res?.system_roles.map((item: any) => item.display_name),
-  //       avatar_url: avatarImage
+  //       avatar_url: avatarImage,
+  //       currentSite: 'https://jumpserver-test.cmdb.cc'
   //     });
   //
   //     if (res) {
