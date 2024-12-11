@@ -102,6 +102,9 @@
         />
         <n-icon v-else :component="Sun" size="20" class="icon-hover" @click="handleChangeTheme" />
 
+        <!-- refresh -->
+        <n-icon :component="RefreshSharp" size="20" class="icon-hover" @click="handleRefresh" />
+
         <!-- Setting -->
         <n-icon :component="MdSettings" size="20" class="icon-hover" @click="handleGlobalSetting" />
       </n-flex>
@@ -125,6 +128,7 @@ import { ListUl, SortAlphaUp, SortAlphaUpAlt } from '@vicons/fa';
 import { GridViewRound, SortOutlined } from '@vicons/material';
 import { Layout2, Moon, Sun } from '@vicons/tabler';
 import { CicsSystemGroup } from '@vicons/carbon';
+import { RefreshSharp } from '@vicons/ionicons5';
 import { DownloadOutlined } from '@vicons/antd';
 import { MdSettings } from '@vicons/ionicons4';
 import { NFlex, NIcon } from 'naive-ui';
@@ -217,6 +221,10 @@ const handleChangeTheme = () => {
       }
     }
   });
+};
+
+const handleRefresh = () => {
+  mittBus.emit('search');
 };
 
 const handleSearch = () => {
