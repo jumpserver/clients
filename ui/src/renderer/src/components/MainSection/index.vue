@@ -18,7 +18,7 @@
             :layout="currentLayout"
             :class="{ 'bg-secondary': selectedItem.name === item.name }"
             @click="selectItem(item, $event)"
-            @contextmenu="handleItemContextMenu(item, $event)"
+            @contextmenu="handleContextMenuWrapper(item, $event)"
           />
         </n-infinite-scroll>
       </n-list>
@@ -63,18 +63,20 @@ import ListItem from '../ListItem/index.vue';
 import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
 import { moveElementToEnd, renderCustomHeader } from '@renderer/components/MainSection/helper';
 import { useHistoryStore } from '@renderer/store/module/historyStore';
-import type { Ref } from 'vue';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
-import type { DropdownOption } from 'naive-ui';
+import { onBeforeUnmount, onMounted, ref, nextTick } from 'vue';
 import { createDiscreteApi } from 'naive-ui';
+import { useDebounceFn } from '@vueuse/core';
 
 import { Conf } from 'electron-conf/renderer';
-import {
+
+import type {
   IItemDetail,
   IListItem,
   Permed_accounts,
   Permed_protocols
 } from '@renderer/components/MainSection/interface';
+import type { Ref } from 'vue';
+import type { DropdownOption } from 'naive-ui';
 import type { IConnectData } from '@renderer/store/interface';
 
 import { ClipboardList, PlugConnected } from '@vicons/tabler';
@@ -236,7 +238,7 @@ const getAssetDetailFromServer = async (id: string): Promise<boolean> => {
     return Promise.resolve(false);
   } catch (e) {
     console.log(e);
-    message.error('获取资产数据列表失败');
+    message.error('获取资产数列表失败');
     return Promise.resolve(false);
   }
 };
@@ -246,7 +248,7 @@ const getAssetDetailFromServer = async (id: string): Promise<boolean> => {
  * @param item
  * @param _event
  */
-const selectItem = async (item: IListItem, _event: MouseEvent) => {
+const selectItem = useDebounceFn(async (item: IListItem, _event: MouseEvent) => {
   selectedItem.value = item;
 
   try {
@@ -272,16 +274,23 @@ const selectItem = async (item: IListItem, _event: MouseEvent) => {
     message.error('获取资产数据详情失败');
     showLeftDropdown.value = false;
   }
+}, 300);
+
+/**
+ * @description 由于加了 useDebounceFn 会导致 stopPropagation 的行为无法被触发
+ * @param event
+ * @param item
+ */
+const handleContextMenuWrapper = (item: IListItem, event: MouseEvent) => {
+  event.stopPropagation();
+
+  handleItemContextMenu(item, event);
 };
 
 /**
  * @description contextmenu 的回调
- * @param _item
- * @param _event
  */
-const handleItemContextMenu = async (_item: IListItem, _event: MouseEvent) => {
-  _event.stopPropagation();
-
+const handleItemContextMenu = useDebounceFn(async (_item: IListItem, _event: MouseEvent) => {
   selectedItem.value = _item;
 
   try {
@@ -304,7 +313,7 @@ const handleItemContextMenu = async (_item: IListItem, _event: MouseEvent) => {
   } catch (e) {
     showRightDropdown.value = false;
   }
-};
+}, 300);
 
 /**
  * @description 左键选择账号
@@ -383,7 +392,7 @@ const handleSelect = async (key: string) => {
         if (errorData) {
           // 除开通知和允许，其余情况一率弹窗
           if (errorData?.code !== 'notice') {
-            message.error(`当前资产仅支持通过 Web 方式访问（ACL：Action）`);
+            message.error(`当��资产仅支持通过 Web 方式访问（ACL：Action）`);
             return;
           }
 
