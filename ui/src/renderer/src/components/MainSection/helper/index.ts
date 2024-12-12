@@ -1,8 +1,24 @@
-import { NText, NIcon, type DropdownOption } from 'naive-ui';
+import { NText, NIcon, NButton, type DropdownOption } from 'naive-ui';
 import { h } from 'vue';
 import type { Component } from 'vue';
+import mittBus from '@renderer/eventBus';
 
-export const renderCustomHeader = (component: Component, text: string) => {
+const handleActionButton = (type: string) => {
+  switch (type) {
+    case 'detail-message': {
+      mittBus.emit('showAssetDetail');
+
+      break;
+    }
+    case 'fast-connection': {
+      mittBus.emit('connectAsset');
+
+      break;
+    }
+  }
+};
+
+export const renderCustomHeader = (component: Component, text: string, type: string = '') => {
   return () => {
     return h(
       'div',
@@ -10,20 +26,40 @@ export const renderCustomHeader = (component: Component, text: string) => {
         style: 'display: flex; align-items: center; padding: 8px 12px;'
       },
       [
-        h(NIcon, {
-          size: '20',
-          color: '#fff',
-          component: component
-        }),
         h(
-          'div',
+          NButton,
           {
+            text: true,
+            size: 'small',
+            type: 'primary',
             style: {
-              marginLeft: '0.5rem',
-              cursor: 'pointer'
+              width: '100%',
+              justifyContent: 'flex-start'
+            },
+            onClick: () => {
+              handleActionButton(type);
             }
           },
-          [h('div', null, [h(NText, { depth: 1, strong: true }, { default: () => text })])]
+          {
+            default: () => [
+              h(NIcon, {
+                size: '20',
+                color: '#fff',
+                component: component,
+                style: {
+                  marginRight: '0.5rem'
+                }
+              }),
+              h(
+                NText,
+                {
+                  depth: 1,
+                  strong: true
+                },
+                { default: () => text }
+              )
+            ]
+          }
         )
       ]
     );
@@ -39,27 +75,6 @@ export const moveElementToEnd = (arr: DropdownOption[], searchKey: string, chang
 
     // 从数组中移除该元素
     arr.splice(index, 1);
-
-    // todo)) 后续优化样式
-    // const postprocessingArray = [
-    //   {
-    //     key: 'footer-divider',
-    //     type: 'footer'
-    //   },
-    //   {
-    //     key: elementToMove.key,
-    //     type: 'render',
-    //     render: () => {
-    //       h(
-    //         NButton,
-    //         {},
-    //         {
-    //           default: () => changeText
-    //         }
-    //       );
-    //     }
-    //   }
-    // ];
 
     // 将元素添加到数组末尾
     arr.push({
