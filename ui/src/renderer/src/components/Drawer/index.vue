@@ -56,7 +56,7 @@
                         <n-input
                           v-model:value="item.path"
                           size="small"
-                          :disabled="item.is_internal || platform === 'darwin'"
+                          :disabled="item.is_internal || platform === 'macos'"
                         />
                         <input
                           type="file"
