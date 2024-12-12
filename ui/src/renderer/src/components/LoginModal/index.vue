@@ -137,6 +137,6 @@ watch(
 );
 
 onMounted(() => {
-  // window.addEventListener('contextmenu', handleContextMenu, false);
+  window.addEventListener('contextmenu', handleContextMenu, false);
 });
 </script>
