@@ -19,7 +19,8 @@ export const renderCustomHeader = (component: Component, text: string) => {
           'div',
           {
             style: {
-              marginLeft: '0.5rem'
+              marginLeft: '0.5rem',
+              cursor: 'pointer'
             }
           },
           [h('div', null, [h(NText, { depth: 1, strong: true }, { default: () => text })])]
