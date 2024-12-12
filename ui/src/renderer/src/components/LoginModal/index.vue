@@ -38,19 +38,18 @@
 <script setup lang="ts">
 import { useMessage } from 'naive-ui';
 import { readText } from 'clipboard-polyfill';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { watch, onMounted, ref } from 'vue';
 import { useUserStore } from '@renderer/store/module/userStore';
 
 import { Warning24Regular } from '@vicons/fluent';
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     showModal: boolean;
   }>(),
   { showModal: false }
 );
 
-// const emit = defineEmits(['CloseClick']);
 const emits = defineEmits<{
   (e: 'close-mask'): void;
 }>();
@@ -127,13 +126,17 @@ const handleContextMenu = async () => {
   } catch (e) {}
 };
 
-onMounted(() => {
-  window.addEventListener('contextmenu', handleContextMenu, false);
-});
+watch(
+  () => props.showModal,
+  newValue => {
+    if (!newValue) {
+      window.removeEventListener('contextmenu', handleContextMenu, false);
+    }
+  },
+  { immediate: true }
+);
 
-onBeforeUnmount(() => {
-  window.removeEventListener('contextmenu', handleContextMenu, false);
+onMounted(() => {
+  // window.addEventListener('contextmenu', handleContextMenu, false);
 });
 </script>
-
-<style scoped lang="scss"></style>
