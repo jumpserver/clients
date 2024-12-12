@@ -13,7 +13,8 @@
     <n-drawer-content footer-style="border: unset;" body-content-style="padding: 15px 5px 40px">
       <template #header>
         <n-flex align="center" justify="space-between">
-          <n-text depth="1">默认配置</n-text>
+          <n-text depth="1" v-if="!drawerDetailMessage">默认配置</n-text>
+          <n-text depth="1" v-else>资产详情</n-text>
 
           <n-flex>
             <n-icon
@@ -181,8 +182,12 @@ import {
   resolutionsOptions,
   windowsOptions
 } from './config/index';
+import type { IItemDetail } from '@renderer/components/MainSection/interface';
 
-const props = withDefaults(defineProps<{ active: boolean }>(), { active: false });
+const props = withDefaults(defineProps<{ active: boolean; drawerDetailMessage?: IItemDetail }>(), {
+  active: false,
+  drawerDetailMessage: {} as IItemDetail
+});
 
 const route = useRoute();
 const message = useMessage();

@@ -1,23 +1,19 @@
-import { NText, NIcon, NButton, type DropdownOption } from 'naive-ui';
 import { h } from 'vue';
-import type { Component } from 'vue';
+import { NText, NIcon, NButton } from 'naive-ui';
 import mittBus from '@renderer/eventBus';
 
-const handleActionButton = (type: string) => {
-  switch (type) {
-    case 'detail-message': {
-      mittBus.emit('showAssetDetail');
+import type { Ref } from 'vue';
+import type { Component } from 'vue';
+import type { DropdownOption } from 'naive-ui';
+import type { IItemDetail } from '@renderer/components/MainSection/interface';
 
-      break;
-    }
-    case 'fast-connection': {
-      mittBus.emit('connectAsset');
-      break;
-    }
-  }
-};
-
-export const renderCustomHeader = (component: Component, text: string, type: string = '') => {
+export const renderCustomHeader = (
+  component: Component,
+  text: string,
+  type: string = '',
+  detailMessage?: Ref<IItemDetail>,
+  callback?: () => void
+) => {
   return () => {
     return h(
       'div',
@@ -36,7 +32,22 @@ export const renderCustomHeader = (component: Component, text: string, type: str
               justifyContent: 'flex-start'
             },
             onClick: () => {
-              handleActionButton(type);
+              switch (type) {
+                case 'detail-message': {
+                  if (detailMessage) {
+                    mittBus.emit('showAssetDetail', { detailMessage });
+
+                    callback ? callback() : '';
+                  }
+
+                  break;
+                }
+                case 'fast-connection': {
+                  mittBus.emit('connectAsset');
+
+                  break;
+                }
+              }
             }
           },
           {
