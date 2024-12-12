@@ -69,7 +69,7 @@
                           ghost
                           size="small"
                           @click="openFile(item)"
-                          :disabled="item.is_internal || platform === 'darwin'"
+                          :disabled="item.is_internal || platform === 'macos'"
                         >
                           <n-icon :component="Folder28Regular" size="14" />
                         </n-button>
@@ -298,6 +298,7 @@ const initPlatformData = async () => {
 onMounted(() => {
   window.electron.ipcRenderer.send('get-platform');
   window.electron.ipcRenderer.on('platform-response', (_event, _platform) => {
+    console.log(_platform)
     platform.value = _platform;
     initPlatformData();
   });

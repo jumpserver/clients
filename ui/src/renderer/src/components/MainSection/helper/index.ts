@@ -12,7 +12,6 @@ const handleActionButton = (type: string) => {
     }
     case 'fast-connection': {
       mittBus.emit('connectAsset');
-
       break;
     }
   }

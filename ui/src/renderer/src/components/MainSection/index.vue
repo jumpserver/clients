@@ -60,27 +60,22 @@
 import mittBus from '@renderer/eventBus';
 import ListItem from '../ListItem/index.vue';
 
-import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
-import { moveElementToEnd, renderCustomHeader } from '@renderer/components/MainSection/helper';
-import { useHistoryStore } from '@renderer/store/module/historyStore';
-import type { Ref } from 'vue';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
-import type { DropdownOption } from 'naive-ui';
-import { createDiscreteApi } from 'naive-ui';
+import {createConnectToken, getAssetDetail, getLocalClientUrl} from '@renderer/api/modals/asset';
+import {moveElementToEnd, renderCustomHeader} from '@renderer/components/MainSection/helper';
+import {useHistoryStore} from '@renderer/store/module/historyStore';
+import type {Ref} from 'vue';
+import {onBeforeUnmount, onMounted, ref} from 'vue';
+import type {DropdownOption} from 'naive-ui';
+import {createDiscreteApi} from 'naive-ui';
 
-import { Conf } from 'electron-conf/renderer';
-import {
-  IItemDetail,
-  IListItem,
-  Permed_accounts,
-  Permed_protocols
-} from '@renderer/components/MainSection/interface';
-import type { IConnectData } from '@renderer/store/interface';
+import {Conf} from 'electron-conf/renderer';
+import {IItemDetail, IListItem, Permed_accounts, Permed_protocols} from '@renderer/components/MainSection/interface';
+import type {IConnectData} from '@renderer/store/interface';
 
-import { ClipboardList, PlugConnected } from '@vicons/tabler';
-import { ArrowEnterLeft20Filled, ProtocolHandler24Regular } from '@vicons/fluent';
+import {ClipboardList, PlugConnected} from '@vicons/tabler';
+import {ArrowEnterLeft20Filled, ProtocolHandler24Regular} from '@vicons/fluent';
 
-const { message } = createDiscreteApi(['message']);
+const {message} = createDiscreteApi(['message']);
 
 withDefaults(
   defineProps<{
@@ -156,12 +151,7 @@ const handleLoad = () => {
   emit('loadMore');
 };
 
-/**
- * @description 关闭 dropdown
- */
-const onClickLeftOutside = () => {
-  showLeftDropdown.value = false;
-
+const resetLeftOptions = () => {
   leftOptions.value = [
     {
       key: 'header',
@@ -173,24 +163,18 @@ const onClickLeftOutside = () => {
       type: 'divider'
     }
   ];
-};
-
-/**
- * @description 关闭 dropdown
- */
-const onClickRightOutside = () => {
-  showRightDropdown.value = false;
-
+}
+const resetRightOptions = () => {
   rightOptions.value = [
     {
       key: 'fast-connection',
       type: 'render',
-      render: renderCustomHeader(PlugConnected, '快速连接')
+      render: renderCustomHeader(PlugConnected, '快速连接', 'fast-connection')
     },
     {
       key: 'detail-message',
       type: 'render',
-      render: renderCustomHeader(ArrowEnterLeft20Filled, '资产详情')
+      render: renderCustomHeader(ArrowEnterLeft20Filled, '资产详情', 'detail-message')
     },
     {
       key: 'header-divider',
@@ -202,6 +186,23 @@ const onClickRightOutside = () => {
       render: renderCustomHeader(ProtocolHandler24Regular, '连接协议')
     }
   ];
+}
+/**
+ * @description 关闭 dropdown
+ */
+const onClickLeftOutside = () => {
+  showLeftDropdown.value = false;
+
+  resetLeftOptions();
+};
+
+/**
+ * @description 关闭 dropdown
+ */
+const onClickRightOutside = () => {
+  showRightDropdown.value = false;
+
+  resetRightOptions();
 };
 
 /**
@@ -248,7 +249,7 @@ const getAssetDetailFromServer = async (id: string): Promise<boolean> => {
  */
 const selectItem = async (item: IListItem, _event: MouseEvent) => {
   selectedItem.value = item;
-
+  resetLeftOptions();
   try {
     const hasGetMessage: boolean = await getAssetDetailFromServer(item.id);
 
@@ -256,9 +257,14 @@ const selectItem = async (item: IListItem, _event: MouseEvent) => {
       detailMessage.value.permed_accounts
         .filter((item: Permed_accounts) => item.alias !== '@ANON')
         .forEach((item: Permed_accounts) => {
+
+
           leftOptions.value.push({
             key: item.id,
-            label: item.username
+            label: item.name +
+              (option.alias === option.username || option.alias.startsWith('@')
+                ? ''
+                : '(' + option.username + ')')
           });
         });
 
@@ -283,7 +289,7 @@ const handleItemContextMenu = async (_item: IListItem, _event: MouseEvent) => {
   _event.stopPropagation();
 
   selectedItem.value = _item;
-
+  resetRightOptions();
   try {
     const hasGetMessage: boolean = await getAssetDetailFromServer(_item.id);
 
@@ -324,8 +330,9 @@ const handleAccountSelect = (key: string) => {
   );
 
   if (currentAccount) {
-    connectData.value.asset = currentAccount.id;
-    connectData.value.account = currentAccount.username;
+    connectData.value.asset = detailMessage.value.id;
+
+    connectData.value.account = currentAccount.name;
   }
 
   showLeftDropdown.value = false;
@@ -363,10 +370,11 @@ const handleSelect = async (key: string) => {
       }
 
       try {
-        const token = await createConnectToken(connectData, method);
+        connectData.value.protocol = currentProtocol.name
+        const token = await createConnectToken(connectData.value, method);
 
         if (token) {
-          message.success('连接成功', { closable: true });
+          message.success('连接成功', {closable: true});
 
           // todo)) 设置历史
           // historyStore.setHistorySession({ ...selectedItem.value });
@@ -395,16 +403,15 @@ const handleSelect = async (key: string) => {
       }
     }
   }
-
-  nextTick(() => {
-    showRightDropdown.value = false;
-  });
+  showRightDropdown.value = false;
 };
 
 /**
  * @description 快速连接
  */
-const handleFastConnect = () => {};
+const handleFastConnect = async () => {
+  await handleSelect('fast-connection')
+};
 
 onMounted(() => {
   mittBus.on('connectAsset', handleFastConnect);
