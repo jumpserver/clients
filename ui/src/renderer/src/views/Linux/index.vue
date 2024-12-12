@@ -69,7 +69,7 @@ const getAssetsFromServer = async (searchInput?: string) => {
     const res = await getAssets(params);
 
     if (res) {
-      const { results, total } = res;
+      const { results, count: total } = res;
 
       listData.value = params.offset === 0 ? results : [...listData.value, ...results];
 
