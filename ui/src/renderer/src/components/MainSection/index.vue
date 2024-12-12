@@ -275,18 +275,20 @@ const handleItemContextMenu = async (_item: IListItem, _event: MouseEvent) => {
   try {
     const hasGetMessage: boolean = await getAssetDetailFromServer(_item.id);
 
-    detailMessage.value.permed_protocols
-      .filter((item: Permed_protocols) => item.public)
-      .forEach((item: Permed_protocols) => {
-        rightOptions.value.push({
-          key: item.name,
-          label: item.name
+    if (hasGetMessage) {
+      detailMessage.value.permed_protocols
+        .filter((item: Permed_protocols) => item.public)
+        .forEach((item: Permed_protocols) => {
+          rightOptions.value.push({
+            key: item.name,
+            label: item.name
+          });
         });
-      });
 
-    showRightDropdown.value = true;
-    xRight.value = _event.clientX;
-    yRight.value = _event.clientY;
+      showRightDropdown.value = true;
+      xRight.value = _event.clientX;
+      yRight.value = _event.clientY;
+    }
   } catch (e) {
     showRightDropdown.value = false;
   }
