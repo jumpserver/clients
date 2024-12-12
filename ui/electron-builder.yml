@@ -14,6 +14,12 @@ extraResources:
 win:
   executableName: JumpServerClient
   icon: build/icons.ico
+  target:
+    - target: nsis
+      arch:
+        - x64
+        - ia32
+afterSign: build/sign/notarize.cjs
 nsis:
   artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
   shortcutName: ${productName}
@@ -26,6 +32,11 @@ mac:
   entitlementsInherit: build/entitlements.mac.plist
   icon: build/icons/icon.icns
   notarize: true
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
 dmg:
   artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
 linux:
@@ -42,4 +53,4 @@ electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/
 protocols:
   - name: 'JumpServerClient Protocol'
-    schemes: ['jms']
+    schemes: [ 'jms' ]
