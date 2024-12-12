@@ -60,22 +60,27 @@
 import mittBus from '@renderer/eventBus';
 import ListItem from '../ListItem/index.vue';
 
-import {createConnectToken, getAssetDetail, getLocalClientUrl} from '@renderer/api/modals/asset';
-import {moveElementToEnd, renderCustomHeader} from '@renderer/components/MainSection/helper';
-import {useHistoryStore} from '@renderer/store/module/historyStore';
-import type {Ref} from 'vue';
-import {onBeforeUnmount, onMounted, ref} from 'vue';
-import type {DropdownOption} from 'naive-ui';
-import {createDiscreteApi} from 'naive-ui';
+import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
+import { moveElementToEnd, renderCustomHeader } from '@renderer/components/MainSection/helper';
+import { useHistoryStore } from '@renderer/store/module/historyStore';
+import type { Ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
+import type { DropdownOption } from 'naive-ui';
+import { createDiscreteApi } from 'naive-ui';
 
-import {Conf} from 'electron-conf/renderer';
-import {IItemDetail, IListItem, Permed_accounts, Permed_protocols} from '@renderer/components/MainSection/interface';
-import type {IConnectData} from '@renderer/store/interface';
+import { Conf } from 'electron-conf/renderer';
+import {
+  IItemDetail,
+  IListItem,
+  Permed_accounts,
+  Permed_protocols
+} from '@renderer/components/MainSection/interface';
+import type { IConnectData } from '@renderer/store/interface';
 
-import {ClipboardList, PlugConnected} from '@vicons/tabler';
-import {ArrowEnterLeft20Filled, ProtocolHandler24Regular} from '@vicons/fluent';
+import { ClipboardList, PlugConnected } from '@vicons/tabler';
+import { ArrowEnterLeft20Filled, ProtocolHandler24Regular } from '@vicons/fluent';
 
-const {message} = createDiscreteApi(['message']);
+const { message } = createDiscreteApi(['message']);
 
 withDefaults(
   defineProps<{
@@ -114,12 +119,12 @@ const rightOptions: Ref<DropdownOption[]> = ref([
   {
     key: 'fast-connection',
     type: 'render',
-    render: renderCustomHeader(PlugConnected, '快速连接')
+    render: renderCustomHeader(PlugConnected, '快速连接', 'fast-connection')
   },
   {
     key: 'detail-message',
     type: 'render',
-    render: renderCustomHeader(ArrowEnterLeft20Filled, '资产详情')
+    render: renderCustomHeader(ArrowEnterLeft20Filled, '资产详情', 'detail-message')
   },
   {
     key: 'header-divider',
@@ -237,7 +242,7 @@ const getAssetDetailFromServer = async (id: string): Promise<boolean> => {
 };
 
 /**
- * @description 左键选择账号
+ * @description listItem 的点击事件
  * @param item
  * @param _event
  */
@@ -270,7 +275,7 @@ const selectItem = async (item: IListItem, _event: MouseEvent) => {
 };
 
 /**
- * @description 右键选择协议
+ * @description contextmenu 的回调
  * @param _item
  * @param _event
  */
@@ -301,7 +306,10 @@ const handleItemContextMenu = async (_item: IListItem, _event: MouseEvent) => {
   }
 };
 
-
+/**
+ * @description 左键选择账号
+ * @param key
+ */
 const handleAccountSelect = (key: string) => {
   connectData.value = {
     protocol: '',
@@ -323,11 +331,16 @@ const handleAccountSelect = (key: string) => {
   showLeftDropdown.value = false;
 };
 
+/**
+ * @description 右键选择协议
+ * @param key
+ */
 const handleSelect = async (key: string) => {
-  const currentProtocol = key === 'fast-connection' ? detailMessage.value.permed_protocols[0] :
-    detailMessage.value.permed_protocols.find(
-      (item: Permed_protocols) => item.name === key
-    );
+  const currentProtocol =
+    key === 'fast-connection'
+      ? detailMessage.value.permed_protocols[0]
+      : detailMessage.value.permed_protocols.find((item: Permed_protocols) => item.name === key);
+
   if (currentProtocol) {
     if (selectedItem.value) {
       let method: string;
@@ -353,7 +366,7 @@ const handleSelect = async (key: string) => {
         const token = await createConnectToken(connectData, method);
 
         if (token) {
-          message.success('连接成功', {closable: true});
+          message.success('连接成功', { closable: true });
 
           // todo)) 设置历史
           // historyStore.setHistorySession({ ...selectedItem.value });
@@ -382,14 +395,24 @@ const handleSelect = async (key: string) => {
       }
     }
   }
-  showLeftDropdown.value = false;
+
+  nextTick(() => {
+    showRightDropdown.value = false;
+  });
 };
 
+/**
+ * @description 快速连接
+ */
+const handleFastConnect = () => {};
+
 onMounted(() => {
+  mittBus.on('connectAsset', handleFastConnect);
   mittBus.on('changeLayout', handleLayoutChange);
 });
 
 onBeforeUnmount(() => {
+  mittBus.off('connectAsset', handleFastConnect);
   mittBus.off('changeLayout', handleLayoutChange);
 });
 </script>
