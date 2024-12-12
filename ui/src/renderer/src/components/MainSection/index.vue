@@ -63,7 +63,7 @@ import ListItem from '../ListItem/index.vue';
 import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
 import { moveElementToEnd, renderCustomHeader } from '@renderer/components/MainSection/helper';
 import { useHistoryStore } from '@renderer/store/module/historyStore';
-import { onBeforeUnmount, onMounted, ref, nextTick } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { createDiscreteApi, useLoadingBar } from 'naive-ui';
 import { useDebounceFn } from '@vueuse/core';
 
@@ -277,9 +277,9 @@ const selectItem = useDebounceFn(async (item: IListItem, _event: MouseEvent) => 
           leftOptions.value.push({
             key: item.id,
             label: item.name +
-              (option.alias === option.username || option.alias.startsWith('@')
+              (item.alias === item.username || item.alias.startsWith('@')
                 ? ''
-                : '(' + option.username + ')')
+                : '(' + item.username + ')')
           });
         });
 
