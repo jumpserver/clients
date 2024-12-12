@@ -1,60 +1,87 @@
 <template>
-  <n-flex class="h-[calc(100vh-135px)]">
-    <n-list hoverable clickable :show-divider="false" class="w-full h-full">
-      <template #header>
-        <n-h3 class="h-full" strong> Hosts</n-h3>
-      </template>
-      <n-infinite-scroll
-        style="max-height: calc(100vh - 200px)"
-        :class="{ 'list-layout': currentLayout !== 'list' }"
-        :distance="10"
-        @load="handleLoad"
-      >
-        <ListItem
-          v-for="(item, index) of listData"
-          :key="index"
-          :item-data="item"
-          :layout="currentLayout"
-          :class="{ 'bg-secondary': selectedItem === index }"
-          @click="selectAccount(index, item, $event)"
-        />
-      </n-infinite-scroll>
-    </n-list>
-  </n-flex>
-  <ConnectModal
-    :show-modal="showConnectModal"
-    :permed-data="permedData"
-    @close-click="handleDialogClose"
-    @connect-asset="handleConnectAsset"
-  />
+  <div>
+    <n-flex class="h-[calc(100vh-135px)]">
+      <n-list hoverable clickable :show-divider="false" class="w-full h-full">
+        <template #header>
+          <n-h3 class="h-full" strong> Hosts</n-h3>
+        </template>
+        <n-infinite-scroll
+          style="max-height: calc(100vh - 200px)"
+          :class="{ 'list-layout': currentLayout !== 'list' }"
+          :distance="10"
+          @load="handleLoad"
+        >
+          <ListItem
+            v-for="(item, index) of listData"
+            :key="index"
+            :item-data="item"
+            :layout="currentLayout"
+            :class="{ 'bg-secondary': selectedItem.name === item.name }"
+            @click="selectItem(item, $event)"
+            @contextmenu="handleItemContextMenu(item, $event)"
+          />
+        </n-infinite-scroll>
+      </n-list>
+    </n-flex>
+
+    <!-- 左键点击下拉菜单 -->
+    <n-dropdown
+      placement="bottom-start"
+      trigger="manual"
+      size="small"
+      :x="xLeft"
+      :y="yLeft"
+      :show-arrow="true"
+      :options="leftOptions"
+      :show="showLeftDropdown"
+      :on-clickoutside="onClickLeftOutside"
+      @select="handleAccountSelect"
+      class="w-40"
+    />
+
+    <!-- 右键点击下拉菜单 -->
+    <n-dropdown
+      placement="bottom-start"
+      trigger="manual"
+      size="small"
+      :x="xRight"
+      :y="yRight"
+      :show-arrow="true"
+      :options="rightOptions"
+      :show="showRightDropdown"
+      :on-clickoutside="onClickRightOutside"
+      @select="handleSelect"
+      class="w-40"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
 import mittBus from '@renderer/eventBus';
 import ListItem from '../ListItem/index.vue';
-import ConnectModal from '@renderer/components/ConnectModal/index.vue';
 
 import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
+import { moveElementToEnd, renderCustomHeader } from '@renderer/components/MainSection/helper';
 import { useHistoryStore } from '@renderer/store/module/historyStore';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { createDiscreteApi } from 'naive-ui';
 
 import { Conf } from 'electron-conf/renderer';
+import {
+  IItemDetail,
+  IListItem,
+  Permed_accounts,
+  Permed_protocols
+} from '@renderer/components/MainSection/interface';
+
+import type { Ref } from 'vue';
+import type { DropdownOption } from 'naive-ui';
 import type { IConnectData } from '@renderer/store/interface';
-import type { IListItem } from '@renderer/components/MainSection/interface';
-import type { InternalAxiosError } from 'axios';
+
+import { ClipboardList, PlugConnected } from '@vicons/tabler';
+import { ProtocolHandler24Regular } from '@vicons/fluent';
 
 const { message } = createDiscreteApi(['message']);
-
-interface Itype {
-  value: string;
-  label: string;
-}
-
-interface Item {
-  id?: string;
-  type?: Itype;
-}
 
 withDefaults(
   defineProps<{
@@ -69,10 +96,48 @@ const conf = new Conf();
 
 // @ts-ignore
 const historyStore = useHistoryStore();
-const currentLayout = ref('');
+
+const xLeft = ref(0);
+const yLeft = ref(0);
+const xRight = ref(0);
+const yRight = ref(0);
+
 const showConnectModal = ref(false);
-const selectedItem = ref<Item>({});
-const permedData = ref(null);
+const showLeftDropdown = ref(false);
+const showRightDropdown = ref(false);
+
+const leftOptions: Ref<DropdownOption[]> = ref([
+  {
+    key: 'header',
+    type: 'render',
+    render: renderCustomHeader(ClipboardList, '账号列表')
+  },
+  {
+    key: 'header-divider',
+    type: 'divider'
+  }
+]);
+const rightOptions: Ref<DropdownOption[]> = ref([
+  {
+    key: 'fast-connection',
+    type: 'render',
+    render: renderCustomHeader(PlugConnected, '快速连接')
+  },
+  {
+    key: 'header-divider',
+    type: 'divider'
+  },
+  {
+    key: 'connect-protocol',
+    type: 'render',
+    render: renderCustomHeader(ProtocolHandler24Regular, '连接协议')
+  }
+]);
+const selectedItem: Ref<IListItem> = ref({} as IListItem);
+const connectData: Ref<IConnectData> = ref({} as IConnectData);
+const detailMessage: Ref<IItemDetail> = ref({} as IItemDetail);
+
+const currentLayout = ref('');
 
 const emit = defineEmits(['loadMore']);
 
@@ -89,12 +154,57 @@ const handleLoad = () => {
 };
 
 /**
+ * @description 关闭 dropdown
+ */
+const onClickLeftOutside = () => {
+  showLeftDropdown.value = false;
+
+  leftOptions.value = [
+    {
+      key: 'header',
+      type: 'render',
+      render: renderCustomHeader(ClipboardList, '账号列表')
+    },
+    {
+      key: 'header-divider',
+      type: 'divider'
+    }
+  ];
+};
+
+/**
+ * @description 关闭 dropdown
+ */
+const onClickRightOutside = () => {
+  showRightDropdown.value = false;
+
+  rightOptions.value = [
+    {
+      key: 'fast-connection',
+      type: 'render',
+      render: renderCustomHeader(PlugConnected, '快速连接')
+    },
+    {
+      key: 'header-divider',
+      type: 'divider'
+    },
+    {
+      key: 'connect-protocol',
+      type: 'render',
+      render: renderCustomHeader(ProtocolHandler24Regular, '连接协议')
+    }
+  ];
+};
+
+/**
  * @description grid 布局与 list 布局的切换
  * @param layout
  */
 const handleLayoutChange = async (layout: string) => {
   const currentSettings = (await conf.get('defaultSetting')) as Record<string, any>;
+
   currentLayout.value = layout;
+
   await conf.set('defaultSetting', {
     ...currentSettings,
     layout: layout
@@ -105,36 +215,81 @@ const handleLayoutChange = async (layout: string) => {
  * @description 获取资产详情
  * @param id
  */
-const getAssetDetailFromServer = async (id: string) => {
+const getAssetDetailFromServer = async (id: string): Promise<boolean> => {
   try {
-    const res = await getAssetDetail(id);
+    const res: IItemDetail = await getAssetDetail(id);
+
+    detailMessage.value = res;
+
     if (res) {
-      permedData.value = res;
-      console.log(res);
+      return Promise.resolve(true);
     }
+
+    return Promise.resolve(false);
   } catch (e) {
-    message.error('获取资产数据列表失败', { closable: true });
+    console.log(e);
+    message.error('获取资产数据列表失败');
+    return Promise.resolve(false);
   }
 };
 
 /**
- * @description 选择账号
- * @param _
+ * @description 左键选择账号
  * @param item
  * @param _event
  */
-const selectAccount = (_: number, item: any, _event: Event) => {
-  showConnectModal.value = false;
+const selectItem = async (item: IListItem, _event: MouseEvent) => {
   selectedItem.value = item;
 
-  getAssetDetailFromServer(item.id).then(() => {
-    showConnectModal.value = true;
-  });
+  try {
+    const hasGetMessage: boolean = await getAssetDetailFromServer(item.id);
+
+    if (hasGetMessage) {
+      detailMessage.value.permed_accounts
+        .filter((item: Permed_accounts) => item.alias !== '@ANON')
+        .forEach((item: Permed_accounts) => {
+          leftOptions.value.push({
+            key: item.id,
+            label: item.username
+          });
+        });
+
+      leftOptions.value = moveElementToEnd(leftOptions.value, '@INPUT', '手动输入');
+
+      showLeftDropdown.value = true;
+      xLeft.value = _event.clientX;
+      yLeft.value = _event.clientY;
+    }
+  } catch (e) {
+    message.error('获取资产数据详情失败');
+    showLeftDropdown.value = false;
+  }
 };
 
-const handleDialogClose = () => {
-  showConnectModal.value = false;
-  selectedItem.value = {};
+/**
+ * @description 右键选择协议
+ * @param _item
+ * @param _event
+ */
+const handleItemContextMenu = async (_item: IListItem, _event: MouseEvent) => {
+  try {
+    const hasGetMessage: boolean = await getAssetDetailFromServer(_item.id);
+
+    detailMessage.value.permed_protocols
+      .filter((item: Permed_protocols) => item.public)
+      .forEach((item: Permed_protocols) => {
+        rightOptions.value.push({
+          key: item.name,
+          label: item.name
+        });
+      });
+
+    showRightDropdown.value = true;
+    xRight.value = _event.clientX;
+    yRight.value = _event.clientY;
+  } catch (e) {
+    showRightDropdown.value = false;
+  }
 };
 
 /**
@@ -179,8 +334,8 @@ const handleConnectAsset = async (connectData: IConnectData) => {
             }
           });
         }
-      } catch (error: InternalAxiosError) {
-        const errorData = error.response.data;
+      } catch (error: any) {
+        const errorData = error?.response.data;
 
         if (errorData) {
           // 除开通知和允许，其余情况一率弹窗
@@ -199,6 +354,35 @@ const handleConnectAsset = async (connectData: IConnectData) => {
     }
   }
 };
+
+const handleAccountSelect = (key: string) => {
+  connectData.value = {
+    protocol: '',
+    asset: '',
+    account: '',
+    input_username: '',
+    input_secret: ''
+  };
+
+  const currentAccount = detailMessage.value.permed_accounts.find(
+    (item: Permed_accounts) => item.id === key
+  );
+
+  if (currentAccount) {
+    connectData.value.asset = currentAccount.id;
+    connectData.value.account = currentAccount.username;
+  }
+
+  console.log(selectedItem.value);
+  console.log(detailMessage.value);
+
+  showLeftDropdown.value = false;
+};
+
+const handleSelect = (key: string) => {
+  showLeftDropdown.value = false;
+};
+
 onMounted(() => {
   mittBus.on('changeLayout', handleLayoutChange);
 });
