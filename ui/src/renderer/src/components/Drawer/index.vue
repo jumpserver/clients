@@ -187,11 +187,15 @@ const props = withDefaults(defineProps<{ active: boolean }>(), { active: false }
 const route = useRoute();
 const message = useMessage();
 const settingStore = useSettingStore();
-const currentOption: Ref<IClient[] | null> = ref(null);
-const platform = ref('');
+
 const charset = ref(settingStore.charset);
-const is_backspace_as_ctrl_h = ref(settingStore.is_backspace_as_ctrl_h);
 const rdp_resolution = ref(settingStore.rdp_resolution);
+const is_backspace_as_ctrl_h = ref(settingStore.is_backspace_as_ctrl_h);
+
+const currentOption: Ref<IClient[] | null> = ref(null);
+
+const platform = ref('');
+
 const conf = new Conf();
 
 watch([charset, is_backspace_as_ctrl_h, rdp_resolution], () => {
@@ -216,7 +220,15 @@ const updateCurrentOptions = (newValue: string | null) => {
   }
 };
 
-watch(() => route.name, updateCurrentOptions, { immediate: true });
+watch(
+  () => route.name,
+  newValue => {
+    if (newValue && typeof newValue === 'string') {
+      updateCurrentOptions(newValue);
+    }
+  },
+  { immediate: true }
+);
 
 const enabledItems = computed(() => {
   // 获取所有启用状态的 item 标签作为展开的名称
