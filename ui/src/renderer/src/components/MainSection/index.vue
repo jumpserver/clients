@@ -18,7 +18,7 @@
             :layout="currentLayout"
             :class="{ 'bg-secondary': selectedItem.name === item.name }"
             @click="selectItem(item, $event)"
-            @contextmenu="handleItemContextMenu(item, $event)"
+            @contextmenu="handleContextMenuWrapper(item, $event)"
           />
         </n-infinite-scroll>
       </n-list>
@@ -60,22 +60,29 @@
 import mittBus from '@renderer/eventBus';
 import ListItem from '../ListItem/index.vue';
 
-import {createConnectToken, getAssetDetail, getLocalClientUrl} from '@renderer/api/modals/asset';
-import {moveElementToEnd, renderCustomHeader} from '@renderer/components/MainSection/helper';
-import {useHistoryStore} from '@renderer/store/module/historyStore';
-import type {Ref} from 'vue';
-import {onBeforeUnmount, onMounted, ref} from 'vue';
-import type {DropdownOption} from 'naive-ui';
-import {createDiscreteApi} from 'naive-ui';
+import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
+import { moveElementToEnd, renderCustomHeader } from '@renderer/components/MainSection/helper';
+import { useHistoryStore } from '@renderer/store/module/historyStore';
+import { onBeforeUnmount, onMounted, ref, nextTick } from 'vue';
+import { createDiscreteApi, useLoadingBar } from 'naive-ui';
+import { useDebounceFn } from '@vueuse/core';
 
-import {Conf} from 'electron-conf/renderer';
-import {IItemDetail, IListItem, Permed_accounts, Permed_protocols} from '@renderer/components/MainSection/interface';
-import type {IConnectData} from '@renderer/store/interface';
+import { Conf } from 'electron-conf/renderer';
 
-import {ClipboardList, PlugConnected} from '@vicons/tabler';
-import {ArrowEnterLeft20Filled, ProtocolHandler24Regular} from '@vicons/fluent';
+import type {
+  IItemDetail,
+  IListItem,
+  Permed_accounts,
+  Permed_protocols
+} from '@renderer/components/MainSection/interface';
+import type { Ref } from 'vue';
+import type { DropdownOption } from 'naive-ui';
+import type { IConnectData } from '@renderer/store/interface';
 
-const {message} = createDiscreteApi(['message']);
+import { ClipboardList, PlugConnected } from '@vicons/tabler';
+import { ArrowEnterLeft20Filled, ProtocolHandler24Regular } from '@vicons/fluent';
+
+const { message } = createDiscreteApi(['message']);
 
 withDefaults(
   defineProps<{
@@ -88,6 +95,7 @@ withDefaults(
 
 const conf = new Conf();
 
+const loadingBar = useLoadingBar();
 // @ts-ignore
 const historyStore = useHistoryStore();
 
@@ -237,7 +245,7 @@ const getAssetDetailFromServer = async (id: string): Promise<boolean> => {
     return Promise.resolve(false);
   } catch (e) {
     console.log(e);
-    message.error('获取资产数据列表失败');
+    message.error('获取资产数列表失败');
     return Promise.resolve(false);
   }
 };
@@ -247,9 +255,10 @@ const getAssetDetailFromServer = async (id: string): Promise<boolean> => {
  * @param item
  * @param _event
  */
-const selectItem = async (item: IListItem, _event: MouseEvent) => {
+const selectItem = useDebounceFn(async (item: IListItem, _event: MouseEvent) => {
+  loadingBar.start();
   selectedItem.value = item;
-  resetLeftOptions();
+
   try {
     const hasGetMessage: boolean = await getAssetDetailFromServer(item.id);
 
@@ -257,8 +266,6 @@ const selectItem = async (item: IListItem, _event: MouseEvent) => {
       detailMessage.value.permed_accounts
         .filter((item: Permed_accounts) => item.alias !== '@ANON')
         .forEach((item: Permed_accounts) => {
-
-
           leftOptions.value.push({
             key: item.id,
             label: item.name +
@@ -270,26 +277,36 @@ const selectItem = async (item: IListItem, _event: MouseEvent) => {
 
       leftOptions.value = moveElementToEnd(leftOptions.value, '@INPUT', '手动输入');
 
+      loadingBar.finish();
       showLeftDropdown.value = true;
       xLeft.value = _event.clientX;
       yLeft.value = _event.clientY;
     }
   } catch (e) {
     message.error('获取资产数据详情失败');
+    loadingBar.error();
     showLeftDropdown.value = false;
   }
+}, 300);
+
+/**
+ * @description 由于加了 useDebounceFn 会导致 stopPropagation 的行为无法被触发
+ * @param event
+ * @param item
+ */
+const handleContextMenuWrapper = (item: IListItem, event: MouseEvent) => {
+  event.stopPropagation();
+
+  handleItemContextMenu(item, event);
 };
 
 /**
  * @description contextmenu 的回调
- * @param _item
- * @param _event
  */
-const handleItemContextMenu = async (_item: IListItem, _event: MouseEvent) => {
-  _event.stopPropagation();
-
+const handleItemContextMenu = useDebounceFn(async (_item: IListItem, _event: MouseEvent) => {
+  loadingBar.start();
   selectedItem.value = _item;
-  resetRightOptions();
+
   try {
     const hasGetMessage: boolean = await getAssetDetailFromServer(_item.id);
 
@@ -303,14 +320,16 @@ const handleItemContextMenu = async (_item: IListItem, _event: MouseEvent) => {
           });
         });
 
+      loadingBar.finish();
       showRightDropdown.value = true;
       xRight.value = _event.clientX;
       yRight.value = _event.clientY;
     }
   } catch (e) {
+    loadingBar.error();
     showRightDropdown.value = false;
   }
-};
+}, 300);
 
 /**
  * @description 左键选择账号
@@ -331,7 +350,6 @@ const handleAccountSelect = (key: string) => {
 
   if (currentAccount) {
     connectData.value.asset = detailMessage.value.id;
-
     connectData.value.account = currentAccount.name;
   }
 
@@ -374,7 +392,7 @@ const handleSelect = async (key: string) => {
         const token = await createConnectToken(connectData.value, method);
 
         if (token) {
-          message.success('连接成功', {closable: true});
+          message.success('连接成功', { closable: true });
 
           // todo)) 设置历史
           // historyStore.setHistorySession({ ...selectedItem.value });
