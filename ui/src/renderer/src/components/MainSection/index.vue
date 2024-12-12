@@ -64,7 +64,7 @@ import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer
 import { moveElementToEnd, renderCustomHeader } from '@renderer/components/MainSection/helper';
 import { useHistoryStore } from '@renderer/store/module/historyStore';
 import { onBeforeUnmount, onMounted, ref, nextTick } from 'vue';
-import { createDiscreteApi } from 'naive-ui';
+import { createDiscreteApi, useLoadingBar } from 'naive-ui';
 import { useDebounceFn } from '@vueuse/core';
 
 import { Conf } from 'electron-conf/renderer';
@@ -95,6 +95,7 @@ withDefaults(
 
 const conf = new Conf();
 
+const loadingBar = useLoadingBar();
 // @ts-ignore
 const historyStore = useHistoryStore();
 
@@ -249,6 +250,7 @@ const getAssetDetailFromServer = async (id: string): Promise<boolean> => {
  * @param _event
  */
 const selectItem = useDebounceFn(async (item: IListItem, _event: MouseEvent) => {
+  loadingBar.start();
   selectedItem.value = item;
 
   try {
@@ -266,12 +268,14 @@ const selectItem = useDebounceFn(async (item: IListItem, _event: MouseEvent) => 
 
       leftOptions.value = moveElementToEnd(leftOptions.value, '@INPUT', '手动输入');
 
+      loadingBar.finish();
       showLeftDropdown.value = true;
       xLeft.value = _event.clientX;
       yLeft.value = _event.clientY;
     }
   } catch (e) {
     message.error('获取资产数据详情失败');
+    loadingBar.error();
     showLeftDropdown.value = false;
   }
 }, 300);
@@ -291,6 +295,7 @@ const handleContextMenuWrapper = (item: IListItem, event: MouseEvent) => {
  * @description contextmenu 的回调
  */
 const handleItemContextMenu = useDebounceFn(async (_item: IListItem, _event: MouseEvent) => {
+  loadingBar.start();
   selectedItem.value = _item;
 
   try {
@@ -306,11 +311,13 @@ const handleItemContextMenu = useDebounceFn(async (_item: IListItem, _event: Mou
           });
         });
 
+      loadingBar.finish();
       showRightDropdown.value = true;
       xRight.value = _event.clientX;
       yRight.value = _event.clientY;
     }
   } catch (e) {
+    loadingBar.error();
     showRightDropdown.value = false;
   }
 }, 300);

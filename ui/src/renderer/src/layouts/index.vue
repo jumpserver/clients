@@ -6,8 +6,10 @@
     <n-layout>
       <n-layout-content>
         <header-section :active="active" />
-        <router-view :active="active" />
-        <div id="drawer-target"></div>
+        <n-loading-bar-provider>
+          <router-view :active="active" />
+          <div id="drawer-target"></div>
+        </n-loading-bar-provider>
       </n-layout-content>
     </n-layout>
   </n-layout>
