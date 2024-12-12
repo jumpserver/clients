@@ -24,10 +24,13 @@ import SideMenu from './components/sideMenu/index.vue';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
+import type { IItemDetail } from '@renderer/components/MainSection/interface';
+
 import mittBus from '@renderer/eventBus';
 
 const router = useRouter();
 const active = ref(false);
+const drawerDetailMessage = ref<IItemDetail>({} as IItemDetail);
 
 const handleCreateDrawer = () => {
   active.value = !active.value;
@@ -39,10 +42,18 @@ window.electron.ipcRenderer.on('set-token', (_event, _message) => {
 
 onMounted(() => {
   mittBus.on('createDrawer', handleCreateDrawer);
+  mittBus.on('showAssetDetail', ({ detailMessage }) => {
+    if (detailMessage.value) {
+      drawerDetailMessage.value = detailMessage.value;
+    }
+
+    handleCreateDrawer();
+  });
 });
 
 onBeforeUnmount(() => {
   mittBus.off('createDrawer', handleCreateDrawer);
+  mittBus.off('showAssetDetail', handleCreateDrawer);
 });
 </script>
 

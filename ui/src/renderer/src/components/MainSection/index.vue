@@ -107,6 +107,9 @@ const yRight = ref(0);
 const showLeftDropdown = ref(false);
 const showRightDropdown = ref(false);
 
+const selectedItem: Ref<IListItem> = ref({} as IListItem);
+const connectData: Ref<IConnectData> = ref({} as IConnectData);
+const detailMessage: Ref<IItemDetail> = ref({} as IItemDetail);
 const leftOptions: Ref<DropdownOption[]> = ref([
   {
     key: 'header',
@@ -127,7 +130,15 @@ const rightOptions: Ref<DropdownOption[]> = ref([
   {
     key: 'detail-message',
     type: 'render',
-    render: renderCustomHeader(ArrowEnterLeft20Filled, '资产详情', 'detail-message')
+    render: renderCustomHeader(
+      ArrowEnterLeft20Filled,
+      '资产详情',
+      'detail-message',
+      detailMessage,
+      () => {
+        showRightDropdown.value = false;
+      }
+    )
   },
   {
     key: 'header-divider',
@@ -139,9 +150,6 @@ const rightOptions: Ref<DropdownOption[]> = ref([
     render: renderCustomHeader(ProtocolHandler24Regular, '连接协议')
   }
 ]);
-const selectedItem: Ref<IListItem> = ref({} as IListItem);
-const connectData: Ref<IConnectData> = ref({} as IConnectData);
-const detailMessage: Ref<IItemDetail> = ref({} as IItemDetail);
 
 const currentLayout = ref('');
 
