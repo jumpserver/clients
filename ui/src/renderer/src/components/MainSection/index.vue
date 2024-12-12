@@ -60,28 +60,22 @@
 import mittBus from '@renderer/eventBus';
 import ListItem from '../ListItem/index.vue';
 
-import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
-import { moveElementToEnd, renderCustomHeader } from '@renderer/components/MainSection/helper';
-import { useHistoryStore } from '@renderer/store/module/historyStore';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { createDiscreteApi } from 'naive-ui';
+import {createConnectToken, getAssetDetail, getLocalClientUrl} from '@renderer/api/modals/asset';
+import {moveElementToEnd, renderCustomHeader} from '@renderer/components/MainSection/helper';
+import {useHistoryStore} from '@renderer/store/module/historyStore';
+import type {Ref} from 'vue';
+import {onBeforeUnmount, onMounted, ref} from 'vue';
+import type {DropdownOption} from 'naive-ui';
+import {createDiscreteApi} from 'naive-ui';
 
-import { Conf } from 'electron-conf/renderer';
-import {
-  IItemDetail,
-  IListItem,
-  Permed_accounts,
-  Permed_protocols
-} from '@renderer/components/MainSection/interface';
+import {Conf} from 'electron-conf/renderer';
+import {IItemDetail, IListItem, Permed_accounts, Permed_protocols} from '@renderer/components/MainSection/interface';
+import type {IConnectData} from '@renderer/store/interface';
 
-import type { Ref } from 'vue';
-import type { DropdownOption } from 'naive-ui';
-import type { IConnectData } from '@renderer/store/interface';
+import {ClipboardList, PlugConnected} from '@vicons/tabler';
+import {ArrowEnterLeft20Filled, ProtocolHandler24Regular} from '@vicons/fluent';
 
-import { ClipboardList, PlugConnected } from '@vicons/tabler';
-import { ProtocolHandler24Regular, ArrowEnterLeft20Filled } from '@vicons/fluent';
-
-const { message } = createDiscreteApi(['message']);
+const {message} = createDiscreteApi(['message']);
 
 withDefaults(
   defineProps<{
@@ -102,7 +96,6 @@ const yLeft = ref(0);
 const xRight = ref(0);
 const yRight = ref(0);
 
-const showConnectModal = ref(false);
 const showLeftDropdown = ref(false);
 const showRightDropdown = ref(false);
 
@@ -308,68 +301,6 @@ const handleItemContextMenu = async (_item: IListItem, _event: MouseEvent) => {
   }
 };
 
-/**
- * @description 连接资产
- * @param connectData
- */
-const handleConnectAsset = async (connectData: IConnectData) => {
-  showConnectModal.value = false;
-  if (selectedItem) {
-    let method = '';
-    switch (connectData.protocol) {
-      case 'ssh':
-      case 'telnet':
-        method = 'ssh_client';
-        break;
-      case 'rdp':
-        method = 'mstsc';
-        break;
-      case 'sftp':
-        method = 'sftp_client';
-        break;
-      case 'vnc':
-        method = 'vnc_client';
-        break;
-      default:
-        method = 'db_client';
-    }
-
-    if (selectedItem.value.id) {
-      try {
-        const token = await createConnectToken(connectData, method);
-
-        if (token) {
-          message.success('连接成功', { closable: true });
-
-          // todo)) 设置历史
-          // historyStore.setHistorySession({ ...selectedItem.value });
-
-          getLocalClientUrl(token).then(res => {
-            if (res) {
-              window.electron.ipcRenderer.send('open-client', res.url);
-            }
-          });
-        }
-      } catch (error: any) {
-        const errorData = error?.response.data;
-
-        if (errorData) {
-          // 除开通知和允许，其余情况一率弹窗
-          if (errorData?.code !== 'notice') {
-            message.error(`当前资产仅支持通过 Web 方式访问（ACL：Action）`);
-
-            return;
-          }
-
-          if (errorData?.code !== 'reject') {
-            message.error(`当前资产拒绝连接`);
-            return;
-          }
-        }
-      }
-    }
-  }
-};
 
 const handleAccountSelect = (key: string) => {
   connectData.value = {
@@ -389,13 +320,68 @@ const handleAccountSelect = (key: string) => {
     connectData.value.account = currentAccount.username;
   }
 
-  console.log(selectedItem.value);
-  console.log(detailMessage.value);
-
   showLeftDropdown.value = false;
 };
 
-const handleSelect = (key: string) => {
+const handleSelect = async (key: string) => {
+  const currentProtocol = key === 'fast-connection' ? detailMessage.value.permed_protocols[0] :
+    detailMessage.value.permed_protocols.find(
+      (item: Permed_protocols) => item.name === key
+    );
+  if (currentProtocol) {
+    if (selectedItem.value) {
+      let method: string;
+      switch (currentProtocol.name) {
+        case 'ssh':
+        case 'telnet':
+          method = 'ssh_client';
+          break;
+        case 'rdp':
+          method = 'mstsc';
+          break;
+        case 'sftp':
+          method = 'sftp_client';
+          break;
+        case 'vnc':
+          method = 'vnc_client';
+          break;
+        default:
+          method = 'db_client';
+      }
+
+      try {
+        const token = await createConnectToken(connectData, method);
+
+        if (token) {
+          message.success('连接成功', {closable: true});
+
+          // todo)) 设置历史
+          // historyStore.setHistorySession({ ...selectedItem.value });
+
+          getLocalClientUrl(token).then(res => {
+            if (res) {
+              window.electron.ipcRenderer.send('open-client', res.url);
+            }
+          });
+        }
+      } catch (error: any) {
+        const errorData = error?.response.data;
+
+        if (errorData) {
+          // 除开通知和允许，其余情况一率弹窗
+          if (errorData?.code !== 'notice') {
+            message.error(`当前资产仅支持通过 Web 方式访问（ACL：Action）`);
+            return;
+          }
+
+          if (errorData?.code !== 'reject') {
+            message.error(`当前资产拒绝连接`);
+            return;
+          }
+        }
+      }
+    }
+  }
   showLeftDropdown.value = false;
 };
 
