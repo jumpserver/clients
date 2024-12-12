@@ -31,12 +31,14 @@ const params = {
 };
 
 const listData = ref([]);
-const loadingStatus = ref(true);
 const hasMore = ref(true);
+const loadingStatus = ref(true);
 
 const handleScroll = async () => {
   if (!hasMore.value || loadingStatus.value) return;
+
   params.offset += 20;
+
   await getAssetsFromServer();
 };
 
@@ -49,26 +51,32 @@ const getAssetsFromServer = async (searchInput?: string) => {
   }
 
   loadingStatus.value = true;
+
   try {
     const res = await getDatabases(params);
+
     if (res) {
-      const { results, total } = res;
+      const { results, count: total } = res;
+
       listData.value = params.offset === 0 ? results : [...listData.value, ...results];
+
       // 检查是否还有更多数据
       hasMore.value = listData.value.length < total;
+
       await nextTick(() => {
         loadingStatus.value = false;
       });
     }
   } catch (e) {
-    loadingStatus.value = false;
     hasMore.value = false;
+    loadingStatus.value = false;
     message.error('获取资产数据列表失败', { closable: true });
   }
 };
 
 const handleRemoveAccount = () => {
   const userInfo = userStore.userInfo;
+
   if (userInfo && userInfo.length === 0) {
     listData.value = [];
     userStore.setToken('');

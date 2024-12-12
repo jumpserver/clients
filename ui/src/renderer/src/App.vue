@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { darkThemeOverrides, lightThemeOverrides } from './overrides';
-import { darkTheme, enUS, lightTheme, useMessage, zhCN } from 'naive-ui';
+import { darkTheme, enUS, zhCN, lightTheme, createDiscreteApi } from 'naive-ui';
 
 import { useUserStore } from '@renderer/store/module/userStore';
-import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, ref, computed } from 'vue';
 import { getProfile } from '@renderer/api/modals/user';
 import { Conf } from 'electron-conf/renderer';
 
-import mittBus from '@renderer/eventBus';
+import type { ConfigProviderProps } from 'naive-ui';
 
+import mittBus from '@renderer/eventBus';
 import LoginModal from '@renderer/components/LoginModal/index.vue';
 
 const conf = new Conf();
@@ -29,6 +30,14 @@ conf.get('defaultSetting').then(res => {
     // @ts-ignore
     defaultLang.value = res?.language;
   }
+});
+
+const configProviderPropsRef = computed<ConfigProviderProps>(() => ({
+  theme: defaultTheme.value === 'light' ? lightTheme : darkTheme
+}));
+
+const { notification } = createDiscreteApi(['notification'], {
+  configProviderProps: configProviderPropsRef
 });
 
 /**
@@ -108,43 +117,19 @@ onMounted(async () => {
   await getIconImage();
   await getAvatarImage();
 
-  // await nextTick(() => {
-  //   try {
-  //     const res = await getProfile();
-  //
-  //     userStore.setUserInfo({
-  //       token,
-  //       username: res?.username,
-  //       display_name: res?.system_roles.map((item: any) => item.display_name),
-  //       avatar_url: avatarImage,
-  //       currentSite: 'https://jumpserver-test.cmdb.cc'
-  //     });
-  //
-  //     userStore.setCurrentUser({
-  //       token,
-  //       username: res?.username,
-  //       display_name: res?.system_roles.map((item: any) => item.display_name),
-  //       avatar_url: avatarImage,
-  //       currentSite: 'https://jumpserver-test.cmdb.cc'
-  //     });
-  //
-  //     if (res) {
-  //       const message = useMessage();
-  //       message.success('您已登录认证成功!');
-  //     }
-  //   } catch (e) {
-  //     showModal.value = false;
-  //   }
-  // });
-
   try {
     const res = await getProfile();
+
     if (res) {
-      const message = useMessage();
-      message.success('您已登录认证成功!');
+      notification.create({
+        type: 'success',
+        content: '您已登录认证成功!',
+        duration: 2000
+      });
     }
   } catch (e: any) {
     const status = e.response?.status;
+
     if (status === 401 || status === 403) {
       userStore.setToken('');
       showModal.value = true;
@@ -180,8 +165,11 @@ onMounted(async () => {
           });
 
           if (res) {
-            const message = useMessage();
-            message.success('您已登录认证成功!');
+            notification.create({
+              type: 'success',
+              content: '您已登录认证成功!',
+              duration: 2000
+            });
 
             mittBus.emit('search');
           }
