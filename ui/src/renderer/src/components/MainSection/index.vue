@@ -79,7 +79,7 @@ import type { DropdownOption } from 'naive-ui';
 import type { IConnectData } from '@renderer/store/interface';
 
 import { ClipboardList, PlugConnected } from '@vicons/tabler';
-import { ProtocolHandler24Regular } from '@vicons/fluent';
+import { ProtocolHandler24Regular, ArrowEnterLeft20Filled } from '@vicons/fluent';
 
 const { message } = createDiscreteApi(['message']);
 
@@ -122,6 +122,11 @@ const rightOptions: Ref<DropdownOption[]> = ref([
     key: 'fast-connection',
     type: 'render',
     render: renderCustomHeader(PlugConnected, '快速连接')
+  },
+  {
+    key: 'detail-message',
+    type: 'render',
+    render: renderCustomHeader(ArrowEnterLeft20Filled, '资产详情')
   },
   {
     key: 'header-divider',
@@ -183,6 +188,11 @@ const onClickRightOutside = () => {
       key: 'fast-connection',
       type: 'render',
       render: renderCustomHeader(PlugConnected, '快速连接')
+    },
+    {
+      key: 'detail-message',
+      type: 'render',
+      render: renderCustomHeader(ArrowEnterLeft20Filled, '资产详情')
     },
     {
       key: 'header-divider',
@@ -272,6 +282,10 @@ const selectItem = async (item: IListItem, _event: MouseEvent) => {
  * @param _event
  */
 const handleItemContextMenu = async (_item: IListItem, _event: MouseEvent) => {
+  _event.stopPropagation();
+
+  selectedItem.value = _item;
+
   try {
     const hasGetMessage: boolean = await getAssetDetailFromServer(_item.id);
 

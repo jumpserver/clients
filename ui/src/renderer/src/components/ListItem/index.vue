@@ -1,6 +1,8 @@
 <template>
   <!--  <n-popover :show-arrow="true" :delay="1000" style="width: 15rem">-->
-  <!--    <template #trigger> </template>-->
+  <!--    <template #trigger>-->
+  <!--      -->
+  <!--    </template>-->
   <!--    <n-descriptions label-placement="left" title="更多信息" :columns="1">-->
   <!--      <n-descriptions-item>-->
   <!--        <template #label>-->
