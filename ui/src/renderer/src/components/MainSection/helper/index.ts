@@ -54,7 +54,6 @@ export const renderCustomHeader = (
             default: () => [
               h(NIcon, {
                 size: '20',
-                color: '#fff',
                 component: component,
                 style: {
                   marginRight: '0.5rem'
@@ -63,8 +62,7 @@ export const renderCustomHeader = (
               h(
                 NText,
                 {
-                  depth: 1,
-                  strong: true
+                  depth: 1
                 },
                 { default: () => text }
               )

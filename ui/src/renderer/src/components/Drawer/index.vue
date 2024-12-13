@@ -13,8 +13,8 @@
     <n-drawer-content footer-style="border: unset;" body-content-style="padding: 15px 5px 40px">
       <template #header>
         <n-flex align="center" justify="space-between">
-          <n-text depth="1" v-if="!drawerDetailMessage">默认配置</n-text>
-          <n-text depth="1" v-else>资产详情</n-text>
+          <n-text depth="1">默认配置</n-text>
+          <!--          <n-text depth="1" v-else>资产详情</n-text>-->
 
           <n-flex>
             <n-icon
@@ -156,6 +156,27 @@
               </n-collapse>
             </n-card>
           </n-flex>
+
+          <!--          <n-flex class="mx-[15px]">-->
+          <!--            <n-card-->
+          <!--              :bordered="false"-->
+          <!--              size="small"-->
+          <!--              header-style="font-size: 13px;"-->
+          <!--              class="rounded-[10px] !bg-secondary"-->
+          <!--            >-->
+          <!--              <n-form size="small" :label-width="80" :model="formValue" :rules="rules">-->
+          <!--                <n-form-item label="名称" path="user.name">-->
+          <!--                  <n-input v-model:value="formValue.user.name" placeholder="输入姓名" disabled />-->
+          <!--                </n-form-item>-->
+          <!--                <n-form-item label="年龄" path="user.age">-->
+          <!--                  <n-input v-model:value="formValue.user.age" placeholder="输入年龄" disabled />-->
+          <!--                </n-form-item>-->
+          <!--                <n-form-item label="电话号码" path="phone">-->
+          <!--                  <n-input v-model:value="formValue.phone" placeholder="电话号码" disabled />-->
+          <!--                </n-form-item>-->
+          <!--              </n-form>-->
+          <!--            </n-card>-->
+          <!--          </n-flex>-->
         </template>
       </n-scrollbar>
     </n-drawer-content>
@@ -186,7 +207,7 @@ import type { IItemDetail } from '@renderer/components/MainSection/interface';
 
 const props = withDefaults(defineProps<{ active: boolean; drawerDetailMessage?: IItemDetail }>(), {
   active: false,
-  drawerDetailMessage: {} as IItemDetail
+  drawerDetailMessage: () => ({}) as IItemDetail
 });
 
 const route = useRoute();
@@ -202,6 +223,32 @@ const currentOption: Ref<IClient[] | null> = ref(null);
 const platform = ref('');
 
 const conf = new Conf();
+const rules = {
+  user: {
+    name: {
+      required: true,
+      message: '请输入姓名',
+      trigger: 'blur'
+    },
+    age: {
+      required: true,
+      message: '请输入年龄',
+      trigger: ['input', 'blur']
+    }
+  },
+  phone: {
+    required: true,
+    message: '请输入电话号码',
+    trigger: ['input']
+  }
+};
+const formValue = ref({
+  user: {
+    name: '',
+    age: ''
+  },
+  phone: ''
+});
 
 watch([charset, is_backspace_as_ctrl_h, rdp_resolution], () => {
   settingStore.charset = charset.value;
@@ -315,7 +362,7 @@ const initPlatformData = async () => {
 onMounted(() => {
   window.electron.ipcRenderer.send('get-platform');
   window.electron.ipcRenderer.on('platform-response', (_event, _platform) => {
-    console.log(_platform)
+    console.log(_platform);
     platform.value = _platform;
     initPlatformData();
   });

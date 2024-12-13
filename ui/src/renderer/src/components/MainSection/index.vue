@@ -61,10 +61,10 @@ import mittBus from '@renderer/eventBus';
 import ListItem from '../ListItem/index.vue';
 
 import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
-import { moveElementToEnd, renderCustomHeader } from '@renderer/components/MainSection/helper';
+import { moveElementToEnd, renderCustomHeader } from './helper/index';
 import { useHistoryStore } from '@renderer/store/module/historyStore';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { createDiscreteApi, useLoadingBar } from 'naive-ui';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useDebounceFn } from '@vueuse/core';
 
 import { Conf } from 'electron-conf/renderer';
@@ -159,7 +159,7 @@ const emit = defineEmits(['loadMore']);
 conf.get('defaultSetting').then(res => {
   if (res) {
     // @ts-ignore
-    currentLayout.value = res.layout;
+    currentLayout.value = res?.layout;
   }
 });
 
@@ -167,6 +167,9 @@ const handleLoad = () => {
   emit('loadMore');
 };
 
+/**
+ * @description 重置左键菜单
+ */
 const resetLeftOptions = () => {
   leftOptions.value = [
     {
@@ -179,7 +182,11 @@ const resetLeftOptions = () => {
       type: 'divider'
     }
   ];
-}
+};
+
+/**
+ * @description 重置右键菜单
+ */
 const resetRightOptions = () => {
   rightOptions.value = [
     {
@@ -202,7 +209,8 @@ const resetRightOptions = () => {
       render: renderCustomHeader(ProtocolHandler24Regular, '连接协议')
     }
   ];
-}
+};
+
 /**
  * @description 关闭 dropdown
  */
@@ -276,7 +284,8 @@ const selectItem = useDebounceFn(async (item: IListItem, _event: MouseEvent) => 
         .forEach((item: Permed_accounts) => {
           leftOptions.value.push({
             key: item.id,
-            label: item.name +
+            label:
+              item.name +
               (item.alias === item.username || item.alias.startsWith('@')
                 ? ''
                 : '(' + item.username + ')')
@@ -305,6 +314,7 @@ const selectItem = useDebounceFn(async (item: IListItem, _event: MouseEvent) => 
 const handleContextMenuWrapper = (item: IListItem, event: MouseEvent) => {
   event.stopPropagation();
 
+  loadingBar.start();
   handleItemContextMenu(item, event);
 };
 
@@ -312,7 +322,6 @@ const handleContextMenuWrapper = (item: IListItem, event: MouseEvent) => {
  * @description contextmenu 的回调
  */
 const handleItemContextMenu = useDebounceFn(async (_item: IListItem, _event: MouseEvent) => {
-  loadingBar.start();
   selectedItem.value = _item;
 
   try {
@@ -361,6 +370,7 @@ const handleAccountSelect = (key: string) => {
     connectData.value.account = currentAccount.name;
   }
 
+  resetLeftOptions();
   showLeftDropdown.value = false;
 };
 
@@ -369,6 +379,20 @@ const handleAccountSelect = (key: string) => {
  * @param key
  */
 const handleSelect = async (key: string) => {
+  if (!connectData.value.account) {
+    message.error('请先选择账号');
+    return;
+  }
+
+  const isCurrentIndex = detailMessage.value.permed_accounts.findIndex(
+    item => item.username === connectData.value.account
+  );
+
+  if (isCurrentIndex === -1) {
+    message.error('当前账号不在资产账号列表中');
+    return;
+  }
+
   const currentProtocol =
     key === 'fast-connection'
       ? detailMessage.value.permed_protocols[0]
@@ -396,7 +420,7 @@ const handleSelect = async (key: string) => {
       }
 
       try {
-        connectData.value.protocol = currentProtocol.name
+        connectData.value.protocol = currentProtocol.name;
         const token = await createConnectToken(connectData.value, method);
 
         if (token) {
@@ -429,6 +453,8 @@ const handleSelect = async (key: string) => {
       }
     }
   }
+
+  resetRightOptions();
   showRightDropdown.value = false;
 };
 
@@ -436,7 +462,7 @@ const handleSelect = async (key: string) => {
  * @description 快速连接
  */
 const handleFastConnect = async () => {
-  await handleSelect('fast-connection')
+  await handleSelect('fast-connection');
 };
 
 onMounted(() => {
