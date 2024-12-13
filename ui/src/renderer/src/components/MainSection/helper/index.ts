@@ -164,7 +164,11 @@ export const useAccountModal = (type: string) => {
                 default: () =>
                   h(NInput, {
                     value: inputUsername.value,
-                    placeholder: '用户名'
+                    clearable: true,
+                    placeholder: '用户名',
+                    onUpdateValue: value => {
+                      inputUsername.value = value;
+                    }
                   })
               }
             ),
@@ -179,6 +183,7 @@ export const useAccountModal = (type: string) => {
                   h(NInput, {
                     value: inputPassword.value,
                     type: 'password',
+                    clearable: true,
                     showPasswordOn: 'click',
                     placeholder: '请输入密码',
                     onUpdateValue: value => {
