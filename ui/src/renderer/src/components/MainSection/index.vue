@@ -61,7 +61,7 @@ import mittBus from '@renderer/eventBus';
 import ListItem from '../ListItem/index.vue';
 
 import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
-import { moveElementToEnd, renderCustomHeader } from './helper/index';
+import { moveElementToEnd, renderCustomHeader, useAccountModal } from './helper/index';
 import { useHistoryStore } from '@renderer/store/module/historyStore';
 import { createDiscreteApi, useLoadingBar } from 'naive-ui';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
@@ -368,6 +368,21 @@ const handleAccountSelect = (key: string) => {
   if (currentAccount) {
     connectData.value.asset = detailMessage.value.id;
     connectData.value.account = currentAccount.name;
+
+    console.log(currentAccount.name);
+
+    switch (currentAccount.name) {
+      case '同名账号':
+        console.log(1);
+        break;
+      case '手动输入':
+        useAccountModal('手动输入');
+
+        connectData.value.account = '';
+        break;
+      default:
+        message.success(`账号 ${currentAccount.name} 已选择`);
+    }
   }
 
   resetLeftOptions();
