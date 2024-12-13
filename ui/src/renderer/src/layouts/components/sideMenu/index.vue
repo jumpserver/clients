@@ -77,16 +77,17 @@
 </template>
 
 <script setup lang="ts">
+import { NAvatar, NText, NPopover, NTag } from 'naive-ui';
 import { ArrowsHorizontal } from '@vicons/carbon';
-import { NAvatar, NText } from 'naive-ui';
 import { menuOptions } from './config';
+import { computed } from 'vue';
 
 import mittBus from '@renderer/eventBus';
 
-import { storeToRefs } from 'pinia';
-import { useRouter } from 'vue-router';
 import { useUserStore } from '@renderer/store/module/userStore';
-import { computed, h, nextTick, onMounted } from 'vue';
+import { h, nextTick, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
 
 import type { SelectOption, SelectRenderLabel } from 'naive-ui';
 import type { IUserInfo } from '@renderer/store/interface';
@@ -144,7 +145,6 @@ const renderLabel: SelectRenderLabel = option => {
     },
     [
       h(NAvatar, {
-        //@ ts-ignore
         src: option.avatar_url as string,
         round: true,
         size: 'medium',
@@ -163,10 +163,14 @@ const renderLabel: SelectRenderLabel = option => {
         [
           h('div', null, [option.label as string]),
           h(
-            NText,
-            { depth: 3, tag: 'div' },
+            NTag,
             {
-              default: () => option.display_name
+              bordered: false,
+              size: 'small',
+              type: 'info'
+            },
+            {
+              default: () => `来源：${option.currentSite}`
             }
           )
         ]
