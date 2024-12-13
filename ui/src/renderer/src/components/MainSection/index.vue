@@ -36,7 +36,7 @@
       :show="showLeftDropdown"
       :on-clickoutside="onClickLeftOutside"
       @select="handleAccountSelect"
-      class="w-40"
+      class="min-w-40"
     />
 
     <!-- 右键点击下拉菜单 -->
@@ -51,7 +51,7 @@
       :show="showRightDropdown"
       :on-clickoutside="onClickRightOutside"
       @select="handleSelect"
-      class="w-40"
+      class="min-w-40"
     />
   </div>
 </template>
@@ -377,29 +377,31 @@ const handleAccountSelect = (key: string) => {
     connectData.value.input_secret = ''
     const showManualUsernameInput = !currentAccount.has_secret;
 
-    console.log(currentAccount.name);
-
     switch (currentAccount.alias) {
       case '@USER':
-        connectData.value.input_username = currentUser.value!.username;
+        // 同名账号
         connectData.value.account = '@USER';
+        connectData.value.input_username = currentUser.value!.username;
         if (showManualUsernameInput){
           const res = useAccountModal('@USER');
-          console.log(res)
+          connectData.value.input_secret = res.inputPassword;
         }
         break;
       case '@INPUT':
-        const res = useAccountModal('@INPUT');
-        console.log(res)
+        // 手动输入
         connectData.value.account = '@INPUT';
+        const res = useAccountModal('@INPUT');
+        connectData.value.input_username = res.inputUsername;
+        connectData.value.input_secret = res.inputPassword;
         break;
       default:
-        if (showManualPasswdInput){
-          const res = useAccountModal('@INSIDE');
-          console.log(res)
+        connectData.value.input_username = currentAccount.username;
+        if (showManualUsernameInput){
+          const res = useAccountModal('@OTHER');
+          connectData.value.input_secret = res.inputPassword;
         }
-        message.success(`账号 ${currentAccount.name} 已选择`);
     }
+    message.success(`账号 ${currentAccount.name} 已选择`);
   }
 
   resetLeftOptions();

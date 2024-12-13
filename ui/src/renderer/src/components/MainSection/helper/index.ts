@@ -129,11 +129,8 @@ export const useAccountModal = (type: string) => {
     configProviderProps: configProviderPropsRef
   });
 
+  // 除 @INPUT 外，其他也可能需要手动输入密码
   const modalTitle = type !== '@INPUT' ? '输入密码' : '输入账号密码';
-
-  const handleConfirm = () => {
-    console.log(1);
-  };
 
   const m = modal.create({
     title: modalTitle,
@@ -208,7 +205,7 @@ export const useAccountModal = (type: string) => {
                     {
                       type: 'primary',
                       size: 'medium',
-                      onClick: () => handleConfirm()
+                      onClick: () => m.destroy()
                     },
                     {
                       default: () => '确认'
@@ -222,7 +219,7 @@ export const useAccountModal = (type: string) => {
   });
 
   return {
-    inputPassword: inputPassword.value,
-    inputUsername: inputUsername.value
+    inputPassword: inputPassword,
+    inputUsername: inputUsername
   };
 };
