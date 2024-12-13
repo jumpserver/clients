@@ -60,14 +60,15 @@
 import mittBus from '@renderer/eventBus';
 import ListItem from '../ListItem/index.vue';
 
-import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
-import { moveElementToEnd, renderCustomHeader, useAccountModal } from './helper/index';
-import { useHistoryStore } from '@renderer/store/module/historyStore';
-import { createDiscreteApi, useLoadingBar } from 'naive-ui';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { useDebounceFn } from '@vueuse/core';
+import {createConnectToken, getAssetDetail, getLocalClientUrl} from '@renderer/api/modals/asset';
+import {moveElementToEnd, renderCustomHeader, useAccountModal} from './helper/index';
+import {useHistoryStore} from '@renderer/store/module/historyStore';
+import type {DropdownOption} from 'naive-ui';
+import {createDiscreteApi, useLoadingBar} from 'naive-ui';
+import {computed, onBeforeUnmount, onMounted, Ref, ref} from 'vue';
+import {useDebounceFn} from '@vueuse/core';
 
-import { Conf } from 'electron-conf/renderer';
+import {Conf} from 'electron-conf/renderer';
 
 import type {
   IItemDetail,
@@ -75,14 +76,14 @@ import type {
   Permed_accounts,
   Permed_protocols
 } from '@renderer/components/MainSection/interface';
-import type { Ref } from 'vue';
-import type { DropdownOption } from 'naive-ui';
-import type { IConnectData } from '@renderer/store/interface';
+import type {IConnectData} from '@renderer/store/interface';
 
-import { ClipboardList, PlugConnected } from '@vicons/tabler';
-import { ArrowEnterLeft20Filled, ProtocolHandler24Regular } from '@vicons/fluent';
+import {ClipboardList, PlugConnected} from '@vicons/tabler';
+import {ArrowEnterLeft20Filled, ProtocolHandler24Regular} from '@vicons/fluent';
+import {storeToRefs} from "pinia";
+import {useUserStore} from "@renderer/store/module/userStore";
 
-const { message } = createDiscreteApi(['message']);
+const {message} = createDiscreteApi(['message']);
 
 withDefaults(
   defineProps<{
@@ -98,6 +99,10 @@ const conf = new Conf();
 const loadingBar = useLoadingBar();
 // @ts-ignore
 const historyStore = useHistoryStore();
+
+const userStore = useUserStore();
+const {currentUser: storeCurrentUser} = storeToRefs(userStore);
+const currentUser = computed(() => storeCurrentUser?.value);
 
 const xLeft = ref(0);
 const yLeft = ref(0);
@@ -368,19 +373,31 @@ const handleAccountSelect = (key: string) => {
   if (currentAccount) {
     connectData.value.asset = detailMessage.value.id;
     connectData.value.account = currentAccount.name;
+    connectData.value.input_username = ''
+    connectData.value.input_secret = ''
+    const showManualUsernameInput = !currentAccount.has_secret;
 
     console.log(currentAccount.name);
 
-    switch (currentAccount.name) {
-      case '同名账号':
-        console.log(1);
+    switch (currentAccount.alias) {
+      case '@USER':
+        connectData.value.input_username = currentUser.value!.username;
+        connectData.value.account = '@USER';
+        if (showManualUsernameInput){
+          const res = useAccountModal('@USER');
+          console.log(res)
+        }
         break;
-      case '手动输入':
-        useAccountModal('手动输入');
-
-        connectData.value.account = '';
+      case '@INPUT':
+        const res = useAccountModal('@INPUT');
+        console.log(res)
+        connectData.value.account = '@INPUT';
         break;
       default:
+        if (showManualPasswdInput){
+          const res = useAccountModal('@INSIDE');
+          console.log(res)
+        }
         message.success(`账号 ${currentAccount.name} 已选择`);
     }
   }
@@ -400,7 +417,8 @@ const handleSelect = async (key: string) => {
   }
 
   const isCurrentIndex = detailMessage.value.permed_accounts.findIndex(
-    item => item.username === connectData.value.account
+    item => item.name === connectData.value.account
+      || item.alias === connectData.value.account
   );
 
   if (isCurrentIndex === -1) {
@@ -439,7 +457,7 @@ const handleSelect = async (key: string) => {
         const token = await createConnectToken(connectData.value, method);
 
         if (token) {
-          message.success('连接成功', { closable: true });
+          message.success('连接成功', {closable: true});
 
           // todo)) 设置历史
           // historyStore.setHistorySession({ ...selectedItem.value });

@@ -129,13 +129,13 @@ export const useAccountModal = (type: string) => {
     configProviderProps: configProviderPropsRef
   });
 
-  const modalTitle = type === '手动输入' ? '手动输入账号密码' : '输入账号密码';
+  const modalTitle = type !== '@INPUT' ? '输入密码' : '输入账号密码';
 
   const handleConfirm = () => {
     console.log(1);
   };
 
-  modal.create({
+  const m = modal.create({
     title: modalTitle,
     preset: 'card',
     bordered: false,
@@ -158,7 +158,8 @@ export const useAccountModal = (type: string) => {
               NFormItem,
               {
                 label: '用户名',
-                path: 'username'
+                path: 'username',
+                style: { display: type !== '@INPUT' ? 'none' : '' }
               },
               {
                 default: () =>
