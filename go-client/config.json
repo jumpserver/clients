@@ -543,7 +543,7 @@
           "en": "Terminal is a virtual terminal application software on the MacOS operating system, located in the \"Utilities\" folder."
         },
         "download_url": "",
-        "type": "terminal",
+        "type": "databases",
         "path": "Terminal",
         "arg_format": "",
         "match_first": [
@@ -686,7 +686,7 @@
           "en": "Terminal is a virtual terminal application software on the Linux operating system."
         },
         "download_url": "",
-        "type": "terminal",
+        "type": "databases",
         "path": "Terminal",
         "arg_format": "",
         "match_first": [
