@@ -65,12 +65,11 @@
                 <template #label>
                   <n-tag
                     type="success"
-                    round
                     size="small"
                     class="font-bold tracking-wide"
                     :bordered="false"
                   >
-                    资产名称
+                    {{ t('Common.AssetName') }}
                   </n-tag>
                 </template>
 
@@ -83,39 +82,15 @@
                   </n-text>
                 </n-popover>
               </n-descriptions-item>
-              <!-- 暂时舍弃 -->
-              <!--              <n-descriptions-item content-style="width: 5rem" :span="2">-->
-              <!--                <template #label>-->
-              <!--                  <n-tag-->
-              <!--                    type="info"-->
-              <!--                    round-->
-              <!--                    size="small"-->
-              <!--                    class="font-bold tracking-wide"-->
-              <!--                    :bordered="false"-->
-              <!--                  >-->
-              <!--                    资产地址-->
-              <!--                  </n-tag>-->
-              <!--                </template>-->
-
-              <!--                <n-popover>-->
-              <!--                  <template #trigger>-->
-              <!--                    {{ itemData.address }}-->
-              <!--                  </template>-->
-              <!--                  <n-text depth="1">-->
-              <!--                    {{ itemData.address }}-->
-              <!--                  </n-text>-->
-              <!--                </n-popover>-->
-              <!--              </n-descriptions-item>-->
               <n-descriptions-item content-style="width: 5rem">
                 <template #label>
                   <n-tag
                     type="info"
-                    round
                     size="small"
                     class="font-bold tracking-wider"
                     :bordered="false"
                   >
-                    归属组织
+                    {{ t('Common.Organization') }}
                   </n-tag>
                 </template>
                 <n-popover>
@@ -136,16 +111,9 @@
                 <template #trigger>
                   {{ itemData.name }}
                 </template>
-                资产名称: {{ itemData.name }}
+                {{ t('Message.Organization') }}: {{ itemData.name }}
               </n-popover>
             </n-ellipsis>
-            <!-- 暂时舍弃 -->
-            <!--            <n-ellipsis :style="{ maxWidth: layout === 'grid' ? '110px' : '' }">-->
-            <!--              {{ itemData.address }}-->
-            <!--              <template #tooltip>-->
-            <!--                <div style="text-align: center">资产地址: {{ itemData.address }}</div>-->
-            <!--              </template>-->
-            <!--            </n-ellipsis>-->
           </template>
         </n-flex>
         <div></div>
@@ -159,6 +127,7 @@ import { DataBase } from '@vicons/carbon';
 import { Terminal2 } from '@vicons/tabler';
 import { DesktopWindowsFilled } from '@vicons/material';
 
+import { useI18n } from 'vue-i18n';
 import { watch, shallowRef } from 'vue';
 
 import type { IListItem } from '@renderer/components/MainSection/interface';
@@ -169,6 +138,7 @@ const props = withDefaults(defineProps<{ layout: string; itemData: IListItem }>(
   itemData: () => ({}) as IListItem
 });
 
+const { t } = useI18n();
 const renderedIcon = shallowRef();
 
 watch(

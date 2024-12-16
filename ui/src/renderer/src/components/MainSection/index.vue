@@ -3,7 +3,7 @@
     <n-flex class="h-[calc(100vh-135px)]">
       <n-list hoverable clickable :show-divider="false" class="w-full h-full">
         <template #header>
-          <n-h3 class="h-full" strong> Hosts</n-h3>
+          <n-h3 class="h-full" strong> {{ t('Common.AssetsList') }} </n-h3>
         </template>
         <n-infinite-scroll
           style="max-height: calc(100vh - 200px)"
@@ -12,11 +12,11 @@
           @load="handleLoad"
         >
           <ListItem
-            v-for="(item, index) of listData"
-            :key="index"
+            v-for="item of listData"
+            :key="item.id"
             :item-data="item"
             :layout="currentLayout"
-            :class="{ 'bg-secondary': selectedItem.name === item.name }"
+            :class="{ 'bg-secondary': selectedItem.id === item.id }"
             @click="selectItem(item, $event)"
             @contextmenu="handleContextMenuWrapper(item, $event)"
           />
@@ -64,8 +64,9 @@ import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer
 import { moveElementToEnd, renderCustomHeader, useAccountModal } from './helper/index';
 import { useHistoryStore } from '@renderer/store/module/historyStore';
 import { createDiscreteApi, useLoadingBar } from 'naive-ui';
-import { computed, onBeforeUnmount, onMounted, Ref, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useDebounceFn } from '@vueuse/core';
+import { useI18n } from 'vue-i18n';
 
 import { Conf } from 'electron-conf/renderer';
 
@@ -75,15 +76,18 @@ import type {
   Permed_accounts,
   Permed_protocols
 } from '@renderer/components/MainSection/interface';
+import type { Ref } from 'vue';
 import type { DropdownOption } from 'naive-ui';
 import type { IConnectData } from '@renderer/store/interface';
 
+import { computed } from 'vue';
 import { ClipboardList, PlugConnected } from '@vicons/tabler';
 import { ArrowEnterLeft20Filled, ProtocolHandler24Regular } from '@vicons/fluent';
 
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@renderer/store/module/userStore';
 
+const { t } = useI18n();
 const { message } = createDiscreteApi(['message']);
 
 withDefaults(
@@ -120,7 +124,7 @@ const leftOptions: Ref<DropdownOption[]> = ref([
   {
     key: 'header',
     type: 'render',
-    render: renderCustomHeader(ClipboardList, '账号列表')
+    render: renderCustomHeader(ClipboardList, `${t('Common.AccountList')}`)
   },
   {
     key: 'header-divider',
@@ -131,14 +135,14 @@ const rightOptions: Ref<DropdownOption[]> = ref([
   {
     key: 'fast-connection',
     type: 'render',
-    render: renderCustomHeader(PlugConnected, '快速连接', 'fast-connection')
+    render: renderCustomHeader(PlugConnected, `${t('Common.QuickConnect')}`, 'fast-connection')
   },
   {
     key: 'detail-message',
     type: 'render',
     render: renderCustomHeader(
       ArrowEnterLeft20Filled,
-      '资产详情',
+      `${t('Common.AssetDetails')}`,
       'detail-message',
       detailMessage,
       () => {
@@ -153,7 +157,7 @@ const rightOptions: Ref<DropdownOption[]> = ref([
   {
     key: 'connect-protocol',
     type: 'render',
-    render: renderCustomHeader(ProtocolHandler24Regular, '连接协议')
+    render: renderCustomHeader(ProtocolHandler24Regular, `${t('Common.ConnectionProtocol')}`)
   }
 ]);
 
@@ -181,7 +185,7 @@ const resetLeftOptions = () => {
     {
       key: 'header',
       type: 'render',
-      render: renderCustomHeader(ClipboardList, '账号列表')
+      render: renderCustomHeader(ClipboardList, `${t('Common.AccountList')}`)
     },
     {
       key: 'header-divider',
@@ -198,12 +202,16 @@ const resetRightOptions = () => {
     {
       key: 'fast-connection',
       type: 'render',
-      render: renderCustomHeader(PlugConnected, '快速连接', 'fast-connection')
+      render: renderCustomHeader(PlugConnected, `${t('Common.QuickConnect')}`, 'fast-connection')
     },
     {
       key: 'detail-message',
       type: 'render',
-      render: renderCustomHeader(ArrowEnterLeft20Filled, '资产详情', 'detail-message')
+      render: renderCustomHeader(
+        ArrowEnterLeft20Filled,
+        `${t('Common.AssetDetails')}`,
+        'detail-message'
+      )
     },
     {
       key: 'header-divider',
@@ -212,7 +220,7 @@ const resetRightOptions = () => {
     {
       key: 'connect-protocol',
       type: 'render',
-      render: renderCustomHeader(ProtocolHandler24Regular, '连接协议')
+      render: renderCustomHeader(ProtocolHandler24Regular, `${t('Common.ConnectionProtocol')}`)
     }
   ];
 };
@@ -267,7 +275,7 @@ const getAssetDetailFromServer = async (id: string): Promise<boolean> => {
     return Promise.resolve(false);
   } catch (e) {
     console.log(e);
-    message.error('获取资产数列表失败');
+    message.error(`${t('Message.ErrorGetAssetDetail')}`);
     return Promise.resolve(false);
   }
 };
@@ -306,7 +314,7 @@ const selectItem = useDebounceFn(async (item: IListItem, _event: MouseEvent) => 
       yLeft.value = _event.clientY;
     }
   } catch (e) {
-    message.error('获取资产数据详情失败');
+    message.error(`${t('Message.ErrorGetAssetDetail')}`);
     loadingBar.error();
     showLeftDropdown.value = false;
   }
@@ -409,7 +417,7 @@ const handleAccountSelect = (key: string) => {
           connectData.value.input_secret = inputPassword.value;
         }
     }
-    message.success(`账号 ${currentAccount.name} 已选择`);
+    message.success(`${t('Message.Account')} ${currentAccount.name} ${t('Message.Selected')}`);
   }
 
   resetLeftOptions();
@@ -422,7 +430,7 @@ const handleAccountSelect = (key: string) => {
  */
 const handleSelect = async (key: string) => {
   if (!connectData.value.account) {
-    message.error('请先选择账号');
+    message.error(`${t('Message.SelectAccountFirst')}`);
     return;
   }
 
@@ -431,7 +439,7 @@ const handleSelect = async (key: string) => {
   );
 
   if (isCurrentIndex === -1) {
-    message.error('当前账号不在资产账号列表中');
+    message.error(`${t('Message.SelectedAccountError')})`);
     return;
   }
 
@@ -466,7 +474,7 @@ const handleSelect = async (key: string) => {
         const token = await createConnectToken(connectData.value, method);
 
         if (token) {
-          message.success('连接成功', { closable: true });
+          message.success(`${t('Message.ConnectSuccess')}`, { closable: true });
 
           // todo)) 设置历史
           // historyStore.setHistorySession({ ...selectedItem.value });
@@ -483,12 +491,13 @@ const handleSelect = async (key: string) => {
         if (errorData) {
           // 除开通知和允许，其余情况一率弹窗
           if (errorData?.code !== 'notice') {
-            message.error(`当前资产仅支持通过 Web 方式访问（ACL：Action）`);
+            // todo)) ACL 的 Action 区别加在 message 中
+            message.error(`${t('Message.AssetNotice')}`);
             return;
           }
 
           if (errorData?.code !== 'reject') {
-            message.error(`当前资产拒绝连接`);
+            message.error(`${t('Message.AssetDeny')}`);
             return;
           }
         }

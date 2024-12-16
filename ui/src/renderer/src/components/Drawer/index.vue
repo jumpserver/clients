@@ -92,10 +92,10 @@
                       <n-popover>
                         <template #trigger>
                           <span class="truncate">
-                            {{ item.comment }}
+                            {{ item.comment.en ? item.comment.en : '暂无说明' }}
                           </span>
                         </template>
-                        {{ item.comment }}
+                        {{ item.comment.en ? item.comment.en : '暂无说明' }}
                       </n-popover>
                     </n-form-item>
                     <n-form-item
@@ -223,32 +223,6 @@ const currentOption: Ref<IClient[] | null> = ref(null);
 const platform = ref('');
 
 const conf = new Conf();
-const rules = {
-  user: {
-    name: {
-      required: true,
-      message: '请输入姓名',
-      trigger: 'blur'
-    },
-    age: {
-      required: true,
-      message: '请输入年龄',
-      trigger: ['input', 'blur']
-    }
-  },
-  phone: {
-    required: true,
-    message: '请输入电话号码',
-    trigger: ['input']
-  }
-};
-const formValue = ref({
-  user: {
-    name: '',
-    age: ''
-  },
-  phone: ''
-});
 
 watch([charset, is_backspace_as_ctrl_h, rdp_resolution], () => {
   settingStore.charset = charset.value;
@@ -362,7 +336,6 @@ const initPlatformData = async () => {
 onMounted(() => {
   window.electron.ipcRenderer.send('get-platform');
   window.electron.ipcRenderer.on('platform-response', (_event, _platform) => {
-    console.log(_platform);
     platform.value = _platform;
     initPlatformData();
   });

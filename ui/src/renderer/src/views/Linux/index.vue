@@ -13,6 +13,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useUserStore } from '@renderer/store/module/userStore';
 import { getAssets } from '@renderer/api/modals/asset';
 import { useMessage } from 'naive-ui';
+import { useI18n } from 'vue-i18n';
 
 import mittBus from '@renderer/eventBus';
 import MainSection from '@renderer/components/MainSection/index.vue';
@@ -23,6 +24,7 @@ defineProps<{
   active: boolean;
 }>();
 
+const { t } = useI18n();
 const message = useMessage();
 const userStore = useUserStore();
 const params = {
@@ -47,7 +49,7 @@ const handleScroll = async () => {
   try {
     await getAssetsFromServer();
   } catch (e) {
-    message.error('获取列表数据异常，请刷新后重试', { closable: true });
+    message.error(`${t('Message.ListErrorOccurred')}`, { closable: true });
   }
 };
 
@@ -83,7 +85,7 @@ const getAssetsFromServer = async (searchInput?: string) => {
   } catch (e) {
     loadingStatus.value = false;
     hasMore.value = false;
-    message.error('获取资产数据列表失败', { closable: true });
+    message.error(`${t('Message.FailedRetrieveAssetDataList')}`, { closable: true });
   }
 };
 

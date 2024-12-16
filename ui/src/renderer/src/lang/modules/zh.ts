@@ -13,7 +13,23 @@ export default {
     Configured: '已配置',
     NotConfigured: '未配置',
     OracleOCI: '本地客户端连 Oracle 数据库需要使用 21.0 及以上版本 OCI',
-    SystemComesWith: '系统自带'
+    SystemComesWith: '系统自带',
+    UnLogged: '未登录',
+    SwitchAccount: '切换账号',
+    AddAccount: '新增账号',
+    RemoveAccount: '移除账号',
+    DataSource: '来源',
+    Search: '搜索',
+    LoginModalPlaceholder: '请填写完整的域名或者 ip 站点地址',
+    SignIn: '登录',
+    Tip: '提示',
+    AssetsList: '资产列表信息',
+    AccountList: '账号列表',
+    QuickConnect: '快速连接',
+    AssetDetails: '资产详情',
+    ConnectionProtocol: '连接协议',
+    AssetName: '资产名称',
+    Organization: '归属组织'
   },
   Dialog: {
     'Save&Default': '保存且默认',
@@ -27,27 +43,29 @@ export default {
     Database: '数据库',
     AboutUs: '关于我们',
     Language: '语言设置',
-    Back: '返回'
-  },
-  AboutUs: {
-    Author: '作者',
-    Version: '版本',
-    Copyright: '版权公告',
-    AllRightsReserved: '版权所有',
-    OfficialWebsite: '产品官网',
-    OnlineDocumentation: '在线文档',
-    KnowledgeBase: '知识库',
-    AboutUs: '关于我们'
+    Back: '返回',
+    Favorite: '收藏',
+    History: '历史记录'
   },
   Language: {
     ChooseLanguage: '选择语言'
   },
-  Login: {
-    LoginCheck: '登录',
-    Username: '用户名',
-    Password: '密码',
-    Remember: '记住我',
-    EnterUsername: '请输入用户名',
-    EnterPassword: '请输入密码'
+  Message: {
+    FailedRetrieveAssetDataList: '获取资产数据列表失败!',
+    ListErrorOccurred: '获取列表数据异常，请刷新后重试!',
+    AuthenticatedSuccess: '您已登录认证成功!',
+    EnterSiteAddress: '请输入站点地址!',
+    ClickSigInToAuth: '请点击登录进行认证!',
+    EnterTheCorrectSite: '请输入正确的站点地址!',
+    ErrorSiteInput: '站点信息不符合规则!',
+    ErrorSiteTip: '请输入带有 http:// 或 https:// 协议的站点地址!',
+    ErrorGetAssetDetail: '获取资产数列表失败',
+    Account: '账号',
+    Selected: '已选择',
+    SelectAccountFirst: '请先选择账号',
+    SelectedAccountError: '当前账号不在资产账号列表中',
+    ConnectSuccess: '连接成功',
+    AssetDeny: '当前资产拒绝连接',
+    AssetNotice: '当前资产仅支持通过 Web 方式访问'
   }
 };

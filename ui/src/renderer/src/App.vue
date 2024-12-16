@@ -1,10 +1,14 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { darkThemeOverrides, lightThemeOverrides } from './overrides';
-import { darkTheme, enUS, zhCN, lightTheme, createDiscreteApi } from 'naive-ui';
+import { darkTheme, enUS, zhCN, lightTheme } from 'naive-ui';
 
-import { useUserStore } from '@renderer/store/module/userStore';
-import { nextTick, onBeforeUnmount, onMounted, ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { createDiscreteApi } from 'naive-ui';
 import { getProfile } from '@renderer/api/modals/user';
+import { useUserStore } from '@renderer/store/module/userStore';
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+
 import { Conf } from 'electron-conf/renderer';
 
 import type { ConfigProviderProps } from 'naive-ui';
@@ -12,6 +16,7 @@ import type { ConfigProviderProps } from 'naive-ui';
 import mittBus from '@renderer/eventBus';
 import LoginModal from '@renderer/components/LoginModal/index.vue';
 
+const { t, locale } = useI18n();
 const conf = new Conf();
 
 const iconImage = ref('');
@@ -39,6 +44,29 @@ const configProviderPropsRef = computed<ConfigProviderProps>(() => ({
 const { notification } = createDiscreteApi(['notification'], {
   configProviderProps: configProviderPropsRef
 });
+
+/**
+ * @description 切换语言
+ */
+const handleLangChange = async (lang: string) => {
+  const currentSettings = (await conf.get('defaultSetting')) as Record<string, any>;
+
+  switch (lang) {
+    case 'zh': {
+      defaultLang.value = 'en';
+      break;
+    }
+    case 'en': {
+      defaultLang.value = 'zh';
+      break;
+    }
+  }
+
+  await conf.set('defaultSetting', {
+    ...currentSettings,
+    language: defaultLang.value
+  });
+};
 
 /**
  * @description 切换主题
@@ -123,7 +151,7 @@ onMounted(async () => {
     if (res) {
       notification.create({
         type: 'success',
-        content: '您已登录认证成功!',
+        content: t('Message.AuthenticatedSuccess'),
         duration: 2000
       });
     }
@@ -167,7 +195,7 @@ onMounted(async () => {
           if (res) {
             notification.create({
               type: 'success',
-              content: '您已登录认证成功!',
+              content: t('Message.AuthenticatedSuccess'),
               duration: 2000
             });
 
@@ -181,20 +209,22 @@ onMounted(async () => {
   });
 
   mittBus.on('addAccount', handleAddAccount);
-  mittBus.on('removeAccount', handleRemoveAccount);
+  mittBus.on('changeLang', handleLangChange);
   mittBus.on('changeTheme', handleThemeChange);
+  mittBus.on('removeAccount', handleRemoveAccount);
 });
 
 onBeforeUnmount(() => {
   mittBus.off('addAccount', handleAddAccount);
-  mittBus.off('removeAccount', handleRemoveAccount);
+  mittBus.off('changeLang', handleLangChange);
   mittBus.off('changeTheme', handleThemeChange);
+  mittBus.off('removeAccount', handleRemoveAccount);
 });
 </script>
 
 <template>
   <n-config-provider
-    :locale="defaultLang === 'zhCN' ? zhCN : enUS"
+    :locale="defaultLang === 'zh' ? zhCN : enUS"
     :theme="defaultTheme === 'dark' ? darkTheme : lightTheme"
     :class="defaultTheme === 'dark' ? 'theme-dark' : 'theme-light'"
     :themeOverrides="defaultTheme === 'dark' ? darkThemeOverrides : lightThemeOverrides"

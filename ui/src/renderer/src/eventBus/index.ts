@@ -6,6 +6,7 @@ type Event = {
   search: any;
   addAccount: any;
   changeTheme: any;
+  changeLang: any;
   changeLayout: any;
   createDrawer: void;
   connectAsset: void;
