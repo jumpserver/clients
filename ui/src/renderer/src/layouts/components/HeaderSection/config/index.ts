@@ -17,19 +17,19 @@ export const layoutOption: Array<SelectOption> = [
 
 export const sortOption: Array<SelectOption> = [
   {
-    value: 'A-z',
+    value: 'name',
     label: 'A-z'
   },
   {
-    value: 'Z-a',
+    value: '-name',
     label: 'Z-a'
   },
   {
-    value: 'new-to-old',
+    value: '-date_updated',
     label: 'Newest to oldest'
   },
   {
-    value: 'old-to-new',
+    value: 'date_updated',
     label: 'Oldest to newest'
   }
 ];

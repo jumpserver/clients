@@ -24,6 +24,8 @@ export interface IUser {
   loading: boolean;
 
   currentUser: Partial<IUserInfo>;
+
+  sort: string;
 }
 
 export interface ISetting {

@@ -44,12 +44,6 @@ onMounted(() => {
   mittBus.on('createDrawer', handleCreateDrawer);
   mittBus.on('showAssetDetail', ({ detailMessage }) => {
     if (detailMessage.value) {
-      console.log(
-        '%c DEBUG[ drawerDetailMessage.value ]-29:',
-        'font-size:13px; background:#F0FFF0; color:#7B68EE;',
-        drawerDetailMessage.value
-      );
-
       drawerDetailMessage.value = detailMessage.value;
     }
 

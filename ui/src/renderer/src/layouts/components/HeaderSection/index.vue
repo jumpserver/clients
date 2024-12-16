@@ -87,8 +87,9 @@
           style="width: 200px"
           :options="sortOption"
           :render-label="renderLabel"
-          class="rounded-[10px] py-[5px]"
+          class="rounded-xl py-1"
           v-model:value="popSortSelectValue"
+          @update:value="handleListSort"
         >
           <n-icon size="20" :component="SortOutlined" class="icon-hover" />
         </n-popselect>
@@ -121,12 +122,13 @@
 </template>
 
 <script setup lang="ts">
-import type { VNodeChild } from 'vue';
+import { VNodeChild, watch } from 'vue';
 import type { SelectOption } from 'naive-ui';
 
 import { useI18n } from 'vue-i18n';
 import { ref, nextTick } from 'vue';
 import { createLabel } from './helper';
+import { useUserStore } from '@renderer/store/module/userStore';
 
 import { Conf } from 'electron-conf/renderer';
 
@@ -149,12 +151,39 @@ defineProps<{
 }>();
 
 const { t, locale } = useI18n();
+const userStore = useUserStore();
+
 const conf = new Conf();
 
+const searchInput = ref('');
 const currentTheme = ref('');
 const popSortSelectValue = ref('');
 const popLayoutSelectValue = ref('');
-const searchInput = ref('');
+
+watch(
+  () => userStore.sort,
+  type => {
+    switch (type) {
+      case 'name': {
+        popSortSelectValue.value = 'name';
+        break;
+      }
+      case '-name': {
+        popSortSelectValue.value = '-name';
+        break;
+      }
+      case '-date_updated': {
+        popSortSelectValue.value = '-date_updated';
+        break;
+      }
+      case 'date_updated': {
+        popSortSelectValue.value = 'date_updated';
+        break;
+      }
+    }
+  },
+  { immediate: true }
+);
 
 conf.get('defaultSetting').then(res => {
   if (res) {
@@ -175,13 +204,13 @@ const renderLabel = (option: SelectOption): VNodeChild => {
       return createLabel(GridViewRound, 'Grid');
     case 'list':
       return createLabel(ListUl, 'List');
-    case 'A-z':
+    case 'name':
       return createLabel(SortAlphaUp, 'A-z');
-    case 'Z-a':
+    case '-name':
       return createLabel(SortAlphaUpAlt, 'Z-a');
-    case 'new-to-old':
+    case '-date_updated':
       return createLabel(CalendarRtl48Filled, 'Newest to oldest');
-    case 'old-to-new':
+    case 'date_updated':
       return createLabel(CalendarLtr48Filled, 'Oldest to newest');
     case 'import':
       return createLabel(DownloadOutlined, 'Import');
@@ -202,6 +231,10 @@ const handleUpdateLayoutValue = async (value: string, _option: SelectOption) => 
   if (value) {
     mittBus.emit('changeLayout', value as string);
   }
+};
+
+const handleListSort = (value: string, _option: SelectOption) => {
+  userStore.setCurrentListSort(value);
 };
 
 /**
@@ -261,10 +294,16 @@ const handleChangeTheme = () => {
   });
 };
 
+/**
+ * @description 刷新
+ */
 const handleRefresh = () => {
   mittBus.emit('search');
 };
 
+/**
+ * @description 搜索
+ */
 const handleSearch = () => {
   mittBus.emit('search', searchInput.value);
 };
@@ -275,7 +314,6 @@ const handleNewHost = () => {
 };
 
 const handleGlobalSetting = () => {
-  // showModal.value = true;
   mittBus.emit('createDrawer');
 };
 

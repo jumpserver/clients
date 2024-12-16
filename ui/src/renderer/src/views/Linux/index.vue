@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useUserStore } from '@renderer/store/module/userStore';
 import { getAssets } from '@renderer/api/modals/asset';
 import { useMessage } from 'naive-ui';
@@ -27,16 +27,25 @@ defineProps<{
 const { t } = useI18n();
 const message = useMessage();
 const userStore = useUserStore();
-const params = {
+
+const hasMore = ref(true);
+const loadingStatus = ref(true);
+const params = ref({
   type: 'linux',
   offset: 0,
   limit: 20,
-  search: ''
-};
-
+  search: '',
+  order: userStore.sort
+});
 const listData = ref<IListItem[]>([]);
-const hasMore = ref(true);
-const loadingStatus = ref(true);
+
+watch(
+  () => userStore.sort,
+  () => {
+    params.value.order = userStore.sort;
+    getAssetsFromServer();
+  }
+);
 
 /**
  * @description 滚动加载
@@ -44,7 +53,7 @@ const loadingStatus = ref(true);
 const handleScroll = async () => {
   if (!hasMore.value || loadingStatus.value) return;
 
-  params.offset += 20;
+  params.value.offset += 20;
 
   try {
     await getAssetsFromServer();
@@ -59,8 +68,8 @@ const handleScroll = async () => {
  */
 const getAssetsFromServer = async (searchInput?: string) => {
   if (searchInput !== undefined) {
-    params.offset = 0;
-    params.search = searchInput;
+    params.value.offset = 0;
+    params.value.search = searchInput;
     listData.value = [];
     hasMore.value = true;
   }
@@ -68,12 +77,12 @@ const getAssetsFromServer = async (searchInput?: string) => {
   loadingStatus.value = true;
 
   try {
-    const res = await getAssets(params);
+    const res = await getAssets(params.value);
 
     if (res) {
       const { results, count: total } = res;
 
-      listData.value = params.offset === 0 ? results : [...listData.value, ...results];
+      listData.value = params.value.offset === 0 ? results : [...listData.value, ...results];
 
       // 检查是否还有更多数据
       hasMore.value = listData.value.length < total;
@@ -107,6 +116,7 @@ onMounted(async () => {
   if (userInfo && userInfo.length === 0) return;
 
   await getAssetsFromServer();
+
   mittBus.on('search', getAssetsFromServer);
   mittBus.on('removeAccount', handleRemoveAccount);
 });
