@@ -30,7 +30,7 @@ const listData = ref([]);
 const hasMore = ref(true);
 const loadingStatus = ref(true);
 const params = ref({
-  type: 'linux',
+  type: 'windows',
   offset: 0,
   limit: 20,
   search: '',
