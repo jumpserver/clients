@@ -2,7 +2,7 @@
   <n-flex vertical justify="space-between" class="py-[15px]" style="height: calc(100% - 30px)">
     <n-flex>
       <n-menu
-        :options="menuOptions"
+        :options="menuOptions()"
         default-value="linux-page"
         class="w-full flex flex-col items-center"
       />
@@ -11,7 +11,7 @@
 
     <n-flex align="center" justify="center" class="!flex-nowrap">
       <template v-if="userOptions.length === 0">
-        <n-button text strong class="flex w-full h-8"> 未登录 </n-button>
+        <n-button text strong class="flex w-full h-8"> {{ t('Common.UnLogged') }} </n-button>
       </template>
       <template v-else>
         <n-avatar
@@ -44,11 +44,15 @@
                       class="ml-[10px] cursor-pointer icon-hover"
                     />
                   </template>
-                  切换账号
+                  {{ t('Common.SwitchAccount') }}
                 </n-popover>
                 <template #action>
-                  <n-button text class="w-1/2" @click="handleAddAccount"> 新增账号 </n-button>
-                  <n-button text class="w-1/2" @click="handleRemoveAccount"> 移除账号 </n-button>
+                  <n-button text class="w-1/2" @click="handleAddAccount">
+                    {{ t('Common.AddAccount') }}
+                  </n-button>
+                  <n-button text class="w-1/2" @click="handleRemoveAccount">
+                    {{ t('Common.RemoveAccount') }}
+                  </n-button>
                 </template>
               </n-popselect>
             </n-text>
@@ -88,10 +92,12 @@ import { useUserStore } from '@renderer/store/module/userStore';
 import { h, nextTick, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
 
 import type { SelectOption, SelectRenderLabel } from 'naive-ui';
 import type { IUserInfo } from '@renderer/store/interface';
 
+const { t } = useI18n();
 const router = useRouter();
 const userStore = useUserStore();
 
@@ -134,6 +140,10 @@ const handleAccountChange = (value: string, _option: SelectOption) => {
   }
 };
 
+/**
+ * @description 自定义渲染内容
+ * @param option
+ */
 const renderLabel: SelectRenderLabel = option => {
   return h(
     'div',
@@ -170,7 +180,7 @@ const renderLabel: SelectRenderLabel = option => {
               type: 'info'
             },
             {
-              default: () => `来源：${option.currentSite}`
+              default: () => `${t('Common.DataSource')}：${option.currentSite}`
             }
           )
         ]
@@ -179,10 +189,16 @@ const renderLabel: SelectRenderLabel = option => {
   );
 };
 
+/**
+ * @description 添加账号
+ */
 const handleAddAccount = () => {
   mittBus.emit('addAccount');
 };
 
+/**
+ * @description 移除账号
+ */
 const handleRemoveAccount = () => {
   mittBus.emit('removeAccount');
 };

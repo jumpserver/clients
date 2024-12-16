@@ -12,6 +12,7 @@
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { getAssets } from '@renderer/api/modals/asset';
 import { useMessage } from 'naive-ui';
+import { useI18n } from 'vue-i18n';
 
 import mittBus from '@renderer/eventBus';
 import MainSection from '@renderer/components/MainSection/index.vue';
@@ -30,6 +31,7 @@ const params = {
   search: ''
 };
 
+const { t } = useI18n();
 const listData = ref([]);
 const hasMore = ref(true);
 const loadingStatus = ref(true);
@@ -38,7 +40,12 @@ const handleScroll = async () => {
   if (!hasMore.value || loadingStatus.value) return;
 
   params.offset += 20;
-  await getAssetsFromServer();
+
+  try {
+    await getAssetsFromServer();
+  } catch (e) {
+    message.error(`${t('Message.ListErrorOccurred')}`, { closable: true });
+  }
 };
 
 const getAssetsFromServer = async (searchInput?: string) => {
@@ -69,7 +76,7 @@ const getAssetsFromServer = async (searchInput?: string) => {
   } catch (e) {
     hasMore.value = false;
     loadingStatus.value = false;
-    message.error('获取资产数据列表失败', { closable: true });
+    message.error(`${t('Message.FailedRetrieveAssetDataList')}`, { closable: true });
   }
 };
 

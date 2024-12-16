@@ -16,7 +16,7 @@
         @keypress.native.enter="onKeyEnter"
       />
       <n-button type="primary" secondary round class="rounded-[10px]" @click="handleSearch">
-        搜索
+        {{ t('Common.Search') }}
       </n-button>
     </n-input-group>
 
@@ -105,6 +105,14 @@
         <!-- refresh -->
         <n-icon :component="RefreshSharp" size="20" class="icon-hover" @click="handleRefresh" />
 
+        <!-- Language -->
+        <n-icon
+          :component="LanguageOutline"
+          size="20"
+          class="icon-hover"
+          @click="handleChangeLang"
+        />
+
         <!-- Setting -->
         <n-icon :component="MdSettings" size="20" class="icon-hover" @click="handleGlobalSetting" />
       </n-flex>
@@ -117,6 +125,7 @@ import { VNodeChild } from 'vue';
 import type { SelectOption } from 'naive-ui';
 
 import { createLabel } from './helper';
+import { useI18n } from 'vue-i18n';
 import { ref } from 'vue';
 
 import { Conf } from 'electron-conf/renderer';
@@ -124,16 +133,14 @@ import { Conf } from 'electron-conf/renderer';
 import { layoutOption, sortOption } from './config/index';
 
 import { CalendarRtl48Filled, CalendarLtr48Filled } from '@vicons/fluent';
+import { RefreshSharp, LanguageOutline } from '@vicons/ionicons5';
 import { ListUl, SortAlphaUp, SortAlphaUpAlt } from '@vicons/fa';
 import { GridViewRound, SortOutlined } from '@vicons/material';
 import { Layout2, Moon, Sun } from '@vicons/tabler';
 import { CicsSystemGroup } from '@vicons/carbon';
-import { RefreshSharp } from '@vicons/ionicons5';
 import { DownloadOutlined } from '@vicons/antd';
 import { MdSettings } from '@vicons/ionicons4';
 import { NFlex, NIcon } from 'naive-ui';
-
-// import { Tag } from '@vicons/tabler';
 
 import mittBus from '@renderer/eventBus';
 
@@ -141,6 +148,7 @@ defineProps<{
   active: boolean;
 }>();
 
+const { t, locale } = useI18n();
 const conf = new Conf();
 
 const currentTheme = ref('');
@@ -194,6 +202,36 @@ const handleUpdateLayoutValue = async (value: string, _option: SelectOption) => 
   if (value) {
     mittBus.emit('changeLayout', value as string);
   }
+};
+
+/**
+ * @description 切换语言
+ * todo)) 当前版本先放到这个位置
+ */
+const handleChangeLang = () => {
+  let lang: string = '';
+
+  conf.get('defaultSetting').then(res => {
+    if (res) {
+      // @ts-ignore
+      lang = res.language;
+
+      switch (lang) {
+        case 'zh': {
+          locale.value = 'en';
+          break;
+        }
+        case 'en': {
+          locale.value = 'zh';
+          break;
+        }
+      }
+
+      nextTick(() => {
+        mittBus.emit('changeLang', lang as string);
+      });
+    }
+  });
 };
 
 /**
