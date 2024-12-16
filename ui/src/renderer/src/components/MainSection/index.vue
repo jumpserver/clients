@@ -274,7 +274,6 @@ const getAssetDetailFromServer = async (id: string): Promise<boolean> => {
 
     return Promise.resolve(false);
   } catch (e) {
-    console.log(e);
     message.error(`${t('Message.ErrorGetAssetDetail')}`);
     return Promise.resolve(false);
   }

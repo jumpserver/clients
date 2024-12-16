@@ -123,6 +123,7 @@
 </template>
 
 <script setup lang="ts">
+import { NIcon } from 'naive-ui';
 import { DataBase } from '@vicons/carbon';
 import { Terminal2 } from '@vicons/tabler';
 import { DesktopWindowsFilled } from '@vicons/material';
@@ -131,7 +132,6 @@ import { useI18n } from 'vue-i18n';
 import { watch, shallowRef } from 'vue';
 
 import type { IListItem } from '@renderer/components/MainSection/interface';
-import { NIcon } from 'naive-ui';
 
 const props = withDefaults(defineProps<{ layout: string; itemData: IListItem }>(), {
   layout: '',

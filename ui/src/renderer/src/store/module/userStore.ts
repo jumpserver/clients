@@ -10,7 +10,8 @@ export const useUserStore = defineStore({
     loading: false,
     userInfo: [],
     currentSite: '',
-    currentUser: {}
+    currentUser: {},
+    sort: 'name'
   }),
   actions: {
     setToken(token: string) {
@@ -34,6 +35,9 @@ export const useUserStore = defineStore({
       this.userInfo = this.userInfo!.filter(
         (item: IUserInfo) => item.token !== this.currentUser!.token
       );
+    },
+    setCurrentListSort(type) {
+      this.sort = type;
     }
   },
   persist: piniaPersistConfig('client-user')

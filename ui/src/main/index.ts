@@ -46,11 +46,6 @@ const handleUrl = (url: string) => {
     try {
       const decodedToken = JSON.parse(decodedTokenJson);
       if ('bearer_token' in decodedToken) {
-        console.log(
-          '%c DEBUG[ decodedToken.bearer_token ]-12:',
-          'font-size:13px; background:pink; color:#008B8B;',
-          decodedToken.bearer_token
-        );
         mainWindow?.webContents.send('set-token', decodedToken.bearer_token);
       } else {
         handleClientPullUp(url);
@@ -151,7 +146,6 @@ const createWindow = async (): Promise<void> => {
 
     await mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
   } else {
-    mainWindow.webContents.openDevTools();
     await mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
   }
 };
