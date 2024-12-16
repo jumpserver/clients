@@ -60,15 +60,14 @@
 import mittBus from '@renderer/eventBus';
 import ListItem from '../ListItem/index.vue';
 
-import {createConnectToken, getAssetDetail, getLocalClientUrl} from '@renderer/api/modals/asset';
-import {moveElementToEnd, renderCustomHeader, useAccountModal} from './helper/index';
-import {useHistoryStore} from '@renderer/store/module/historyStore';
-import type {DropdownOption} from 'naive-ui';
-import {createDiscreteApi, useLoadingBar} from 'naive-ui';
-import {computed, onBeforeUnmount, onMounted, Ref, ref} from 'vue';
-import {useDebounceFn} from '@vueuse/core';
+import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
+import { moveElementToEnd, renderCustomHeader, useAccountModal } from './helper/index';
+import { useHistoryStore } from '@renderer/store/module/historyStore';
+import { createDiscreteApi, useLoadingBar } from 'naive-ui';
+import { computed, onBeforeUnmount, onMounted, Ref, ref } from 'vue';
+import { useDebounceFn } from '@vueuse/core';
 
-import {Conf} from 'electron-conf/renderer';
+import { Conf } from 'electron-conf/renderer';
 
 import type {
   IItemDetail,
@@ -76,14 +75,16 @@ import type {
   Permed_accounts,
   Permed_protocols
 } from '@renderer/components/MainSection/interface';
-import type {IConnectData} from '@renderer/store/interface';
+import type { DropdownOption } from 'naive-ui';
+import type { IConnectData } from '@renderer/store/interface';
 
-import {ClipboardList, PlugConnected} from '@vicons/tabler';
-import {ArrowEnterLeft20Filled, ProtocolHandler24Regular} from '@vicons/fluent';
-import {storeToRefs} from "pinia";
-import {useUserStore} from "@renderer/store/module/userStore";
+import { ClipboardList, PlugConnected } from '@vicons/tabler';
+import { ArrowEnterLeft20Filled, ProtocolHandler24Regular } from '@vicons/fluent';
 
-const {message} = createDiscreteApi(['message']);
+import { storeToRefs } from 'pinia';
+import { useUserStore } from '@renderer/store/module/userStore';
+
+const { message } = createDiscreteApi(['message']);
 
 withDefaults(
   defineProps<{
@@ -101,7 +102,7 @@ const loadingBar = useLoadingBar();
 const historyStore = useHistoryStore();
 
 const userStore = useUserStore();
-const {currentUser: storeCurrentUser} = storeToRefs(userStore);
+const { currentUser: storeCurrentUser } = storeToRefs(userStore);
 const currentUser = computed(() => storeCurrentUser?.value);
 
 const xLeft = ref(0);
@@ -359,9 +360,9 @@ const handleItemContextMenu = useDebounceFn(async (_item: IListItem, _event: Mou
  */
 const handleAccountSelect = (key: string) => {
   connectData.value = {
-    protocol: '',
     asset: '',
     account: '',
+    protocol: '',
     input_username: '',
     input_secret: ''
   };
@@ -373,32 +374,39 @@ const handleAccountSelect = (key: string) => {
   if (currentAccount) {
     connectData.value.asset = detailMessage.value.id;
     connectData.value.account = currentAccount.name;
-    connectData.value.input_username = ''
-    connectData.value.input_secret = ''
-    const showManualUsernameInput = !currentAccount.has_secret;
+    connectData.value.input_username = '';
+    connectData.value.input_secret = '';
+
+    const showManualUsernameInput = currentAccount.has_secret;
 
     switch (currentAccount.alias) {
       case '@USER':
         // 同名账号
         connectData.value.account = '@USER';
-        connectData.value.input_username = currentUser.value!.username;
-        if (showManualUsernameInput){
-          const res = useAccountModal('@USER');
-          connectData.value.input_secret = res.inputPassword;
+        connectData.value.input_username = currentUser.value?.username;
+
+        if (showManualUsernameInput) {
+          const { inputPassword } = useAccountModal('@USER');
+
+          connectData.value.input_secret = inputPassword.value;
         }
         break;
       case '@INPUT':
         // 手动输入
         connectData.value.account = '@INPUT';
-        const res = useAccountModal('@INPUT');
-        connectData.value.input_username = res.inputUsername;
-        connectData.value.input_secret = res.inputPassword;
+        const { inputPassword, inputUsername } = useAccountModal('@INPUT');
+
+        connectData.value.input_username = inputUsername.value;
+        connectData.value.input_secret = inputPassword.value;
+
         break;
       default:
         connectData.value.input_username = currentAccount.username;
-        if (showManualUsernameInput){
-          const res = useAccountModal('@OTHER');
-          connectData.value.input_secret = res.inputPassword;
+
+        if (showManualUsernameInput) {
+          const { inputPassword } = useAccountModal('@OTHER');
+
+          connectData.value.input_secret = inputPassword.value;
         }
     }
     message.success(`账号 ${currentAccount.name} 已选择`);
@@ -419,8 +427,7 @@ const handleSelect = async (key: string) => {
   }
 
   const isCurrentIndex = detailMessage.value.permed_accounts.findIndex(
-    item => item.name === connectData.value.account
-      || item.alias === connectData.value.account
+    item => item.name === connectData.value.account || item.alias === connectData.value.account
   );
 
   if (isCurrentIndex === -1) {
@@ -459,7 +466,7 @@ const handleSelect = async (key: string) => {
         const token = await createConnectToken(connectData.value, method);
 
         if (token) {
-          message.success('连接成功', {closable: true});
+          message.success('连接成功', { closable: true });
 
           // todo)) 设置历史
           // historyStore.setHistorySession({ ...selectedItem.value });
