@@ -474,8 +474,7 @@ const handleSelect = async (key: string) => {
         if (token) {
           message.success(`${t('Message.ConnectSuccess')}`, { closable: true });
 
-          // todo)) 设置历史
-          // historyStore.setHistorySession({ ...selectedItem.value });
+          historyStore.setHistorySession({ ...detailMessage.value });
 
           getLocalClientUrl(token).then(res => {
             if (res) {
