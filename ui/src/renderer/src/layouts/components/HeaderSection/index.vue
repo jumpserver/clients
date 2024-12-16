@@ -121,12 +121,12 @@
 </template>
 
 <script setup lang="ts">
-import { VNodeChild } from 'vue';
+import type { VNodeChild } from 'vue';
 import type { SelectOption } from 'naive-ui';
 
-import { createLabel } from './helper';
 import { useI18n } from 'vue-i18n';
-import { ref } from 'vue';
+import { ref, nextTick } from 'vue';
+import { createLabel } from './helper';
 
 import { Conf } from 'electron-conf/renderer';
 
