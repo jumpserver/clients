@@ -104,19 +104,17 @@
 
         <!-- refresh -->
         <n-icon :component="RefreshSharp" size="20" class="icon-hover" @click="handleRefresh" />
-
-        <!-- Setting -->
-        <n-icon :component="MdSettings" size="20" class="icon-hover" @click="handleGlobalSetting" />
       </n-flex>
     </n-flex>
   </n-flex>
 </template>
 
 <script setup lang="ts">
-import { VNodeChild } from 'vue';
+import type { VNodeChild } from 'vue';
 import type { SelectOption } from 'naive-ui';
 
 import { createLabel } from './helper';
+import { useRouter } from 'vue-router';
 import { ref } from 'vue';
 
 import { Conf } from 'electron-conf/renderer';
@@ -130,10 +128,7 @@ import { Layout2, Moon, Sun } from '@vicons/tabler';
 import { CicsSystemGroup } from '@vicons/carbon';
 import { RefreshSharp } from '@vicons/ionicons5';
 import { DownloadOutlined } from '@vicons/antd';
-import { MdSettings } from '@vicons/ionicons4';
 import { NFlex, NIcon } from 'naive-ui';
-
-// import { Tag } from '@vicons/tabler';
 
 import mittBus from '@renderer/eventBus';
 
@@ -142,11 +137,12 @@ defineProps<{
 }>();
 
 const conf = new Conf();
+const router = useRouter();
 
+const searchInput = ref('');
 const currentTheme = ref('');
 const popSortSelectValue = ref('');
 const popLayoutSelectValue = ref('');
-const searchInput = ref('');
 
 conf.get('defaultSetting').then(res => {
   if (res) {
@@ -233,11 +229,6 @@ const handleSearch = () => {
 
 // @ts-ignore
 const handleNewHost = () => {
-  mittBus.emit('createDrawer');
-};
-
-const handleGlobalSetting = () => {
-  // showModal.value = true;
   mittBus.emit('createDrawer');
 };
 

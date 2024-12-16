@@ -134,6 +134,10 @@ const handleAccountChange = (value: string, _option: SelectOption) => {
   }
 };
 
+/**
+ * @description popSelect 的自定义渲染
+ * @param option
+ */
 const renderLabel: SelectRenderLabel = option => {
   return h(
     'div',
@@ -179,10 +183,16 @@ const renderLabel: SelectRenderLabel = option => {
   );
 };
 
+/**
+ * @description 添加账号
+ */
 const handleAddAccount = () => {
   mittBus.emit('addAccount');
 };
 
+/**
+ * @description 移除账号
+ */
 const handleRemoveAccount = () => {
   mittBus.emit('removeAccount');
 };

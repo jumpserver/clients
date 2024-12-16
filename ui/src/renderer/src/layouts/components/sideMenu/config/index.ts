@@ -2,6 +2,7 @@ import { renderIcon } from '@renderer/layouts/components/HeaderSection/helper';
 import { h } from 'vue';
 
 import { BrandWindows, Database, Terminal2, Star, History } from '@vicons/tabler';
+import { MdSettings } from '@vicons/ionicons4';
 import { RouterLink } from 'vue-router';
 
 import type { MenuOption } from 'naive-ui';
@@ -76,5 +77,20 @@ export const menuOptions: MenuOption[] = [
       ),
     key: 'history-page',
     icon: renderIcon(History)
+  },
+  {
+    label: () =>
+      h(
+        RouterLink,
+        {
+          to: {
+            name: 'Setting'
+          }
+        },
+        { default: () => 'Setting' }
+      ),
+    show: true,
+    key: 'setting-page',
+    icon: renderIcon(MdSettings)
   }
 ];

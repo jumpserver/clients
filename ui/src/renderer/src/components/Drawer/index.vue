@@ -14,7 +14,6 @@
       <template #header>
         <n-flex align="center" justify="space-between">
           <n-text depth="1">默认配置</n-text>
-          <!--          <n-text depth="1" v-else>资产详情</n-text>-->
 
           <n-flex>
             <n-icon
