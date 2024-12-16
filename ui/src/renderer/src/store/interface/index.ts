@@ -58,8 +58,8 @@ export interface IConnectData {
   asset: string;
   account: string;
   protocol: string;
-  input_username: string;
-  input_secret: string;
+  input_username: string | undefined;
+  input_secret: string | undefined;
   connect_method?: string;
   connect_options?: {
     charset: string;
