@@ -36,7 +36,7 @@
       :show="showLeftDropdown"
       :on-clickoutside="onClickLeftOutside"
       @select="handleAccountSelect"
-      class="min-w-40"
+      class="min-w-60"
     />
 
     <!-- 右键点击下拉菜单 -->
@@ -51,7 +51,7 @@
       :show="showRightDropdown"
       :on-clickoutside="onClickRightOutside"
       @select="handleSelect"
-      class="min-w-40"
+      class="min-w-60"
     />
   </div>
 </template>
