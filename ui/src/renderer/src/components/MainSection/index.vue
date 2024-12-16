@@ -385,15 +385,13 @@ const handleAccountSelect = (key: string) => {
     connectData.value.input_username = '';
     connectData.value.input_secret = '';
 
-    const showManualUsernameInput = currentAccount.has_secret;
-
     switch (currentAccount.alias) {
       case '@USER':
         // 同名账号
         connectData.value.account = '@USER';
         connectData.value.input_username = currentUser.value?.username;
 
-        if (showManualUsernameInput) {
+        if (!currentAccount.has_secret) {
           const { inputPassword } = useAccountModal('@USER');
 
           connectData.value.input_secret = inputPassword.value;
@@ -411,7 +409,7 @@ const handleAccountSelect = (key: string) => {
       default:
         connectData.value.input_username = currentAccount.username;
 
-        if (showManualUsernameInput) {
+        if (!currentAccount.has_secret) {
           const { inputPassword } = useAccountModal('@OTHER');
 
           connectData.value.input_secret = inputPassword.value;
