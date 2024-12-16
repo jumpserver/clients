@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { darkThemeOverrides, lightThemeOverrides } from './overrides';
 import { darkTheme, enUS, zhCN, lightTheme } from 'naive-ui';
 
@@ -16,7 +16,7 @@ import type { ConfigProviderProps } from 'naive-ui';
 import mittBus from '@renderer/eventBus';
 import LoginModal from '@renderer/components/LoginModal/index.vue';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const conf = new Conf();
 
 const iconImage = ref('');
@@ -40,6 +40,15 @@ conf.get('defaultSetting').then(res => {
 const configProviderPropsRef = computed<ConfigProviderProps>(() => ({
   theme: defaultTheme.value === 'light' ? lightTheme : darkTheme
 }));
+
+watch(
+  () => defaultLang.value,
+  nv => {
+    if (nv) {
+      locale.value = nv;
+    }
+  }
+);
 
 const { notification } = createDiscreteApi(['notification'], {
   configProviderProps: configProviderPropsRef

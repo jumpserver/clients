@@ -125,8 +125,8 @@
 import { VNodeChild, watch } from 'vue';
 import type { SelectOption } from 'naive-ui';
 
+import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { ref, nextTick } from 'vue';
 import { createLabel } from './helper';
 import { useUserStore } from '@renderer/store/module/userStore';
 
@@ -249,6 +249,8 @@ const handleChangeLang = () => {
       // @ts-ignore
       lang = res.language;
 
+      mittBus.emit('changeLang', lang as string);
+
       switch (lang) {
         case 'zh': {
           locale.value = 'en';
@@ -259,10 +261,6 @@ const handleChangeLang = () => {
           break;
         }
       }
-
-      nextTick(() => {
-        mittBus.emit('changeLang', lang as string);
-      });
     }
   });
 };
