@@ -60,13 +60,20 @@
           class="description-zone w-full !flex-nowrap"
         >
           <template v-if="layout !== 'grid'">
-            <n-descriptions label-placement="left" class="w-full" :column="1" size="small">
+            <n-descriptions
+              label-placement="left"
+              class="w-full"
+              :column="1"
+              :separator="''"
+              size="small"
+            >
               <n-descriptions-item content-style="width: 5rem; text-wrap: nowrap;">
                 <template #label>
                   <n-tag
+                    round
                     type="success"
                     size="small"
-                    class="font-bold tracking-wide"
+                    class="tracking-widest"
                     :bordered="false"
                   >
                     {{ t('Common.AssetName') }}
@@ -75,7 +82,9 @@
 
                 <n-popover>
                   <template #trigger>
-                    {{ itemData.name }}
+                    <span class="ml-2">
+                      {{ itemData.name }}
+                    </span>
                   </template>
                   <n-text depth="1">
                     {{ itemData.name }}
@@ -84,18 +93,15 @@
               </n-descriptions-item>
               <n-descriptions-item content-style="width: 5rem">
                 <template #label>
-                  <n-tag
-                    type="info"
-                    size="small"
-                    class="font-bold tracking-wider"
-                    :bordered="false"
-                  >
+                  <n-tag round type="info" size="small" class="tracking-widest" :bordered="false">
                     {{ t('Common.Organization') }}
                   </n-tag>
                 </template>
                 <n-popover>
                   <template #trigger>
-                    {{ itemData.org_name }}
+                    <span class="ml-2">
+                      {{ itemData.org_name }}
+                    </span>
                   </template>
                   <n-text depth="1">
                     {{ itemData.org_name }}
