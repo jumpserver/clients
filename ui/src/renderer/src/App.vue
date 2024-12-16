@@ -16,7 +16,7 @@ import type { ConfigProviderProps } from 'naive-ui';
 import mittBus from '@renderer/eventBus';
 import LoginModal from '@renderer/components/LoginModal/index.vue';
 
-const { t, locale } = useI18n();
+const { t } = useI18n();
 const conf = new Conf();
 
 const iconImage = ref('');

@@ -30,7 +30,10 @@
               <n-popselect
                 trigger="click"
                 placement="right-end"
-                class="w-[300px] rounded-[10px]"
+                class="w-80 rounded-xl py-1"
+                :content-style="{
+                  width: '100%'
+                }"
                 :options="userOptions"
                 :render-label="renderLabel"
                 v-model:value="currentUser!.token"
@@ -81,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-import { NAvatar, NText, NPopover, NTag } from 'naive-ui';
+import { NAvatar, NText, NPopover, NTag, NEllipsis } from 'naive-ui';
 import { ArrowsHorizontal } from '@vicons/carbon';
 import { menuOptions } from './config';
 import { computed } from 'vue';
@@ -113,7 +116,8 @@ const userOptions = computed(() => {
         label: item.username,
         value: item.token,
         avatar_url: item.avatar_url,
-        display_name: item.display_name
+        display_name: item.display_name,
+        currentSite: item.currentSite
       };
     }) || []
   );
@@ -150,7 +154,8 @@ const renderLabel: SelectRenderLabel = option => {
     {
       style: {
         display: 'flex',
-        alignItems: 'center'
+        alignItems: 'center',
+        width: '100%'
       }
     },
     [
@@ -159,7 +164,8 @@ const renderLabel: SelectRenderLabel = option => {
         round: true,
         size: 'medium',
         style: {
-          cursor: 'pointer'
+          cursor: 'pointer',
+          flexShrink: 0
         }
       }),
       h(
@@ -167,20 +173,49 @@ const renderLabel: SelectRenderLabel = option => {
         {
           style: {
             marginLeft: '12px',
-            padding: '4px 0'
+            padding: '4px 0',
+            flex: 1,
+            minWidth: 0
           }
         },
         [
-          h('div', null, [option.label as string]),
+          h(
+            'div',
+            {
+              style: {
+                marginBottom: '4px'
+              }
+            },
+            option.label as string
+          ),
           h(
             NTag,
             {
               bordered: false,
               size: 'small',
-              type: 'info'
+              type: 'info',
+              style: {
+                maxWidth: '100%',
+                cursor: 'pointer'
+              }
             },
             {
-              default: () => `${t('Common.DataSource')}：${option.currentSite}`
+              default: () =>
+                h(
+                  NEllipsis,
+                  {
+                    style: {
+                      maxWidth: '200px'
+                    },
+                    tooltip: {
+                      placement: 'top',
+                      showArrow: true
+                    }
+                  },
+                  {
+                    default: () => `${t('Common.DataSource')}：${option.currentSite}`
+                  }
+                )
             }
           )
         ]
