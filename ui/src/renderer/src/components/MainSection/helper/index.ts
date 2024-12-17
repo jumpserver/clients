@@ -1,23 +1,23 @@
-import { computed, h, ref } from 'vue';
+import { h, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import {
+  createDiscreteApi,
   NText,
   NIcon,
   NButton,
+  NDescriptions,
+  NDescriptionsItem,
   NForm,
   NFormItem,
-  NInput,
-  ConfigProviderProps,
-  lightTheme,
-  darkTheme,
-  createDiscreteApi
+  NInput
 } from 'naive-ui';
-import mittBus from '@renderer/eventBus';
-
-import type { Ref } from 'vue';
 import type { Component } from 'vue';
-import type { DropdownOption } from 'naive-ui';
+import type { DropdownOption, ConfigProviderProps } from 'naive-ui';
 import type { IItemDetail } from '@renderer/components/MainSection/interface';
-
+import type { Ref } from 'vue';
+import mittBus from '@renderer/eventBus';
+import { computed } from 'vue';
+import { lightTheme, darkTheme } from 'naive-ui';
 import { Conf } from 'electron-conf/renderer';
 
 export const renderCustomHeader = (
@@ -28,10 +28,151 @@ export const renderCustomHeader = (
   callback?: () => void
 ) => {
   return () => {
+    const { t } = useI18n();
+    const conf = new Conf();
+    const defaultTheme = ref('');
+
+    conf.get('defaultSetting').then(res => {
+      if (res) {
+        // @ts-ignore
+        defaultTheme.value = res?.theme;
+      }
+    });
+
+    const configProviderPropsRef = computed<ConfigProviderProps>(() => ({
+      theme: defaultTheme.value === 'light' ? lightTheme : darkTheme
+    }));
+
+    const { modal } = createDiscreteApi(['modal'], {
+      configProviderProps: configProviderPropsRef
+    });
+
+    const handleDetailClick = () => {
+      if (!detailMessage?.value) return;
+
+      modal.create({
+        title: t('Common.AssetDetails'),
+        preset: 'card',
+        bordered: false,
+        segmented: true,
+        style: {
+          width: '40rem',
+          borderRadius: '10px'
+        },
+        content: () =>
+          h(
+            NDescriptions,
+            {
+              column: 1,
+              labelPlacement: 'left',
+              bordered: true
+            },
+            {
+              default: () => [
+                // Platform Info
+                h(
+                  NDescriptionsItem,
+                  {
+                    label: t('Common.PlatformInfo')
+                  },
+                  {
+                    default: () => [
+                      `${t('Common.PlatformID')}: ${detailMessage.value.platform.id}`,
+                      h('br'),
+                      `${t('Common.PlatformName')}: ${detailMessage.value.platform.name}`
+                    ]
+                  }
+                ),
+
+                // Connectivity
+                h(
+                  NDescriptionsItem,
+                  {
+                    label: t('Common.Connectivity')
+                  },
+                  {
+                    default: () => [
+                      `${t('Common.Label')}: ${detailMessage.value.connectivity.label}`,
+                      h('br'),
+                      `${t('Common.Value')}: ${detailMessage.value.connectivity.value}`
+                    ]
+                  }
+                ),
+
+                // Category
+                h(
+                  NDescriptionsItem,
+                  {
+                    label: t('Common.Category')
+                  },
+                  {
+                    default: () => detailMessage.value.category.label
+                  }
+                ),
+
+                // Nodes
+                h(
+                  NDescriptionsItem,
+                  {
+                    label: t('Common.Nodes')
+                  },
+                  {
+                    default: () =>
+                      detailMessage.value.nodes.map(node =>
+                        h('div', { key: node.id }, `${node.name} (ID: ${node.id})`)
+                      )
+                  }
+                ),
+
+                // Protocols
+                h(
+                  NDescriptionsItem,
+                  {
+                    label: t('Common.PermedProtocols')
+                  },
+                  {
+                    default: () =>
+                      detailMessage.value.permed_protocols.map(protocol =>
+                        h('div', { key: protocol.name }, [
+                          `${protocol.name} (Port: ${protocol.port}) `
+                        ])
+                      )
+                  }
+                ),
+
+                // Accounts
+                h(
+                  NDescriptionsItem,
+                  {
+                    label: t('Common.PermedAccounts')
+                  },
+                  {
+                    default: () =>
+                      detailMessage.value.permed_accounts.map(account =>
+                        h(
+                          'div',
+                          { key: account.id },
+                          `${account.alias} (${account.username || t('Common.NoUsername')})`
+                        )
+                      )
+                  }
+                )
+              ]
+            }
+          )
+      });
+
+      callback?.();
+    };
+
     return h(
       'div',
       {
-        style: 'display: flex; align-items: center; padding: 8px 12px;'
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          padding: '8px 12px'
+        }
       },
       [
         h(
@@ -46,20 +187,12 @@ export const renderCustomHeader = (
             },
             onClick: () => {
               switch (type) {
-                case 'detail-message': {
-                  if (detailMessage) {
-                    mittBus.emit('showAssetDetail', { detailMessage });
-
-                    callback ? callback() : '';
-                  }
-
+                case 'detail-message':
+                  handleDetailClick();
                   break;
-                }
-                case 'fast-connection': {
+                case 'fast-connection':
                   mittBus.emit('connectAsset');
-
                   break;
-                }
               }
             }
           },
@@ -68,17 +201,9 @@ export const renderCustomHeader = (
               h(NIcon, {
                 size: '20',
                 component: component,
-                style: {
-                  marginRight: '0.5rem'
-                }
+                style: { marginRight: '0.5rem' }
               }),
-              h(
-                NText,
-                {
-                  depth: 1
-                },
-                { default: () => text }
-              )
+              h(NText, { depth: 1 }, { default: () => text })
             ]
           }
         )
@@ -89,27 +214,20 @@ export const renderCustomHeader = (
 
 export const moveElementToEnd = (arr: DropdownOption[], searchKey: string, changeText: string) => {
   const index = arr.findIndex(item => item.label === searchKey);
-
   if (index !== -1) {
-    // 保存要移动的元素
     const elementToMove = arr[index];
-
-    // 从数组中移除该元素
     arr.splice(index, 1);
-
-    // 将元素添加到数组末尾
     arr.push({
       key: elementToMove.key,
       label: changeText
     });
   }
-
   return arr;
 };
 
 export const useAccountModal = (type: string) => {
+  const { t } = useI18n();
   const conf = new Conf();
-
   const defaultTheme = ref('');
   const inputPassword = ref('');
   const inputUsername = ref('');
@@ -129,8 +247,8 @@ export const useAccountModal = (type: string) => {
     configProviderProps: configProviderPropsRef
   });
 
-  // 除 @INPUT 外，其他也可能需要手动输入密码
-  const modalTitle = type !== '@INPUT' ? '输入密码' : '输入账号密码';
+  const modalTitle =
+    type !== '@INPUT' ? t('Common.InputPassword') : t('Common.InputAccountPassword');
 
   const m = modal.create({
     title: modalTitle,
@@ -151,10 +269,11 @@ export const useAccountModal = (type: string) => {
         },
         {
           default: () => [
+            // 用户名输入框（仅在 @INPUT 类型时显示）
             h(
               NFormItem,
               {
-                label: '用户名',
+                label: t('Common.Username'),
                 path: 'username',
                 style: { display: type !== '@INPUT' ? 'none' : '' }
               },
@@ -163,17 +282,18 @@ export const useAccountModal = (type: string) => {
                   h(NInput, {
                     value: inputUsername.value,
                     clearable: true,
-                    placeholder: '用户名',
+                    placeholder: t('Common.InputUsername'),
                     onUpdateValue: value => {
                       inputUsername.value = value;
                     }
                   })
               }
             ),
+            // 密码输入框
             h(
               NFormItem,
               {
-                label: '密码',
+                label: t('Common.Password'),
                 path: 'password'
               },
               {
@@ -183,13 +303,14 @@ export const useAccountModal = (type: string) => {
                     type: 'password',
                     clearable: true,
                     showPasswordOn: 'click',
-                    placeholder: '请输入密码',
+                    placeholder: t('Common.InputPassword'),
                     onUpdateValue: value => {
                       inputPassword.value = value;
                     }
                   })
               }
             ),
+            // 确认按钮
             h(
               NFormItem,
               {
@@ -208,7 +329,7 @@ export const useAccountModal = (type: string) => {
                       onClick: () => m.destroy()
                     },
                     {
-                      default: () => '确认'
+                      default: () => t('Common.Confirm')
                     }
                   )
               }
@@ -219,7 +340,7 @@ export const useAccountModal = (type: string) => {
   });
 
   return {
-    inputPassword: inputPassword,
-    inputUsername: inputUsername
+    inputPassword,
+    inputUsername
   };
 };
