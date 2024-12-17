@@ -13,7 +13,7 @@ extraResources:
   - from: 'bin'
 win:
   executableName: JumpServerClient
-  icon: build/icons.ico
+  icon: build/icons/icon.ico
   target:
     - target: nsis
       arch:
@@ -40,6 +40,7 @@ mac:
 dmg:
   artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
 linux:
+  icon: build/icons/,
   target:
     - AppImage
     - snap
