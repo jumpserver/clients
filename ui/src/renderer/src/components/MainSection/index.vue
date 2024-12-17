@@ -287,6 +287,7 @@ const getAssetDetailFromServer = async (id: string): Promise<boolean> => {
 const selectItem = useDebounceFn(async (item: IListItem, _event: MouseEvent) => {
   loadingBar.start();
   selectedItem.value = item;
+  resetLeftOptions();
 
   try {
     const hasGetMessage: boolean = await getAssetDetailFromServer(item.id);
@@ -336,7 +337,7 @@ const handleContextMenuWrapper = (item: IListItem, event: MouseEvent) => {
  */
 const handleItemContextMenu = useDebounceFn(async (_item: IListItem, _event: MouseEvent) => {
   selectedItem.value = _item;
-
+  resetRightOptions()
   try {
     const hasGetMessage: boolean = await getAssetDetailFromServer(_item.id);
 
@@ -393,7 +394,7 @@ const handleAccountSelect = (key: string) => {
         if (!currentAccount.has_secret) {
           const { inputPassword } = useAccountModal('@USER');
 
-          connectData.value.input_secret = inputPassword.value;
+          connectData.value.input_secret = inputPassword;
         }
         break;
       case '@INPUT':
@@ -401,8 +402,8 @@ const handleAccountSelect = (key: string) => {
         connectData.value.account = '@INPUT';
         const { inputPassword, inputUsername } = useAccountModal('@INPUT');
 
-        connectData.value.input_username = inputUsername.value;
-        connectData.value.input_secret = inputPassword.value;
+        connectData.value.input_username = inputUsername;
+        connectData.value.input_secret = inputPassword;
 
         break;
       default:
@@ -411,7 +412,7 @@ const handleAccountSelect = (key: string) => {
         if (!currentAccount.has_secret) {
           const { inputPassword } = useAccountModal('@OTHER');
 
-          connectData.value.input_secret = inputPassword.value;
+          connectData.value.input_secret = inputPassword;
         }
     }
     message.success(`${t('Message.Account')} ${currentAccount.name} ${t('Message.Selected')}`);
