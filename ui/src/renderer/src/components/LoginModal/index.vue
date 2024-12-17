@@ -45,7 +45,7 @@ import { useUserStore } from '@renderer/store/module/userStore';
 import { Warning24Regular } from '@vicons/fluent';
 
 const URL_REGEXP =
-  /^(https?:\/\/)?((([a-zA-Z0-9-]{1,63}\.)+[a-zA-Z]{2,})|(\d{1,3}\.){3}\d{1,3}|\[?[a-fA-F0-9]{1,4}:([a-fA-F0-9]{1,4}:){1,7}[a-fA-F0-9]{1,4}\]?)$/;
+  /^(https?:\/\/)?(([a-zA-Z0-9-]{1,63}\.)+[a-zA-Z]{2,}|(\d{1,3}\.){3}\d{1,3}|\[?[a-fA-F0-9]{1,4}:([a-fA-F0-9]{1,4}:){1,7}[a-fA-F0-9]{1,4}\]?)(:\d{1,5})?$/;
 
 const props = withDefaults(
   defineProps<{
@@ -89,10 +89,10 @@ const handleMaskClick = (): void => {
  * @description 登录按钮的回调
  */
 const jumpToLogin = () => {
-  const isIpAddress = /^(\d{1,3}\.){3}\d{1,3}$/.test(siteLocation.value);
+  const hasProtocol = /^https?:\/\//i.test(siteLocation.value);
 
-  if (!isIpAddress && !/^https?:\/\//i.test(siteLocation.value)) {
-    message.error(`${t('Message.ErrorSiteTip')}`, { closable: true });
+  if (!hasProtocol) {
+    message.error(t('Message.ProtocolRequired'), { closable: true });
     inputStatus.value = 'error';
     return;
   }
@@ -100,14 +100,12 @@ const jumpToLogin = () => {
   if (URL_REGEXP.test(siteLocation.value)) {
     userStore.setCurrentSit(siteLocation.value);
     inputStatus.value = 'success';
-
     window.open(`${siteLocation.value}/core/auth/login/?next=client`);
-
     return;
   }
 
-  message.error(`${t('Message.EnterTheCorrectSite')}`, { closable: true });
-  inputStatus.value = 'success';
+  message.error(t('Message.EnterTheCorrectSite'), { closable: true });
+  inputStatus.value = 'error';
 };
 
 /**
@@ -118,6 +116,14 @@ const handleContextMenu = async () => {
     const text = await readText();
 
     if (text) {
+      const hasProtocol = /^https?:\/\//i.test(text);
+
+      if (!hasProtocol) {
+        siteLocation.value = text;
+        message.error(t('Message.ProtocolRequired'), { closable: true });
+        return;
+      }
+
       if (URL_REGEXP.test(text)) {
         siteLocation.value = text;
       } else {
