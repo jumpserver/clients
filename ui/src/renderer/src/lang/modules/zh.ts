@@ -29,7 +29,9 @@ export default {
     AssetDetails: '资产详情',
     ConnectionProtocol: '连接协议',
     AssetName: '资产名称',
-    Organization: '归属组织'
+    Organization: '归属组织',
+    NewToOld: '按更新时间（从新到旧）',
+    OldToNew: '按更新时间（从旧到新）'
   },
   Dialog: {
     'Save&Default': '保存且默认',

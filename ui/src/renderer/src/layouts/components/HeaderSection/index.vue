@@ -84,10 +84,9 @@
         <!-- Sort  -->
         <n-popselect
           trigger="click"
-          style="width: 200px"
           :options="sortOption"
           :render-label="renderLabel"
-          class="rounded-xl py-1"
+          class="rounded-xl py-1 w-60"
           v-model:value="popSortSelectValue"
           @update:value="handleListSort"
         >
@@ -209,9 +208,9 @@ const renderLabel = (option: SelectOption): VNodeChild => {
     case '-name':
       return createLabel(SortAlphaUpAlt, 'Z-a');
     case '-date_updated':
-      return createLabel(CalendarRtl48Filled, 'Newest to oldest');
+      return createLabel(CalendarRtl48Filled, `${t('Common.NewToOld')}`);
     case 'date_updated':
-      return createLabel(CalendarLtr48Filled, 'Oldest to newest');
+      return createLabel(CalendarLtr48Filled, `${t('Common.OldToNew')}`);
     case 'import':
       return createLabel(DownloadOutlined, 'Import');
     case 'new-group':

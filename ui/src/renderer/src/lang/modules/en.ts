@@ -29,7 +29,9 @@ export default {
     AssetDetails: 'Asset Details',
     ConnectionProtocol: 'Connection Protocol',
     AssetName: 'Asset Name',
-    Organization: 'Affiliated Organization'
+    Organization: 'Affiliated Organization',
+    NewToOld: 'Updated (new to old)',
+    OldToNew: 'Updated (old to new)'
   },
   Dialog: {
     'Save&Default': 'Save And Default',
