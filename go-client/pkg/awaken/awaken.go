@@ -77,7 +77,8 @@ func (r *Rouse) getUserName() string {
 
 func (r *Rouse) getName() string {
 	name, _ := url.QueryUnescape(r.Name)
-	return strings.Replace(name, " ", "", -1)
+	replacer := strings.NewReplacer(" ", "", ":", "_", "-", "_")
+	return replacer.Replace(name)
 }
 
 func removeCurRdpFile() {

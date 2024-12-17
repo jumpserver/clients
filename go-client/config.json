@@ -197,7 +197,7 @@
           {
             "cmd": "Wait",
             "type": "15",
-            "element": "[REGEXPTITLE:Navicat|Navicat]"
+            "element": "[CLASS:TNavicatMainForm]"
           },
           {
             "cmd": "SendKey",
@@ -205,7 +205,7 @@
             "element": "^u"
           },
           {
-            "cmd": "ControlSetText",
+            "cmd": "ControlSend",
             "type": "{url}",
             "element": "[CLASS:TTextHintMemo; INSTANCE:1]"
           },
@@ -220,14 +220,24 @@
             "element": "[CLASS:TButton; INSTANCE:2]"
           },
           {
-            "cmd": "ControlSend",
-            "type": "{value}",
-            "element": "[CLASS:TButtonedEdit; INSTANCE:1]"
+            "cmd": "ControlClick",
+            "type": "50,7",
+            "element": "[CLASS:TRadioButton; INSTANCE:1]"
           },
           {
             "cmd": "ControlClick",
-            "type": "7,7",
-            "element": "[CLASS:TCheckBox; INSTANCE:1]"
+            "type": "1OO,10",
+            "element": "[CLASS:TButton; INSTANCE:1]"
+          },
+          {
+            "cmd": "ControlClick",
+            "type": "50,12",
+            "element": "[CLASS:TButtonedEdit; INSTANCE:1]"
+          },
+          {
+            "cmd": "ControlSetText",
+            "type": "{value}",
+            "element": "[CLASS:TButtonedEdit; INSTANCE:1]"
           },
           {
             "cmd": "ControlClick",
