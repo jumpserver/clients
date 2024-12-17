@@ -2,6 +2,7 @@ package awaken
 
 import (
 	"encoding/json"
+	"fmt"
 	"go-client/global"
 	"go-client/pkg/autoit"
 	"go-client/pkg/config"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -21,6 +23,28 @@ func EnsureDirExist(path string) {
 	if err := os.MkdirAll(path, os.ModePerm); err != nil {
 		global.LOG.Error(err.Error())
 	}
+}
+
+func getNavicatURL(connectInfo map[string]string) string {
+	url := fmt.Sprintf("navicat://conn.%s?Conn.Host=%s&Conn.Name=%s&Conn.Port=%s&Conn.Username=%s",
+		connectInfo["protocol"], connectInfo["host"], connectInfo["name"], connectInfo["port"], connectInfo["username"])
+	switch connectInfo["protocol"] {
+	case "oracle":
+		url = strings.Replace(url, "conn.oracle", "conn.ora", 1)
+		url += fmt.Sprintf("&Conn.ServiceName=%s&Conn.ServiceNameType=ServiceName&Conn.ConnectionMode=Basic", connectInfo["dbname"])
+	case "sqlserver":
+		url = strings.Replace(url, "conn.sqlserver", "conn.mssql", 1)
+		url += fmt.Sprintf("&Conn.AuthenticationType=Default&Conn.InitialDatabase=%s", connectInfo["dbname"])
+	case "postgresql":
+		url = strings.Replace(url, "conn.postgresql", "conn.pgsql", 1)
+		url += fmt.Sprintf("&Conn.InitialDatabase=%s", connectInfo["dbname"])
+	}
+
+	pattern := regexp.MustCompile(`[\^(){}~]`)
+	url = pattern.ReplaceAllStringFunc(url, func(match string) string {
+		return fmt.Sprintf("{%s}", match)
+	})
+	return url
 }
 
 func getCommandFromArgs(connectInfo map[string]string, argFormat string) string {
@@ -105,38 +129,41 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		"dbname":   r.DBName,
 	}
 
-	if r.Protocol == "sqlserver" {
+	if r.Protocol == "sqlserver" && appItem.Name == "dbeaver" {
 		connectMap["protocol"] = "mssql_jdbc_ms_new"
 	}
-	if r.Protocol == "redis" {
-		if appItem.Name == "resp" {
-			var conList []map[string]string
-			ss := make(map[string]string)
-			ss["host"] = r.Host
-			ss["port"] = strconv.Itoa(r.Port)
-			ss["name"] = r.getName()
-			ss["auth"] = r.Token.ID + "@" + r.Value
-			ss["ssh_agent_path"] = ""
-			ss["ssh_password"] = ""
-			ss["ssh_private_key_path"] = ""
-			ss["timeout_connect"] = "60000"
-			ss["timeout_execute"] = "60000"
-			conList = append(conList, ss)
+	if r.Protocol == "redis" && appItem.Name == "resp" {
+		var conList []map[string]string
+		ss := make(map[string]string)
+		ss["host"] = r.Host
+		ss["port"] = strconv.Itoa(r.Port)
+		ss["name"] = r.getName()
+		ss["auth"] = r.Token.ID + "@" + r.Value
+		ss["ssh_agent_path"] = ""
+		ss["ssh_password"] = ""
+		ss["ssh_private_key_path"] = ""
+		ss["timeout_connect"] = "60000"
+		ss["timeout_execute"] = "60000"
+		conList = append(conList, ss)
 
-			bjson, _ := json.Marshal(conList)
-			dir, _ := os.UserConfigDir()
-			currentPath := filepath.Join(dir, "jumpserver-client")
-			rdmPath := filepath.Join(currentPath, ".rdm")
-			EnsureDirExist(rdmPath)
-			filePath := filepath.Join(rdmPath, "connections.json")
-			global.LOG.Error(filePath)
-			err := ioutil.WriteFile(filePath, bjson, os.ModePerm)
-			if err != nil {
-				global.LOG.Error(err.Error())
-				return nil
-			}
-			connectMap["config_file"] = currentPath
+		bjson, _ := json.Marshal(conList)
+		dir, _ := os.UserConfigDir()
+		currentPath := filepath.Join(dir, "jumpserver-client")
+		rdmPath := filepath.Join(currentPath, ".rdm")
+		EnsureDirExist(rdmPath)
+		filePath := filepath.Join(rdmPath, "connections.json")
+		global.LOG.Error(filePath)
+		err := ioutil.WriteFile(filePath, bjson, os.ModePerm)
+		if err != nil {
+			global.LOG.Error(err.Error())
+			return nil
 		}
+		connectMap["config_file"] = currentPath
+
+	}
+	if appItem.Name == "navicat17" {
+		url := getNavicatURL(connectMap)
+		connectMap["url"] = url
 	}
 	if len(appItem.AutoIt) == 0 {
 		commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
@@ -172,7 +199,9 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 				pos := strings.Split(item.Type, ",")
 				x, _ := strconv.Atoi(pos[0])
 				y, _ := strconv.Atoi(pos[1])
-				autoit.ControlClick("", "", item.Element, x, y)
+				autoit.ControlClick("", "", item.Element, "left", 1, x, y)
+			case "SendKey":
+				autoit.Send(item.Element)
 			}
 		}
 		return exec.Command("")

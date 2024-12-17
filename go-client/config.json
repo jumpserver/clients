@@ -200,17 +200,12 @@
             "element": "[REGEXPTITLE:Navicat|Navicat]"
           },
           {
-            "cmd": "ControlClick",
-            "type": "30,30",
-            "element": "[CLASS:TActionToolBar; INSTANCE:1]"
+            "cmd": "SendKey",
+            "type": "",
+            "element": "^u"
           },
           {
-            "cmd": "ControlClick",
-            "type": "135,8",
-            "element": "[CLASS:TButton; INSTANCE:5]"
-          },
-          {
-            "cmd": "ControlSend",
+            "cmd": "ControlSetText",
             "type": "{url}",
             "element": "[CLASS:TTextHintMemo; INSTANCE:1]"
           },
@@ -348,7 +343,7 @@
           },
           {
             "cmd": "ControlClick",
-            "type": "connect",
+            "type": "40,10",
             "element": "[NAME:connect]"
           }
         ],

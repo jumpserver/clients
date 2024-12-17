@@ -37,6 +37,7 @@ var (
 	run            *syscall.LazyProc
 	winWaitActive  *syscall.LazyProc
 	winWait        *syscall.LazyProc
+	send           *syscall.LazyProc
 )
 
 func LoadAuto() {
@@ -51,6 +52,7 @@ func LoadAuto() {
 	run = dll64.NewProc("AU3_Run")
 	winWaitActive = dll64.NewProc("AU3_WinWaitActive")
 	winWait = dll64.NewProc("AU3_WinWait")
+	send = dll64.NewProc("AU3_Send")
 }
 
 // Run -- Run a windows program
@@ -223,6 +225,23 @@ func ControlSetText(title, text, control, newText string) int {
 		println(lastErr)
 	}
 	return int(ret)
+}
+
+// Send -- Send simulates input on the keyboard
+// flag: 0: normal, 1: raw
+func Send(key string, args ...interface{}) {
+	var nMode int
+	var ok bool
+	if len(args) == 0 {
+		nMode = 0
+	} else if len(args) == 1 {
+		if nMode, ok = args[0].(int); !ok {
+			panic("nMode must be a int")
+		}
+	} else {
+		panic("Too more parameter")
+	}
+	send.Call(strPtr(key), intPtr(nMode))
 }
 
 func findTermChr(buff []uint16) int {
