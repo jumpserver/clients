@@ -17,6 +17,7 @@ import { useI18n } from 'vue-i18n';
 
 import mittBus from '@renderer/eventBus';
 import MainSection from '@renderer/components/MainSection/index.vue';
+import type { IListItem } from '@renderer/components/MainSection/interface';
 
 defineProps<{
   active: boolean;
@@ -26,7 +27,6 @@ const { t } = useI18n();
 const message = useMessage();
 const userStore = useUserStore();
 
-const listData = ref([]);
 const hasMore = ref(true);
 const loadingStatus = ref(true);
 const params = ref({
@@ -36,15 +36,11 @@ const params = ref({
   search: '',
   order: userStore.sort
 });
+const listData = ref<IListItem[]>([]);
 
-watch(
-  () => userStore.sort,
-  () => {
-    params.value.order = userStore.sort;
-    getAssetsFromServer();
-  }
-);
-
+/**
+ * @description 滚动加载
+ */
 const handleScroll = async () => {
   if (!hasMore.value || loadingStatus.value) return;
 
@@ -57,6 +53,10 @@ const handleScroll = async () => {
   }
 };
 
+/**
+ * @description 获取 list 数据
+ * @param searchInput
+ */
 const getAssetsFromServer = async (searchInput?: string) => {
   if (searchInput !== undefined) {
     params.value.offset = 0;
@@ -89,24 +89,33 @@ const getAssetsFromServer = async (searchInput?: string) => {
   }
 };
 
-const handleRemoveAccount = () => {
-  const userInfo = userStore.userInfo;
-
-  if (userInfo && userInfo.length === 0) {
-    listData.value = [];
-    userStore.setToken('');
+watch(
+  () => userStore.sort,
+  () => {
+    params.value.order = userStore.sort;
+    getAssetsFromServer();
   }
-};
+);
+
+watch(
+  () => userStore.userInfo,
+  userInfo => {
+    if (userInfo && userInfo.length === 0) {
+      listData.value = [];
+      userStore.setToken('');
+    } else {
+      getAssetsFromServer();
+    }
+  },
+  { immediate: true }
+);
 
 onMounted(async () => {
-  await getAssetsFromServer();
   mittBus.on('search', getAssetsFromServer);
-  mittBus.on('removeAccount', handleRemoveAccount);
 });
 
 onBeforeUnmount(() => {
   mittBus.off('search', getAssetsFromServer);
-  mittBus.off('removeAccount', handleRemoveAccount);
 });
 </script>
 

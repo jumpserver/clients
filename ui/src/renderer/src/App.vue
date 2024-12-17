@@ -4,10 +4,11 @@ import { darkThemeOverrides, lightThemeOverrides } from './overrides';
 import { darkTheme, enUS, zhCN, lightTheme } from 'naive-ui';
 
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import { createDiscreteApi } from 'naive-ui';
 import { getProfile } from '@renderer/api/modals/user';
 import { useUserStore } from '@renderer/store/module/userStore';
-import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 
 import { Conf } from 'electron-conf/renderer';
 
@@ -16,8 +17,9 @@ import type { ConfigProviderProps } from 'naive-ui';
 import mittBus from '@renderer/eventBus';
 import LoginModal from '@renderer/components/LoginModal/index.vue';
 
-const { t, locale } = useI18n();
 const conf = new Conf();
+const router = useRouter();
+const { t, locale } = useI18n();
 
 const iconImage = ref('');
 const defaultLang = ref('');
@@ -120,6 +122,8 @@ const handleRemoveAccount = () => {
     userStore.setCurrentUser({
       ...userInfo[0]
     });
+
+    mittBus.emit('search');
   } else {
     showModal.value = true;
   }
@@ -163,6 +167,8 @@ onMounted(async () => {
         content: t('Message.AuthenticatedSuccess'),
         duration: 2000
       });
+
+      await router.push({ name: 'Linux' });
     }
   } catch (e: any) {
     const status = e.response?.status;
@@ -176,44 +182,43 @@ onMounted(async () => {
   // @ts-ignore
   if (userStore?.userInfo.length <= 0) showModal.value = true;
 
-  window.electron.ipcRenderer.on('set-token', (_e, token: string) => {
+  window.electron.ipcRenderer.on('set-token', async (_e, token: string) => {
     if (token) {
       showModal.value = false;
       userStore.setToken(token);
 
-      nextTick(async () => {
-        try {
-          const res = await getProfile();
+      try {
+        const res = await getProfile();
 
-          userStore.setUserInfo({
-            token,
-            username: res?.username,
-            display_name: res?.system_roles.map((item: any) => item.display_name),
-            avatar_url: avatarImage,
-            currentSite: userStore.currentSite
+        userStore.setUserInfo({
+          token,
+          username: res?.username,
+          display_name: res?.system_roles.map((item: any) => item.display_name),
+          avatar_url: avatarImage,
+          currentSite: userStore.currentSite
+        });
+
+        userStore.setCurrentUser({
+          token,
+          username: res?.username,
+          display_name: res?.system_roles.map((item: any) => item.display_name),
+          avatar_url: avatarImage,
+          currentSite: userStore.currentSite
+        });
+
+        if (res) {
+          notification.create({
+            type: 'success',
+            content: t('Message.AuthenticatedSuccess'),
+            duration: 2000
           });
 
-          userStore.setCurrentUser({
-            token,
-            username: res?.username,
-            display_name: res?.system_roles.map((item: any) => item.display_name),
-            avatar_url: avatarImage,
-            currentSite: userStore.currentSite
-          });
-
-          if (res) {
-            notification.create({
-              type: 'success',
-              content: t('Message.AuthenticatedSuccess'),
-              duration: 2000
-            });
-
-            mittBus.emit('search');
-          }
-        } catch (e) {
-          showModal.value = false;
+          mittBus.emit('search');
+          await router.push({ name: 'Linux' });
         }
-      });
+      } catch (e) {
+        showModal.value = false;
+      }
     }
   });
 
