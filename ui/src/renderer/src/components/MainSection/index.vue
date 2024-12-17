@@ -36,7 +36,7 @@
       :show="showLeftDropdown"
       :on-clickoutside="onClickLeftOutside"
       @select="handleAccountSelect"
-      class="min-w-60"
+      class="min-w-60 max-h-80 scrollbar-dark overflow-y-auto p-2"
     />
 
     <!-- 右键点击下拉菜单 -->
@@ -337,7 +337,7 @@ const handleContextMenuWrapper = (item: IListItem, event: MouseEvent) => {
  */
 const handleItemContextMenu = useDebounceFn(async (_item: IListItem, _event: MouseEvent) => {
   selectedItem.value = _item;
-  resetRightOptions()
+  resetRightOptions();
   try {
     const hasGetMessage: boolean = await getAssetDetailFromServer(_item.id);
 

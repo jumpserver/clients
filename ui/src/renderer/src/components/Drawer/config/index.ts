@@ -3,7 +3,10 @@ import { ref } from 'vue';
 
 export interface IClient {
   path: string;
-  comment: object;
+  comment: {
+    en: string;
+    zh: string;
+  };
   name: string;
   display_name: string;
   download_url: string;

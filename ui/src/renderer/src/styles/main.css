@@ -27,6 +27,29 @@
   --el-color-secondary-background: 243 243 245;
 }
 
+@layer utilities {
+  .scrollbar-dark {
+    @apply relative;
+  }
+
+  .scrollbar-dark::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scrollbar-dark::-webkit-scrollbar-track {
+    background: #333;
+  }
+
+  .scrollbar-dark::-webkit-scrollbar-thumb {
+    background: #666;
+    border-radius: 5px;
+  }
+
+  .scrollbar-dark::-webkit-scrollbar-thumb:hover {
+    background: #888;
+  }
+}
+
 body {
   display: flex;
   align-items: center;

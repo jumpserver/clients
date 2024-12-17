@@ -44,7 +44,7 @@
                     <n-switch
                       size="small"
                       v-model:value="item.is_set"
-                      @update:value="handleSwitchValueChange(item)"
+                      @update:value="handleChangeSwitchValue(item)"
                     >
                       <template #checked> 已启用</template>
                       <template #unchecked> 未启用</template>
@@ -81,7 +81,9 @@
                         v-model:value="item.match_first"
                         multiple
                         @update:value="handleItemChange(item)"
-                        :options="item.protocol.map(value => ({ label: value, value: value }))"
+                        :options="
+                          item.protocol.map((value: any) => ({ label: value, value: value }))
+                        "
                       />
                     </n-form-item>
                     <n-form-item
@@ -193,6 +195,8 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useMessage } from 'naive-ui';
 import { useRoute } from 'vue-router';
 import { useSettingStore } from '@renderer/store/module/settingStore';
+import { toRaw } from 'vue';
+
 import { Conf } from 'electron-conf/renderer';
 import {
   boolOptions,
@@ -310,7 +314,7 @@ const closeDrawer = () => {
  *
  * @param item
  */
-const handleSwitchValueChange = (item: IClient) => {
+const handleChangeSwitchValue = (item: IClient) => {
   nextTick(() => {
     const enabledOptions = currentOption.value?.filter(option => option.is_set);
     if (enabledOptions && enabledOptions.length === 0) {
