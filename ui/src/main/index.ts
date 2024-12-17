@@ -146,7 +146,6 @@ const createWindow = async (): Promise<void> => {
 
     await mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
   } else {
-    mainWindow.webContents.openDevTools();
     await mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
   }
 };
