@@ -2,8 +2,8 @@
   <n-flex vertical justify="space-between" class="py-[15px]" style="height: calc(100% - 30px)">
     <n-flex>
       <n-menu
-        :options="menuOptions()"
-        default-value="linux-page"
+        :options="options"
+        v-model:value="selectedKey"
         class="w-full flex flex-col items-center"
       />
       <n-divider class="!my-[10px]" />
@@ -86,14 +86,13 @@
 <script setup lang="ts">
 import { NAvatar, NText, NPopover, NTag, NEllipsis } from 'naive-ui';
 import { ArrowsHorizontal } from '@vicons/carbon';
-import { menuOptions } from './config';
 import { computed } from 'vue';
 
 import mittBus from '@renderer/eventBus';
 
 import { useUserStore } from '@renderer/store/module/userStore';
-import { h, nextTick, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { menuOptions } from './config';
+import { h, nextTick, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 
@@ -101,7 +100,7 @@ import type { SelectOption, SelectRenderLabel } from 'naive-ui';
 import type { IUserInfo } from '@renderer/store/interface';
 
 const { t } = useI18n();
-const router = useRouter();
+const options = menuOptions();
 const userStore = useUserStore();
 
 const { currentUser: storeCurrentUser } = storeToRefs(userStore);
@@ -122,6 +121,8 @@ const userOptions = computed(() => {
     }) || []
   );
 });
+
+const selectedKey = ref('linux-page');
 
 /**
  * @description 切换账号的逻辑
@@ -229,6 +230,7 @@ const renderLabel: SelectRenderLabel = option => {
  */
 const handleAddAccount = () => {
   mittBus.emit('addAccount');
+  selectedKey.value = 'linux-page';
 };
 
 /**
@@ -236,11 +238,8 @@ const handleAddAccount = () => {
  */
 const handleRemoveAccount = () => {
   mittBus.emit('removeAccount');
+  selectedKey.value = 'linux-page';
 };
-
-onMounted(() => {
-  router.push({ name: 'Linux' });
-});
 </script>
 
 <style scoped lang="scss">

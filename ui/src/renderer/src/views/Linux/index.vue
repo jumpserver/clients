@@ -39,14 +39,6 @@ const params = ref({
 });
 const listData = ref<IListItem[]>([]);
 
-watch(
-  () => userStore.sort,
-  () => {
-    params.value.order = userStore.sort;
-    getAssetsFromServer();
-  }
-);
-
 /**
  * @description 滚动加载
  */
@@ -98,32 +90,34 @@ const getAssetsFromServer = async (searchInput?: string) => {
   }
 };
 
-/**
- * @description 移除账号
- */
-const handleRemoveAccount = () => {
-  const userInfo = userStore.userInfo;
-
-  if (userInfo && userInfo.length === 0) {
-    listData.value = [];
-    userStore.setToken('');
+watch(
+  () => userStore.sort,
+  () => {
+    params.value.order = userStore.sort;
+    getAssetsFromServer();
   }
-};
+);
 
-onMounted(async () => {
-  const userInfo = userStore.userInfo;
+// 主要用于检测账号切换与不存在账号信息时的处理
+watch(
+  () => userStore.userInfo,
+  userInfo => {
+    if (userInfo && userInfo.length === 0) {
+      listData.value = [];
+      userStore.setToken('');
+    } else {
+      getAssetsFromServer();
+    }
+  },
+  { immediate: true }
+);
 
-  if (userInfo && userInfo.length === 0) return;
-
-  await getAssetsFromServer();
-
+onMounted(() => {
   mittBus.on('search', getAssetsFromServer);
-  mittBus.on('removeAccount', handleRemoveAccount);
 });
 
 onBeforeUnmount(() => {
   mittBus.off('search', getAssetsFromServer);
-  mittBus.off('removeAccount', handleRemoveAccount);
 });
 </script>
 

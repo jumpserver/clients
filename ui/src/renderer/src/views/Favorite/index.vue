@@ -36,14 +36,6 @@ const params = ref({
   order: userStore.sort
 });
 
-watch(
-  () => userStore.sort,
-  () => {
-    params.value.order = userStore.sort;
-    getAssetsFromServer();
-  }
-);
-
 const handleScroll = async () => {
   if (!hasMore.value || loadingStatus.value) return;
 
@@ -88,25 +80,33 @@ const getAssetsFromServer = async (searchInput?: string) => {
   }
 };
 
-const handleRemoveAccount = () => {
-  const userInfo = userStore.userInfo;
-
-  if (userInfo && userInfo.length === 0) {
-    listData.value = [];
-    userStore.setToken('');
+watch(
+  () => userStore.sort,
+  () => {
+    params.value.order = userStore.sort;
+    getAssetsFromServer();
   }
-};
+);
+
+watch(
+  () => userStore.userInfo,
+  userInfo => {
+    if (userInfo && userInfo.length === 0) {
+      listData.value = [];
+      userStore.setToken('');
+    } else {
+      getAssetsFromServer();
+    }
+  },
+  { immediate: true }
+);
 
 onMounted(async () => {
-  await getAssetsFromServer();
-
   mittBus.on('search', getAssetsFromServer);
-  mittBus.on('removeAccount', handleRemoveAccount);
 });
 
 onBeforeUnmount(() => {
   mittBus.off('search', getAssetsFromServer);
-  mittBus.off('removeAccount', handleRemoveAccount);
 });
 </script>
 

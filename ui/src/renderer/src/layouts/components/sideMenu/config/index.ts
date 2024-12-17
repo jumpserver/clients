@@ -7,7 +7,7 @@ import { RouterLink } from 'vue-router';
 
 import type { MenuOption } from 'naive-ui';
 
-export const menuOptions: MenuOption[] = () => {
+export const menuOptions = () => {
   const { t } = useI18n();
 
   return [
@@ -81,5 +81,5 @@ export const menuOptions: MenuOption[] = () => {
       key: 'history-page',
       icon: renderIcon(History)
     }
-  ];
+  ] as MenuOption[];
 };

@@ -22,23 +22,17 @@ import Drawer from '@renderer/components/Drawer/index.vue';
 import SideMenu from './components/sideMenu/index.vue';
 
 import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
 
 import type { IItemDetail } from '@renderer/components/MainSection/interface';
 
 import mittBus from '@renderer/eventBus';
 
-const router = useRouter();
 const active = ref(false);
 const drawerDetailMessage = ref<IItemDetail>({} as IItemDetail);
 
 const handleCreateDrawer = () => {
   active.value = !active.value;
 };
-
-window.electron.ipcRenderer.on('set-token', (_event, _message) => {
-  router.push({ name: 'Linux' });
-});
 
 onMounted(() => {
   mittBus.on('createDrawer', handleCreateDrawer);
