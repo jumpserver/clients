@@ -13,9 +13,7 @@
     <n-drawer-content footer-style="border: unset;" body-content-style="padding: 15px 5px 40px">
       <template #header>
         <n-flex align="center" justify="space-between">
-          <n-text depth="1">默认配置</n-text>
-          <!--          <n-text depth="1" v-else>资产详情</n-text>-->
-
+          <n-text depth="1" v-if="!showMessageInfo">默认配置</n-text>
           <n-flex>
             <n-icon
               size="20"
@@ -29,7 +27,7 @@
 
       <n-scrollbar>
         <template #default>
-          <n-flex class="mx-[15px]">
+          <n-flex v-if="!showMessageInfo" class="mx-[15px]">
             <n-card
               v-for="item of currentOption"
               :bordered="false"
@@ -158,27 +156,6 @@
               </n-collapse>
             </n-card>
           </n-flex>
-
-          <!--          <n-flex class="mx-[15px]">-->
-          <!--            <n-card-->
-          <!--              :bordered="false"-->
-          <!--              size="small"-->
-          <!--              header-style="font-size: 13px;"-->
-          <!--              class="rounded-[10px] !bg-secondary"-->
-          <!--            >-->
-          <!--              <n-form size="small" :label-width="80" :model="formValue" :rules="rules">-->
-          <!--                <n-form-item label="名称" path="user.name">-->
-          <!--                  <n-input v-model:value="formValue.user.name" placeholder="输入姓名" disabled />-->
-          <!--                </n-form-item>-->
-          <!--                <n-form-item label="年龄" path="user.age">-->
-          <!--                  <n-input v-model:value="formValue.user.age" placeholder="输入年龄" disabled />-->
-          <!--                </n-form-item>-->
-          <!--                <n-form-item label="电话号码" path="phone">-->
-          <!--                  <n-input v-model:value="formValue.phone" placeholder="电话号码" disabled />-->
-          <!--                </n-form-item>-->
-          <!--              </n-form>-->
-          <!--            </n-card>-->
-          <!--          </n-flex>-->
         </template>
       </n-scrollbar>
     </n-drawer-content>
@@ -207,11 +184,9 @@ import {
   resolutionsOptions,
   windowsOptions
 } from './config/index';
-import type { IItemDetail } from '@renderer/components/MainSection/interface';
 
-const props = withDefaults(defineProps<{ active: boolean; drawerDetailMessage?: IItemDetail }>(), {
-  active: false,
-  drawerDetailMessage: () => ({}) as IItemDetail
+const props = withDefaults(defineProps<{ active: boolean }>(), {
+  active: false
 });
 
 const route = useRoute();
@@ -228,12 +203,6 @@ const platform = ref('');
 
 const conf = new Conf();
 
-watch([charset, is_backspace_as_ctrl_h, rdp_resolution], () => {
-  settingStore.charset = charset.value;
-  settingStore.is_backspace_as_ctrl_h = is_backspace_as_ctrl_h.value;
-  settingStore.rdp_resolution = rdp_resolution.value;
-});
-
 const updateCurrentOptions = (newValue: string | null) => {
   switch (newValue) {
     case 'Linux':
@@ -249,16 +218,6 @@ const updateCurrentOptions = (newValue: string | null) => {
       currentOption.value = [];
   }
 };
-
-watch(
-  () => route.name,
-  newValue => {
-    if (newValue && typeof newValue === 'string') {
-      updateCurrentOptions(newValue);
-    }
-  },
-  { immediate: true }
-);
 
 const enabledItems = computed(() => {
   // 获取所有启用状态的 item 标签作为展开的名称
@@ -336,6 +295,22 @@ const initPlatformData = async () => {
     databaseOptions.value = platformData.databases;
   }
 };
+
+watch(
+  () => route.name,
+  newValue => {
+    if (newValue && typeof newValue === 'string') {
+      updateCurrentOptions(newValue);
+    }
+  },
+  { immediate: true }
+);
+
+watch([charset, is_backspace_as_ctrl_h, rdp_resolution], () => {
+  settingStore.charset = charset.value;
+  settingStore.is_backspace_as_ctrl_h = is_backspace_as_ctrl_h.value;
+  settingStore.rdp_resolution = rdp_resolution.value;
+});
 
 onMounted(() => {
   window.electron.ipcRenderer.send('get-platform');

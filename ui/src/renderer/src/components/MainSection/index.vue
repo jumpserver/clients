@@ -36,7 +36,7 @@
       :show="showLeftDropdown"
       :on-clickoutside="onClickLeftOutside"
       @select="handleAccountSelect"
-      class="min-w-60 max-h-80 scrollbar-dark overflow-y-auto p-2"
+      class="min-w-60 max-h-90 scrollbar-dark overflow-y-auto p-2"
     />
 
     <!-- 右键点击下拉菜单 -->
@@ -210,7 +210,11 @@ const resetRightOptions = () => {
       render: renderCustomHeader(
         ArrowEnterLeft20Filled,
         `${t('Common.AssetDetails')}`,
-        'detail-message'
+        'detail-message',
+        detailMessage,
+        () => {
+          showRightDropdown.value = false;
+        }
       )
     },
     {

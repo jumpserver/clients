@@ -31,7 +31,18 @@ export default {
     AssetName: 'Asset Name',
     Organization: 'Affiliated Organization',
     NewToOld: 'Updated (new to old)',
-    OldToNew: 'Updated (old to new)'
+    OldToNew: 'Updated (old to new)',
+    PlatformInfo: 'Platform Information',
+    PlatformID: 'Platform ID',
+    PlatformName: 'Platform Name',
+    Connectivity: 'Connectivity',
+    Label: 'Label',
+    Value: 'Value',
+    Category: 'Category',
+    Nodes: 'Nodes',
+    PermedProtocols: 'Permitted Protocols',
+    PermedAccounts: 'Permitted Accounts',
+    NoUsername: 'No Username'
   },
   Dialog: {
     'Save&Default': 'Save And Default',
