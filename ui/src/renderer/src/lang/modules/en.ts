@@ -42,7 +42,13 @@ export default {
     Nodes: 'Nodes',
     PermedProtocols: 'Permitted Protocols',
     PermedAccounts: 'Permitted Accounts',
-    NoUsername: 'No Username'
+    NoUsername: 'No Username',
+    InputPassword: 'Please enter the password',
+    Username: 'Username',
+    Password: 'Password',
+    Confirm: 'Confirm',
+    UsernamePlaceholder: 'Please enter the username',
+    InputAccountPassword: 'Manual input'
   },
   Dialog: {
     'Save&Default': 'Save And Default',
