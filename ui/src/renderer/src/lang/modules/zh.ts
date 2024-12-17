@@ -42,7 +42,13 @@ export default {
     Nodes: '节点',
     PermedProtocols: '允许的协议',
     PermedAccounts: '允许的账号',
-    NoUsername: '无用户名'
+    NoUsername: '无用户名',
+    InputPassword: '请输入密码',
+    Username: '用户名',
+    Password: '密码',
+    Confirm: '确认',
+    UsernamePlaceholder: '请输入用户名',
+    InputAccountPassword: '手动输入'
   },
   Dialog: {
     'Save&Default': '保存且默认',

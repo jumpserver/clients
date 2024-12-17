@@ -225,8 +225,7 @@ export const moveElementToEnd = (arr: DropdownOption[], searchKey: string, chang
   return arr;
 };
 
-export const useAccountModal = (type: string) => {
-  const { t } = useI18n();
+export const useAccountModal = (type: string, t: any) => {
   const conf = new Conf();
   const defaultTheme = ref('');
   const inputPassword = ref('');
@@ -282,7 +281,7 @@ export const useAccountModal = (type: string) => {
                   h(NInput, {
                     value: inputUsername.value,
                     clearable: true,
-                    placeholder: t('Common.InputUsername'),
+                    placeholder: t('Common.UsernamePlaceholder'),
                     onUpdateValue: value => {
                       inputUsername.value = value;
                     }
