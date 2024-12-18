@@ -283,11 +283,161 @@ const getAssetDetailFromServer = async (id: string): Promise<boolean> => {
   }
 };
 
+// 修改 selectedProtocol 的类型，使用 Map 来存储每个资产的选中协议
+const selectedProtocols = ref(new Map<string, Permed_protocols>());
+
 /**
- * @description listItem 的点击事件
- * @param item
- * @param _event
+ * @description 右键选择协议
+ * @param key
  */
+const handleSelect = async (key: string) => {
+  if (key === 'detail-message') return;
+
+  // 找到选中的协议
+  const currentProtocol = detailMessage.value.permed_protocols.find(
+    (item: Permed_protocols) => item.name === key
+  );
+
+  if (currentProtocol) {
+    selectedProtocols.value.set(detailMessage.value.id, currentProtocol);
+
+    message.success(t('Message.ProtocolSelected'));
+
+    showRightDropdown.value = false;
+  }
+};
+
+/**
+ * @description 左键选择账号
+ * @param key
+ */
+const handleAccountSelect = async (key: string) => {
+  // 重置连接数据
+  connectData.value = {
+    asset: '',
+    account: '',
+    protocol: '',
+    input_username: '',
+    input_secret: ''
+  };
+
+  const currentAccount = detailMessage.value.permed_accounts.find(
+    (item: Permed_accounts) => item.id === key
+  );
+
+  if (currentAccount) {
+    connectData.value.asset = detailMessage.value.id;
+    connectData.value.account = currentAccount.name;
+    connectData.value.input_username = '';
+    connectData.value.input_secret = '';
+
+    // 获取当前资产的选中协议，如果没有则使用默认协议
+    const protocol =
+      selectedProtocols.value.get(detailMessage.value.id) ||
+      detailMessage.value.permed_protocols[0];
+
+    if (!protocol) {
+      return;
+    }
+
+    connectData.value.protocol = protocol.name;
+
+    switch (currentAccount.alias) {
+      case '@USER':
+        // 同名账号
+        connectData.value.account = '@USER';
+        connectData.value.input_username = currentUser.value?.username;
+
+        if (!currentAccount.has_secret) {
+          const { inputPassword } = useAccountModal('@USER', t);
+          connectData.value.input_secret = inputPassword;
+        }
+        break;
+      case '@INPUT':
+        // 手动输入
+        connectData.value.account = '@INPUT';
+        const { inputPassword, inputUsername } = useAccountModal('@INPUT', t);
+        connectData.value.input_username = inputUsername;
+        connectData.value.input_secret = inputPassword;
+        break;
+      default:
+        connectData.value.input_username = currentAccount.username;
+
+        if (!currentAccount.has_secret) {
+          const { inputPassword } = useAccountModal('@OTHER', t);
+          connectData.value.input_secret = inputPassword;
+        }
+    }
+
+    // 开始连接
+    try {
+      let method: string;
+      switch (protocol.name) {
+        case 'ssh':
+        case 'telnet':
+          method = 'ssh_client';
+          break;
+        case 'rdp':
+          method = 'mstsc';
+          break;
+        case 'sftp':
+          method = 'sftp_client';
+          break;
+        case 'vnc':
+          method = 'vnc_client';
+          break;
+        default:
+          method = 'db_client';
+      }
+
+      const token = await createConnectToken(connectData.value, method);
+      if (token) {
+        message.success(t('Message.ConnectSuccess'), { closable: true });
+
+        historyStore.setHistorySession({ ...detailMessage.value });
+
+        getLocalClientUrl(token).then(res => {
+          if (res) {
+            window.electron.ipcRenderer.send('open-client', res.url);
+          }
+        });
+      }
+    } catch (error: any) {
+      handleConnectionError(error);
+    }
+  }
+
+  resetLeftOptions();
+  showLeftDropdown.value = false;
+};
+
+// 修改错误处理函数
+const handleConnectionError = (error: any) => {
+  const errorData = error?.response?.data;
+
+  if (errorData) {
+    // 除开通知和允许，其余情况一率弹窗
+    if (errorData?.code !== 'notice') {
+      // todo)) ACL 的 Action 区别加在 message 中
+      message.error(`${t('Message.AssetNotice')}`);
+      return;
+    }
+
+    if (errorData?.code !== 'reject') {
+      message.error(`${t('Message.AssetDeny')}`);
+      return;
+    }
+  }
+};
+
+/**
+ * @description 快速连接
+ */
+const handleFastConnect = async () => {
+  await handleSelect('fast-connection');
+};
+
+// 在选择新的资产项时重置左侧菜单
 const selectItem = useDebounceFn(async (item: IListItem, _event: MouseEvent) => {
   loadingBar.start();
   selectedItem.value = item;
@@ -366,160 +516,6 @@ const handleItemContextMenu = useDebounceFn(async (_item: IListItem, _event: Mou
   }
 }, 300);
 
-/**
- * @description 右键选择协议
- * @param key
- */
-const handleSelect = async (key: string) => {
-  if (!connectData.value.account) {
-    message.error(`${t('Message.SelectAccountFirst')}`);
-    return;
-  }
-
-  const isCurrentIndex = detailMessage.value.permed_accounts.findIndex(
-    item => item.name === connectData.value.account || item.alias === connectData.value.account
-  );
-
-  if (isCurrentIndex === -1) {
-    message.error(`${t('Message.SelectedAccountError')})`);
-    return;
-  }
-
-  const currentProtocol =
-    key === 'fast-connection'
-      ? detailMessage.value.permed_protocols[0]
-      : detailMessage.value.permed_protocols.find((item: Permed_protocols) => item.name === key);
-
-  if (currentProtocol) {
-    if (selectedItem.value) {
-      let method: string;
-      switch (currentProtocol.name) {
-        case 'ssh':
-        case 'telnet':
-          method = 'ssh_client';
-          break;
-        case 'rdp':
-          method = 'mstsc';
-          break;
-        case 'sftp':
-          method = 'sftp_client';
-          break;
-        case 'vnc':
-          method = 'vnc_client';
-          break;
-        default:
-          method = 'db_client';
-      }
-
-      try {
-        connectData.value.protocol = currentProtocol.name;
-        const token = await createConnectToken(connectData.value, method);
-
-        if (token) {
-          message.success(`${t('Message.ConnectSuccess')}`, { closable: true });
-
-          historyStore.setHistorySession({ ...detailMessage.value });
-
-          getLocalClientUrl(token).then(res => {
-            if (res) {
-              window.electron.ipcRenderer.send('open-client', res.url);
-            }
-          });
-        }
-      } catch (error: any) {
-        const errorData = error?.response.data;
-
-        if (errorData) {
-          // 除开通知和允许，其余情况一率弹窗
-          if (errorData?.code !== 'notice') {
-            // todo)) ACL 的 Action 区别加在 message 中
-            message.error(`${t('Message.AssetNotice')}`);
-            return;
-          }
-
-          if (errorData?.code !== 'reject') {
-            message.error(`${t('Message.AssetDeny')}`);
-            return;
-          }
-        }
-      }
-    }
-  }
-
-  resetRightOptions();
-  showRightDropdown.value = false;
-};
-
-/**
- * @description 左键选择账号
- * @param key
- */
-const handleAccountSelect = (key: string) => {
-  connectData.value = {
-    asset: '',
-    account: '',
-    protocol: '',
-    input_username: '',
-    input_secret: ''
-  };
-
-  const currentAccount = detailMessage.value.permed_accounts.find(
-    (item: Permed_accounts) => item.id === key
-  );
-
-  console.log(detailMessage.value.permed_protocols);
-
-  if (currentAccount) {
-    connectData.value.asset = detailMessage.value.id;
-    connectData.value.account = currentAccount.name;
-    connectData.value.input_username = '';
-    connectData.value.input_secret = '';
-
-    switch (currentAccount.alias) {
-      case '@USER':
-        // 同名账号
-        connectData.value.account = '@USER';
-        connectData.value.input_username = currentUser.value?.username;
-
-        if (!currentAccount.has_secret) {
-          const { inputPassword } = useAccountModal('@USER', t);
-
-          connectData.value.input_secret = inputPassword;
-        }
-        break;
-      case '@INPUT':
-        // 手动输入
-        connectData.value.account = '@INPUT';
-        const { inputPassword, inputUsername } = useAccountModal('@INPUT', t);
-
-        connectData.value.input_username = inputUsername;
-        connectData.value.input_secret = inputPassword;
-
-        break;
-      default:
-        connectData.value.input_username = currentAccount.username;
-
-        if (!currentAccount.has_secret) {
-          const { inputPassword } = useAccountModal('@OTHER', t);
-
-          connectData.value.input_secret = inputPassword;
-        }
-
-        handleSelect('fast-connection');
-    }
-  }
-
-  resetLeftOptions();
-  showLeftDropdown.value = false;
-};
-
-/**
- * @description 快速连接
- */
-const handleFastConnect = async () => {
-  await handleSelect('fast-connection');
-};
-
 onMounted(() => {
   mittBus.on('connectAsset', handleFastConnect);
   mittBus.on('changeLayout', handleLayoutChange);
@@ -528,6 +524,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   mittBus.off('connectAsset', handleFastConnect);
   mittBus.off('changeLayout', handleLayoutChange);
+  selectedProtocols.value.clear(); // 清理所有存储的协议
 });
 </script>
 

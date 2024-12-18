@@ -66,6 +66,13 @@ const getAssetsFromServer = async (searchInput?: string) => {
     hasMore.value = true;
   }
 
+  if (searchInput === 'reset') {
+    params.value.offset = 0;
+    params.value.search = '';
+    listData.value = [];
+    hasMore.value = true;
+  }
+
   loadingStatus.value = true;
 
   try {
