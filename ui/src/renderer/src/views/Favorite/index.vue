@@ -17,6 +17,7 @@ import { useI18n } from 'vue-i18n';
 
 import mittBus from '@renderer/eventBus';
 import MainSection from '@renderer/components/MainSection/index.vue';
+import type { IListItem } from '@renderer/components/MainSection/interface';
 
 defineProps<{
   active: boolean;
@@ -26,7 +27,6 @@ const { t } = useI18n();
 const message = useMessage();
 const userStore = useUserStore();
 
-const listData = ref([]);
 const hasMore = ref(true);
 const loadingStatus = ref(true);
 const params = ref({
@@ -35,11 +35,13 @@ const params = ref({
   search: '',
   order: userStore.sort
 });
+const listData = ref<IListItem[]>([]);
 
 const handleScroll = async () => {
   if (!hasMore.value || loadingStatus.value) return;
 
   params.value.offset += 20;
+  params.value.order = userStore.sort;
 
   try {
     await getAssetsFromServer();
@@ -52,6 +54,7 @@ const getAssetsFromServer = async (searchInput?: string) => {
   if (searchInput !== undefined) {
     params.value.offset = 0;
     params.value.search = searchInput;
+    params.value.order = userStore.sort;
     listData.value = [];
     hasMore.value = true;
   }
@@ -59,6 +62,7 @@ const getAssetsFromServer = async (searchInput?: string) => {
   if (searchInput === 'reset') {
     params.value.offset = 0;
     params.value.search = '';
+    params.value.order = userStore.sort;
     listData.value = [];
     hasMore.value = true;
   }
@@ -71,18 +75,18 @@ const getAssetsFromServer = async (searchInput?: string) => {
     if (res) {
       const { results, count: total } = res;
 
-      listData.value = params.value.offset === 0 ? results : [...listData.value, ...results];
+      if (params.value.offset === 0) {
+        listData.value = results;
+      } else {
+        listData.value = [...listData.value, ...results];
+      }
 
-      // 检查是否还有更多数据
       hasMore.value = listData.value.length < total;
-
-      await nextTick(() => {
-        loadingStatus.value = false;
-      });
+      loadingStatus.value = false;
     }
   } catch (e) {
-    hasMore.value = false;
     loadingStatus.value = false;
+    hasMore.value = false;
     message.error(`${t('Message.FailedRetrieveAssetDataList')}`, { closable: true });
   }
 };
@@ -90,8 +94,14 @@ const getAssetsFromServer = async (searchInput?: string) => {
 watch(
   () => userStore.sort,
   () => {
-    params.value.order = userStore.sort;
-    getAssetsFromServer();
+    params.value = {
+      ...params.value,
+      offset: 0,
+      order: userStore.sort
+    };
+    listData.value = [];
+    hasMore.value = true;
+    getAssetsFromServer('reset');
   }
 );
 
@@ -108,7 +118,7 @@ watch(
   { immediate: true }
 );
 
-onMounted(async () => {
+onMounted(() => {
   mittBus.on('search', getAssetsFromServer);
 });
 
