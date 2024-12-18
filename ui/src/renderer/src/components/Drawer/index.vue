@@ -13,7 +13,7 @@
     <n-drawer-content footer-style="border: unset;" body-content-style="padding: 15px 5px 40px">
       <template #header>
         <n-flex align="center" justify="space-between">
-          <n-text depth="1" v-if="!showMessageInfo">默认配置</n-text>
+          <n-text depth="1">默认配置</n-text>
           <n-flex>
             <n-icon
               size="20"
@@ -27,7 +27,7 @@
 
       <n-scrollbar>
         <template #default>
-          <n-flex v-if="!showMessageInfo" class="mx-[15px]">
+          <n-flex class="mx-[15px]">
             <n-card
               v-for="item of currentOption"
               :bordered="false"

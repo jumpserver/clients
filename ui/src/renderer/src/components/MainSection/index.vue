@@ -367,66 +367,6 @@ const handleItemContextMenu = useDebounceFn(async (_item: IListItem, _event: Mou
 }, 300);
 
 /**
- * @description 左键选择账号
- * @param key
- */
-const handleAccountSelect = (key: string) => {
-  connectData.value = {
-    asset: '',
-    account: '',
-    protocol: '',
-    input_username: '',
-    input_secret: ''
-  };
-
-  const currentAccount = detailMessage.value.permed_accounts.find(
-    (item: Permed_accounts) => item.id === key
-  );
-
-  if (currentAccount) {
-    connectData.value.asset = detailMessage.value.id;
-    connectData.value.account = currentAccount.name;
-    connectData.value.input_username = '';
-    connectData.value.input_secret = '';
-
-    switch (currentAccount.alias) {
-      case '@USER':
-        // 同名账号
-        connectData.value.account = '@USER';
-        connectData.value.input_username = currentUser.value?.username;
-
-        if (!currentAccount.has_secret) {
-          const { inputPassword } = useAccountModal('@USER', t);
-
-          connectData.value.input_secret = inputPassword;
-        }
-        break;
-      case '@INPUT':
-        // 手动输入
-        connectData.value.account = '@INPUT';
-        const { inputPassword, inputUsername } = useAccountModal('@INPUT', t);
-
-        connectData.value.input_username = inputUsername;
-        connectData.value.input_secret = inputPassword;
-
-        break;
-      default:
-        connectData.value.input_username = currentAccount.username;
-
-        if (!currentAccount.has_secret) {
-          const { inputPassword } = useAccountModal('@OTHER', t);
-
-          connectData.value.input_secret = inputPassword;
-        }
-    }
-    message.success(`${t('Message.Account')} ${currentAccount.name} ${t('Message.Selected')}`);
-  }
-
-  resetLeftOptions();
-  showLeftDropdown.value = false;
-};
-
-/**
  * @description 右键选择协议
  * @param key
  */
@@ -508,6 +448,69 @@ const handleSelect = async (key: string) => {
 
   resetRightOptions();
   showRightDropdown.value = false;
+};
+
+/**
+ * @description 左键选择账号
+ * @param key
+ */
+const handleAccountSelect = (key: string) => {
+  connectData.value = {
+    asset: '',
+    account: '',
+    protocol: '',
+    input_username: '',
+    input_secret: ''
+  };
+
+  const currentAccount = detailMessage.value.permed_accounts.find(
+    (item: Permed_accounts) => item.id === key
+  );
+
+  console.log(detailMessage.value.permed_protocols);
+
+  if (currentAccount) {
+    connectData.value.asset = detailMessage.value.id;
+    connectData.value.account = currentAccount.name;
+    connectData.value.input_username = '';
+    connectData.value.input_secret = '';
+
+    switch (currentAccount.alias) {
+      case '@USER':
+        // 同名账号
+        connectData.value.account = '@USER';
+        connectData.value.input_username = currentUser.value?.username;
+
+        if (!currentAccount.has_secret) {
+          const { inputPassword } = useAccountModal('@USER', t);
+
+          connectData.value.input_secret = inputPassword;
+        }
+        break;
+      case '@INPUT':
+        // 手动输入
+        connectData.value.account = '@INPUT';
+        const { inputPassword, inputUsername } = useAccountModal('@INPUT', t);
+
+        connectData.value.input_username = inputUsername;
+        connectData.value.input_secret = inputPassword;
+
+        break;
+      default:
+        connectData.value.input_username = currentAccount.username;
+
+        if (!currentAccount.has_secret) {
+          const { inputPassword } = useAccountModal('@OTHER', t);
+
+          connectData.value.input_secret = inputPassword;
+        }
+
+        handleSelect('fast-connection');
+    }
+  }
+
+  resetLeftOptions();
+  showLeftDropdown.value = false;
 };
 
 /**

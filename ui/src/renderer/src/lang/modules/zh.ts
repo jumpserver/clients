@@ -22,7 +22,7 @@ export default {
     Search: '搜索',
     LoginModalPlaceholder: '请填写完整的域名或者 ip 站点地址',
     SignIn: '登录',
-    Tip: '提示',
+    Tip: '站点地址',
     AssetsList: '资产列表信息',
     AccountList: '账号列表',
     QuickConnect: '快速连接',
