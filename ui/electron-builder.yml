@@ -42,10 +42,18 @@ dmg:
 linux:
   icon: build/icons/,
   target:
-    - AppImage
-    - deb
+    - target: AppImage
+      arch:
+        - x64
+        - arm64
+    - target: deb
+      arch:
+        - x64
+        - arm64
   maintainer: electronjs.org
   category: Utility
+deb:
+  artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
 appImage:
   artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
 npmRebuild: false

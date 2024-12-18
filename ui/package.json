@@ -2,6 +2,7 @@
   "name": "jumpserver-client",
   "author": "Fit2Cloud Technology Co., Ltd.; <support@fit2cloud.com>",
   "version": "v3.0.0",
+  "homepage": "https://jumpserver.org",
   "main": "./out/main/index.js",
   "scripts": {
     "format": "prettier --write .",
