@@ -23,7 +23,7 @@ export default {
     LoginModalPlaceholder: 'Please enter the full domain name or IP address of the site.',
     SignIn: 'Sign In',
     Tip: 'Site Address',
-    AssetsList: 'Asset List Information',
+    AssetsList: 'Asset Catalog',
     AccountList: 'Account List',
     QuickConnect: 'Quick Connect',
     AssetDetails: 'Asset Details',

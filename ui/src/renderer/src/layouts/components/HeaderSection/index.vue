@@ -11,7 +11,7 @@
         clearable
         class="rounded-[10px]"
         size="medium"
-        placeholder="Find a asset"
+        placeholder="Search for assets"
         v-model:value="searchInput"
         @keypress.native.enter="onKeyEnter"
       />
