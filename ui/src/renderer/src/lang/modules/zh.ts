@@ -85,6 +85,7 @@ export default {
     ConnectSuccess: '连接成功',
     AssetDeny: '当前资产拒绝连接',
     AssetNotice: '当前资产仅支持通过 Web 方式访问',
-    ProtocolRequired: '请输入以 http:// 或 https:// 开头的完整 URL'
+    ProtocolRequired: '请输入以 http:// 或 https:// 开头的完整 URL',
+    ProtocolSelected: '默认协议已切换'
   }
 };

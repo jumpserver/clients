@@ -295,7 +295,7 @@ const handleChangeTheme = () => {
  * @description 刷新
  */
 const handleRefresh = () => {
-  mittBus.emit('search');
+  mittBus.emit('search', 'reset');
 };
 
 /**

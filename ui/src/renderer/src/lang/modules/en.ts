@@ -87,6 +87,7 @@ export default {
     ConnectSuccess: 'Connected Successfully',
     AssetDeny: 'The current asset has refused the connection!',
     AssetNotice: 'The current asset supports access only through the Web',
-    ProtocolRequired: 'Please enter the complete URL starting with http:// or https://'
+    ProtocolRequired: 'Please enter the complete URL starting with http:// or https://',
+    ProtocolSelected: 'The default protocol has been switched'
   }
 };

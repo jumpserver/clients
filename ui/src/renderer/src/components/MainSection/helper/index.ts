@@ -50,6 +50,8 @@ export const renderCustomHeader = (
     const handleDetailClick = () => {
       if (!detailMessage?.value) return;
 
+      console.log(detailMessage.value);
+
       modal.create({
         title: t('Common.AssetDetails'),
         preset: 'card',
@@ -91,11 +93,7 @@ export const renderCustomHeader = (
                     label: t('Common.Connectivity')
                   },
                   {
-                    default: () => [
-                      `${t('Common.Label')}: ${detailMessage.value.connectivity.label}`,
-                      h('br'),
-                      `${t('Common.Value')}: ${detailMessage.value.connectivity.value}`
-                    ]
+                    default: () => [` ${detailMessage.value.connectivity.label}`]
                   }
                 ),
 
