@@ -228,6 +228,7 @@ export const useAccountModal = (type: string, t: any) => {
   const defaultTheme = ref('');
   const inputPassword = ref('');
   const inputUsername = ref('');
+  const confirmed = ref(false);
 
   conf.get('defaultSetting').then(res => {
     if (res) {
@@ -266,7 +267,6 @@ export const useAccountModal = (type: string, t: any) => {
         },
         {
           default: () => [
-            // 用户名输入框（仅在 @INPUT 类型时显示）
             h(
               NFormItem,
               {
@@ -286,7 +286,6 @@ export const useAccountModal = (type: string, t: any) => {
                   })
               }
             ),
-            // 密码输入框
             h(
               NFormItem,
               {
@@ -307,7 +306,6 @@ export const useAccountModal = (type: string, t: any) => {
                   })
               }
             ),
-            // 确认按钮
             h(
               NFormItem,
               {
@@ -323,7 +321,10 @@ export const useAccountModal = (type: string, t: any) => {
                     {
                       type: 'primary',
                       size: 'medium',
-                      onClick: () => m.destroy()
+                      onClick: () => {
+                        confirmed.value = true;
+                        m.destroy();
+                      }
                     },
                     {
                       default: () => t('Common.Confirm')
@@ -338,6 +339,7 @@ export const useAccountModal = (type: string, t: any) => {
 
   return {
     inputPassword,
-    inputUsername
+    inputUsername,
+    confirmed
   };
 };
