@@ -10,7 +10,7 @@
   >
     <template #header>
       <n-flex align="center">
-        <n-icon size="30" :component="Warning24Regular" color="#4B9E5F" />
+        <!--  <n-icon size="30" :component="Warning24Regular" color="#4B9E5F" /> -->
         <n-text depth="1">{{ t('Common.Tip') }}</n-text>
       </n-flex>
     </template>
