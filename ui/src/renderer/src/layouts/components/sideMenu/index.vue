@@ -86,7 +86,8 @@
 <script setup lang="ts">
 import { NAvatar, NText, NPopover, NTag, NEllipsis } from 'naive-ui';
 import { ArrowsHorizontal } from '@vicons/carbon';
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
+import { useDebounceFn } from '@vueuse/core';
 
 import mittBus from '@renderer/eventBus';
 
@@ -126,8 +127,6 @@ const selectedKey = ref('linux-page');
 
 /**
  * @description 切换账号的逻辑
- * @param value
- * @param _option
  */
 const handleAccountChange = (value: string, _option: SelectOption) => {
   if (userStore.userInfo) {
@@ -137,10 +136,6 @@ const handleAccountChange = (value: string, _option: SelectOption) => {
       userStore.setToken(user.token);
       userStore.setCurrentUser({ ...user });
       userStore.setCurrentSit(user.currentSite as string);
-
-      nextTick(() => {
-        mittBus.emit('search');
-      });
     }
   }
 };
@@ -239,7 +234,29 @@ const handleAddAccount = () => {
 const handleRemoveAccount = () => {
   mittBus.emit('removeAccount');
   selectedKey.value = 'linux-page';
+
+  nextTick(() => {
+    if (userStore.userInfo && userStore.userInfo.length > 0) {
+      const firstUser = userStore.userInfo[0];
+      userStore.setToken(firstUser.token);
+      userStore.setCurrentUser({ ...firstUser });
+      userStore.setCurrentSit(firstUser.currentSite as string);
+    }
+  });
 };
+
+const debouncedSearch = useDebounceFn(() => {
+  mittBus.emit('search', 'reset');
+}, 300);
+
+watch(
+  () => userStore.currentUser,
+  newUser => {
+    if (newUser) {
+      debouncedSearch();
+    }
+  }
+);
 </script>
 
 <style scoped lang="scss">
