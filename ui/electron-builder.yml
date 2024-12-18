@@ -43,7 +43,6 @@ linux:
   icon: build/icons/,
   target:
     - AppImage
-    - snap
     - deb
   maintainer: electronjs.org
   category: Utility

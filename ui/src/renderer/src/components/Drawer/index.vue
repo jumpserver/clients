@@ -13,7 +13,7 @@
     <n-drawer-content footer-style="border: unset;" body-content-style="padding: 15px 5px 40px">
       <template #header>
         <n-flex align="center" justify="space-between">
-          <n-text depth="1">默认配置</n-text>
+          <n-text depth="1">{{ t('Setting.Default') }}</n-text>
           <n-flex>
             <n-icon
               size="20"
@@ -44,12 +44,12 @@
                       v-model:value="item.is_set"
                       @update:value="handleChangeSwitchValue(item)"
                     >
-                      <template #checked> 已启用</template>
-                      <template #unchecked> 未启用</template>
+                      <template #checked>{{ t('Setting.Enabled') }}</template>
+                      <template #unchecked> {{ t('Setting.NotEnabled') }}</template>
                     </n-switch>
                   </template>
                   <n-form :model="item">
-                    <n-form-item label="应用路径:" label-style="font-size: 13px">
+                    <n-form-item :label="t('Setting.ApplicationPath')" label-style="font-size: 13px">
                       <n-input-group>
                         <n-input
                           v-model:value="item.path"
@@ -70,11 +70,11 @@
                           @click="openFile(item)"
                           :disabled="item.is_internal || platform === 'macos'"
                         >
-                          <n-icon :component="Folder28Regular" size="14" />
+                          <n-icon :component="Folder28Regular" size="14"/>
                         </n-button>
                       </n-input-group>
                     </n-form-item>
-                    <n-form-item label="协议:" label-style="font-size: 13px">
+                    <n-form-item :label="t('Setting.Protocol')" label-style="font-size: 13px">
                       <n-select
                         v-model:value="item.match_first"
                         multiple
@@ -85,21 +85,21 @@
                       />
                     </n-form-item>
                     <n-form-item
-                      label="应用说明:"
+                      :label="t('Setting.Comment')"
                       label-style="font-size: 13px"
                       label-placement="left"
                     >
                       <n-popover>
                         <template #trigger>
                           <span class="truncate">
-                            {{ item.comment.en ? item.comment.en : '暂无说明' }}
+                            {{ item.comment.en ? item.comment.en : t('Setting.NoDescription') }}
                           </span>
                         </template>
-                        {{ item.comment.en ? item.comment.en : '暂无说明' }}
+                        {{ item.comment.en ? item.comment.en : t('Setting.NoDescription') }}
                       </n-popover>
                     </n-form-item>
                     <n-form-item
-                      label="下载地址:"
+                      :label="t('Setting.DownloadUrl')"
                       label-style="font-size: 13px"
                       feedback-style="min-height: unset"
                       label-placement="left"
@@ -111,10 +111,10 @@
                             class="truncate"
                             @click.prevent="copyToClipboard(item.download_url)"
                           >
-                            {{ item.download_url }}
+                            {{ item.download_url ? item.download_url : t('Common.None') }}
                           </n-a>
                         </template>
-                        {{ item.download_url }}
+                        {{ item.download_url ? item.download_url : t('Common.None') }}
                       </n-popover>
                     </n-form-item>
                   </n-form>
@@ -129,13 +129,13 @@
               class="rounded-[10px] !bg-secondary"
             >
               <n-collapse :trigger-areas="['main']">
-                <n-collapse-item title="高级选项" name="advanced">
+                <n-collapse-item :title="t('Setting.Advanced')" name="advanced">
                   <n-form>
-                    <n-form-item label="字符集:" label-style="font-size: 13px">
-                      <n-select v-model:value="charset" size="small" :options="charsetOptions" />
+                    <n-form-item :label="t('Setting.Charset')" label-style="font-size: 13px">
+                      <n-select v-model:value="charset" size="small" :options="charsetOptions"/>
                     </n-form-item>
                     <n-form-item
-                      label="字符终端 Backspace As Ctrl + H"
+                      :label="t('Setting.BackspaceAsCtrlH')"
                       label-style="font-size: 13px"
                     >
                       <n-select
@@ -144,7 +144,7 @@
                         :options="boolOptions"
                       />
                     </n-form-item>
-                    <n-form-item label="分辨率:" label-style="font-size: 13px">
+                    <n-form-item :label="t('Setting.Resolution')" label-style="font-size: 13px">
                       <n-select
                         v-model:value="rdp_resolution"
                         size="small"
@@ -164,17 +164,15 @@
 
 <script setup lang="ts">
 import mittBus from '@renderer/eventBus';
-import { Folder28Regular } from '@vicons/fluent';
-import { ArrowBarRight } from '@vicons/tabler';
+import {Folder28Regular} from '@vicons/fluent';
+import {ArrowBarRight} from '@vicons/tabler';
 
-import type { Ref } from 'vue';
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
-import { useMessage } from 'naive-ui';
-import { useRoute } from 'vue-router';
-import { useSettingStore } from '@renderer/store/module/settingStore';
-import { toRaw } from 'vue';
+import {computed, nextTick, onBeforeUnmount, onMounted, Ref, ref, toRaw, watch} from 'vue';
+import {useMessage} from 'naive-ui';
+import {useRoute} from 'vue-router';
+import {useSettingStore} from '@renderer/store/module/settingStore';
 
-import { Conf } from 'electron-conf/renderer';
+import {Conf} from 'electron-conf/renderer';
 import {
   boolOptions,
   charsetOptions,
@@ -184,11 +182,13 @@ import {
   resolutionsOptions,
   windowsOptions
 } from './config/index';
+import {useI18n} from "vue-i18n";
 
 const props = withDefaults(defineProps<{ active: boolean }>(), {
   active: false
 });
 
+const {t} = useI18n();
 const route = useRoute();
 const message = useMessage();
 const settingStore = useSettingStore();
@@ -250,14 +250,14 @@ const changeFile = (item: IClient) => {
   const fileInput = window.document.getElementById(item.name) as HTMLInputElement;
   item.path = fileInput?.files?.[0]?.path || '';
   handleItemChange(item).then(() => {
-    message.success('修改成功');
+    message.success(`${t('Message.ChangeSuccess')}`);
   });
 };
 
 const copyToClipboard = (text: string) => {
   navigator.clipboard
     .writeText(text)
-    .then(() => message.success('已复制到剪切板'))
+    .then(() => message.success(`${t('Message.CopyToClipboard')}`))
     .catch();
 };
 
@@ -277,12 +277,12 @@ const handleChangeSwitchValue = (item: IClient) => {
   nextTick(() => {
     const enabledOptions = currentOption.value?.filter(option => option.is_set);
     if (enabledOptions && enabledOptions.length === 0) {
-      message.warning('请至少启用一个选项');
+      message.warning(`${t('Message.EnableOneOption')}`);
       item.is_set = true;
       return;
     }
     handleItemChange(item).then(() => {
-      message.success('修改成功');
+      message.success(`${t('Message.ChangeSuccess')}`);
     });
   });
 };
@@ -296,6 +296,16 @@ const initPlatformData = async () => {
   }
 };
 
+const checkMatch = async (protocol: string) => {
+  const enabledOptions = currentOption.value?.filter(option => option.is_set && option.match_first.includes(protocol));
+  console.log(enabledOptions)
+  if (enabledOptions && enabledOptions.length === 0) {
+    message.warning(`${t('Message.EnableOneOption')}`);
+  } else {
+    message.success(`${t('Message.ConnectSuccess')}`);
+  }
+};
+
 watch(
   () => route.name,
   newValue => {
@@ -303,7 +313,7 @@ watch(
       updateCurrentOptions(newValue);
     }
   },
-  { immediate: true }
+  {immediate: true}
 );
 
 watch([charset, is_backspace_as_ctrl_h, rdp_resolution], () => {
@@ -318,6 +328,10 @@ onMounted(() => {
     platform.value = _platform;
     initPlatformData();
   });
+  mittBus.on('checkMatch', checkMatch);
+});
+onBeforeUnmount(() => {
+  mittBus.off('checkMatch', checkMatch);
 });
 </script>
 

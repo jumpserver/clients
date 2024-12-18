@@ -48,7 +48,8 @@ export default {
     Password: '密码',
     Confirm: '确认',
     UsernamePlaceholder: '请输入用户名',
-    InputAccountPassword: '手动输入'
+    InputAccountPassword: '手动输入',
+    None: '无'
   },
   Dialog: {
     'Save&Default': '保存且默认',
@@ -69,6 +70,20 @@ export default {
   Language: {
     ChooseLanguage: '选择语言'
   },
+  Setting: {
+    Default: '默认配置',
+    Enabled: '已启用',
+    NotEnabled: '未启用',
+    ApplicationPath: '应用路径:',
+    Comment: '应用说明:',
+    Protocol: '协议:',
+    NoDescription: '暂无说明',
+    DownloadUrl: '下载地址:',
+    Advanced: '高级选项',
+    Charset: '字符集:',
+    BackspaceAsCtrlH: '字符终端 Backspace As Ctrl + H',
+    Resolution: '分辨率:'
+  },
   Message: {
     FailedRetrieveAssetDataList: '获取资产数据列表失败!',
     ListErrorOccurred: '获取列表数据异常，请刷新后重试!',
@@ -86,6 +101,9 @@ export default {
     AssetDeny: '当前资产拒绝连接',
     AssetNotice: '当前资产仅支持通过 Web 方式访问',
     ProtocolRequired: '请输入以 http:// 或 https:// 开头的完整 URL',
-    ProtocolSelected: '默认协议已切换'
+    ProtocolSelected: '默认协议已切换',
+    ChangeSuccess: '修改成功',
+    EnableOneOption: '请至少启用一个选项!',
+    CopyToClipboard: '已复制到剪切板'
   }
 };

@@ -48,7 +48,8 @@ export default {
     Password: 'Password',
     Confirm: 'Confirm',
     UsernamePlaceholder: 'Please enter the username',
-    InputAccountPassword: 'Manual input'
+    InputAccountPassword: 'Manual input',
+    None: 'None'
   },
   Dialog: {
     'Save&Default': 'Save And Default',
@@ -69,6 +70,20 @@ export default {
   Language: {
     ChooseLanguage: 'Choose Language'
   },
+  Setting: {
+    Default: 'Default Configuration',
+    Enabled: 'Enabled',
+    NotEnabled: 'Disabled',
+    ApplicationPath: 'Application Path:',
+    Protocol: 'Protocol:',
+    Comment: 'Application Notes:',
+    NoDescription: 'No description yet',
+    DownloadUrl: 'Download Link:',
+    Advanced: 'Advanced options',
+    Charset: 'Charset:',
+    BackspaceAsCtrlH: 'Terminal Backspace As Ctrl + H',
+    Resolution: 'Resolution:'
+  },
   Message: {
     FailedRetrieveAssetDataList: 'Failed to Retrieve Asset Data List!',
     ListErrorOccurred:
@@ -88,6 +103,9 @@ export default {
     AssetDeny: 'The current asset has refused the connection!',
     AssetNotice: 'The current asset supports access only through the Web',
     ProtocolRequired: 'Please enter the complete URL starting with http:// or https://',
-    ProtocolSelected: 'The default protocol has been switched'
+    ProtocolSelected: 'The default protocol has been switched',
+    ChangeSuccess: 'Modified successfully',
+    EnableOneOption: 'Please enable at least one option!',
+    CopyToClipboard: 'Copied to clipboard'
   }
 };

@@ -392,7 +392,7 @@ const handleAccountSelect = async (key: string) => {
 
       const token = await createConnectToken(connectData.value, method);
       if (token) {
-        message.success(t('Message.ConnectSuccess'), { closable: true });
+        mittBus.emit('checkMatch', connectData.value.protocol as string)
 
         historyStore.setHistorySession({ ...detailMessage.value });
 

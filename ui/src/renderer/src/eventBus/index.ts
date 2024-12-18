@@ -11,6 +11,7 @@ type Event = {
   createDrawer: void;
   connectAsset: void;
   removeAccount: void;
+  checkMatch: any;
   showAssetDetail: { detailMessage: Ref<IItemDetail> };
 };
 
