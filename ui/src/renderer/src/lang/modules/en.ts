@@ -106,6 +106,7 @@ export default {
     ProtocolSelected: 'The default protocol has been switched',
     ChangeSuccess: 'Modified successfully',
     EnableOneOption: 'Please enable at least one option!',
-    CopyToClipboard: 'Copied to clipboard'
+    CopyToClipboard: 'Copied to clipboard',
+    NotMatched: 'Client that does not match the corresponding protocol!'
   }
 };

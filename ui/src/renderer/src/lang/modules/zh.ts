@@ -104,6 +104,7 @@ export default {
     ProtocolSelected: '默认协议已切换',
     ChangeSuccess: '修改成功',
     EnableOneOption: '请至少启用一个选项!',
-    CopyToClipboard: '已复制到剪切板'
+    CopyToClipboard: '已复制到剪切板',
+    NotMatched: '未匹配对应协议的客户端!'
   }
 };

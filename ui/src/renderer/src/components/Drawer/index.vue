@@ -300,7 +300,7 @@ const checkMatch = async (protocol: string) => {
   const enabledOptions = currentOption.value?.filter(option => option.is_set && option.match_first.includes(protocol));
   console.log(enabledOptions)
   if (enabledOptions && enabledOptions.length === 0) {
-    message.warning(`${t('Message.EnableOneOption')}`);
+    message.warning(`${t('Message.NotMatched')}`);
   } else {
     message.success(`${t('Message.ConnectSuccess')}`);
   }
