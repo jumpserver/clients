@@ -64,7 +64,7 @@ import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer
 import { moveElementToEnd, renderCustomHeader, useAccountModal } from './helper/index';
 import { useHistoryStore } from '@renderer/store/module/historyStore';
 import { createDiscreteApi, useLoadingBar } from 'naive-ui';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useDebounceFn } from '@vueuse/core';
 import { useI18n } from 'vue-i18n';
 
@@ -342,6 +342,42 @@ const handleAccountSelect = async (key: string) => {
 
     connectData.value.protocol = protocol.name;
 
+    const handleConnection = async () => {
+      try {
+        let method: string;
+        switch (protocol.name) {
+          case 'ssh':
+          case 'telnet':
+            method = 'ssh_client';
+            break;
+          case 'rdp':
+            method = 'mstsc';
+            break;
+          case 'sftp':
+            method = 'sftp_client';
+            break;
+          case 'vnc':
+            method = 'vnc_client';
+            break;
+          default:
+            method = 'db_client';
+        }
+
+        const token = await createConnectToken(connectData.value, method);
+        if (token) {
+          mittBus.emit('checkMatch', connectData.value.protocol as string);
+          historyStore.setHistorySession({ ...detailMessage.value });
+          getLocalClientUrl(token).then(res => {
+            if (res) {
+              window.electron.ipcRenderer.send('open-client', res.url);
+            }
+          });
+        }
+      } catch (error: any) {
+        handleConnectionError(error);
+      }
+    };
+
     switch (currentAccount.alias) {
       case '@USER':
         // 同名账号
@@ -349,61 +385,48 @@ const handleAccountSelect = async (key: string) => {
         connectData.value.input_username = currentUser.value?.username;
 
         if (!currentAccount.has_secret) {
-          const { inputPassword } = useAccountModal('@USER', t);
-          connectData.value.input_secret = inputPassword;
+          const { inputPassword, confirmed } = useAccountModal('@USER', t);
+          // 等待用户点击确认按钮
+          watch(confirmed, async newValue => {
+            if (newValue && inputPassword.value) {
+              connectData.value.input_secret = inputPassword.value;
+              await handleConnection();
+            }
+          });
+        } else {
+          await handleConnection();
         }
         break;
+
       case '@INPUT':
         // 手动输入
         connectData.value.account = '@INPUT';
-        const { inputPassword, inputUsername } = useAccountModal('@INPUT', t);
-        connectData.value.input_username = inputUsername;
-        connectData.value.input_secret = inputPassword;
+        const { inputPassword, inputUsername, confirmed } = useAccountModal('@INPUT', t);
+
+        // 等待用户点击确认按钮
+        watch(confirmed, async newValue => {
+          if (newValue && inputUsername.value && inputPassword.value) {
+            connectData.value.input_username = inputUsername.value;
+            connectData.value.input_secret = inputPassword.value;
+            await handleConnection();
+          }
+        });
         break;
+
       default:
         connectData.value.input_username = currentAccount.username;
 
         if (!currentAccount.has_secret) {
-          const { inputPassword } = useAccountModal('@OTHER', t);
-          connectData.value.input_secret = inputPassword;
+          const { inputPassword, confirmed } = useAccountModal('@OTHER', t);
+          watch(confirmed, async newValue => {
+            if (newValue && inputPassword.value) {
+              connectData.value.input_secret = inputPassword.value;
+              await handleConnection();
+            }
+          });
+        } else {
+          await handleConnection();
         }
-    }
-
-    // 开始连接
-    try {
-      let method: string;
-      switch (protocol.name) {
-        case 'ssh':
-        case 'telnet':
-          method = 'ssh_client';
-          break;
-        case 'rdp':
-          method = 'mstsc';
-          break;
-        case 'sftp':
-          method = 'sftp_client';
-          break;
-        case 'vnc':
-          method = 'vnc_client';
-          break;
-        default:
-          method = 'db_client';
-      }
-
-      const token = await createConnectToken(connectData.value, method);
-      if (token) {
-        mittBus.emit('checkMatch', connectData.value.protocol as string)
-
-        historyStore.setHistorySession({ ...detailMessage.value });
-
-        getLocalClientUrl(token).then(res => {
-          if (res) {
-            window.electron.ipcRenderer.send('open-client', res.url);
-          }
-        });
-      }
-    } catch (error: any) {
-      handleConnectionError(error);
     }
   }
 
