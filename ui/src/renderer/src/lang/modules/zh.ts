@@ -106,6 +106,7 @@ export default {
     ChangeSuccess: '修改成功',
     EnableOneOption: '请至少启用一个选项!',
     CopyToClipboard: '已复制到剪切板',
-    NotMatched: '未匹配对应协议的客户端!'
+    NotMatched: '未匹配对应协议的客户端!',
+    GetDefaultSettingFailed: '自动启用默认设置'
   }
 };

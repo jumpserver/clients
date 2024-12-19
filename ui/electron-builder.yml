@@ -19,7 +19,7 @@ win:
       arch:
         - x64
         - ia32
-afterSign: build/sign/notarize.cjs
+#afterSign: build/sign/notarize.cjs
 nsis:
   artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
   shortcutName: ${productName}
@@ -61,4 +61,4 @@ electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/
 protocols:
   - name: 'JumpServerClient Protocol'
-    schemes: [ 'jms' ]
+    schemes: ['jms']

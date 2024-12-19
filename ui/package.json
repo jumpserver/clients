@@ -29,6 +29,7 @@
     "electron-conf": "^1.2.1",
     "electron-store": "^10.0.0",
     "electron-updater": "^6.1.7",
+    "lucide-vue-next": "^0.468.0",
     "mitt": "^3.0.1",
     "pinia": "^2.2.5",
     "pinia-plugin-persistedstate": "3.2.1",

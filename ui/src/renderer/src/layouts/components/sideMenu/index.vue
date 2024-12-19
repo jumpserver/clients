@@ -1,15 +1,39 @@
 <template>
-  <n-flex vertical justify="space-between" class="py-[15px]" style="height: calc(100% - 30px)">
-    <n-flex>
+  <n-flex vertical justify="space-between" class="py-4" style="height: calc(100% - 30px)">
+    <div>
       <n-menu
         :options="options"
+        :collapsed="collapsed"
+        :collapsed-width="64"
+        :collapsed-icon-size="22"
         v-model:value="selectedKey"
         class="w-full flex flex-col items-center"
       />
-      <n-divider class="!my-[10px]" />
+      <n-divider class="!my-3" />
+    </div>
+
+    <n-flex v-if="userOptions.length === 0" align="center" justify="center">
+      <n-button text strong> {{ t('Common.UnLogged') }} </n-button>
     </n-flex>
 
-    <n-flex align="center" justify="center" class="!flex-nowrap">
+    <n-flex v-else align="center" justify="space-between" class="w-full px-8">
+      <n-avatar
+        v-if="currentUser?.avatar_url"
+        round
+        size="medium"
+        class="cursor-pointer"
+        :src="currentUser?.avatar_url"
+      />
+
+      <n-icon
+        v-if="!collapsed"
+        :component="ArrowBackIosNewFilled"
+        size="20"
+        class="cursor-pointer icon-hover"
+      />
+    </n-flex>
+
+    <!-- <n-flex align="center" justify="center" class="!flex-nowrap">
       <template v-if="userOptions.length === 0">
         <n-button text strong class="flex w-full h-8"> {{ t('Common.UnLogged') }} </n-button>
       </template>
@@ -64,7 +88,6 @@
           <div style="font-size: 12px">
             <n-popover>
               <template #trigger>
-                <!-- 默认只展示第一个 -->
                 <n-text depth="2">
                   {{ currentUser?.display_name?.[0] ?? '' }}
                 </n-text>
@@ -79,13 +102,14 @@
           </div>
         </div>
       </template>
-    </n-flex>
+    </n-flex> -->
   </n-flex>
 </template>
 
 <script setup lang="ts">
 import { NAvatar, NText, NPopover, NTag, NEllipsis } from 'naive-ui';
 import { ArrowsHorizontal } from '@vicons/carbon';
+import { ArrowBackIosNewFilled } from '@vicons/material';
 import { computed, watch } from 'vue';
 import { useDebounceFn } from '@vueuse/core';
 
@@ -99,6 +123,10 @@ import { useI18n } from 'vue-i18n';
 
 import type { SelectOption, SelectRenderLabel } from 'naive-ui';
 import type { IUserInfo } from '@renderer/store/interface';
+
+withDefaults(defineProps<{ collapsed: boolean }>(), {
+  collapsed: false
+});
 
 const { t } = useI18n();
 const options = menuOptions();

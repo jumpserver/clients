@@ -3,7 +3,7 @@ import type { GlobalThemeOverrides } from 'naive-ui';
 export const darkThemeOverrides: GlobalThemeOverrides = {
   Layout: {},
   Menu: {
-    itemTextColorActive: '#fff'
+    fontSize: '0.875rem'
   },
   Dropdown: {
     optionHeightMedium: '40px',
