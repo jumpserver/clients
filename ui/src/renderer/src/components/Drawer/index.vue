@@ -49,7 +49,10 @@
                     </n-switch>
                   </template>
                   <n-form :model="item">
-                    <n-form-item :label="t('Setting.ApplicationPath')" label-style="font-size: 13px">
+                    <n-form-item
+                      :label="t('Setting.ApplicationPath')"
+                      label-style="font-size: 13px"
+                    >
                       <n-input-group>
                         <n-input
                           v-model:value="item.path"
@@ -70,7 +73,7 @@
                           @click="openFile(item)"
                           :disabled="item.is_internal || platform === 'macos'"
                         >
-                          <n-icon :component="Folder28Regular" size="14"/>
+                          <n-icon :component="Folder28Regular" size="14" />
                         </n-button>
                       </n-input-group>
                     </n-form-item>
@@ -132,7 +135,7 @@
                 <n-collapse-item :title="t('Setting.Advanced')" name="advanced">
                   <n-form>
                     <n-form-item :label="t('Setting.Charset')" label-style="font-size: 13px">
-                      <n-select v-model:value="charset" size="small" :options="charsetOptions"/>
+                      <n-select v-model:value="charset" size="small" :options="charsetOptions" />
                     </n-form-item>
                     <n-form-item
                       :label="t('Setting.BackspaceAsCtrlH')"
@@ -164,15 +167,15 @@
 
 <script setup lang="ts">
 import mittBus from '@renderer/eventBus';
-import {Folder28Regular} from '@vicons/fluent';
-import {ArrowBarRight} from '@vicons/tabler';
+import { Folder28Regular } from '@vicons/fluent';
+import { ArrowBarRight } from '@vicons/tabler';
 
-import {computed, nextTick, onBeforeUnmount, onMounted, Ref, ref, toRaw, watch} from 'vue';
-import {useMessage} from 'naive-ui';
-import {useRoute} from 'vue-router';
-import {useSettingStore} from '@renderer/store/module/settingStore';
+import { computed, nextTick, onBeforeUnmount, onMounted, Ref, ref, toRaw, watch } from 'vue';
+import { useMessage } from 'naive-ui';
+import { useRoute } from 'vue-router';
+import { useSettingStore } from '@renderer/store/module/settingStore';
 
-import {Conf} from 'electron-conf/renderer';
+import { Conf } from 'electron-conf/renderer';
 import {
   boolOptions,
   charsetOptions,
@@ -182,13 +185,13 @@ import {
   resolutionsOptions,
   windowsOptions
 } from './config/index';
-import {useI18n} from "vue-i18n";
+import { useI18n } from 'vue-i18n';
 
 const props = withDefaults(defineProps<{ active: boolean }>(), {
   active: false
 });
 
-const {t} = useI18n();
+const { t } = useI18n();
 const route = useRoute();
 const message = useMessage();
 const settingStore = useSettingStore();
@@ -297,8 +300,9 @@ const initPlatformData = async () => {
 };
 
 const checkMatch = async (protocol: string) => {
-  const enabledOptions = currentOption.value?.filter(option => option.is_set && option.match_first.includes(protocol));
-  console.log(enabledOptions)
+  const enabledOptions = currentOption.value?.filter(
+    option => option.is_set && option.match_first.includes(protocol)
+  );
   if (enabledOptions && enabledOptions.length === 0) {
     message.warning(`${t('Message.NotMatched')}`);
   } else {
@@ -313,7 +317,7 @@ watch(
       updateCurrentOptions(newValue);
     }
   },
-  {immediate: true}
+  { immediate: true }
 );
 
 watch([charset, is_backspace_as_ctrl_h, rdp_resolution], () => {
