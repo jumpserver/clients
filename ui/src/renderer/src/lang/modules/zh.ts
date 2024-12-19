@@ -91,6 +91,7 @@ export default {
     EnterSiteAddress: '请输入站点地址!',
     ClickSigInToAuth: '请点击登录进行认证!',
     EnterTheCorrectSite: '请输入正确的站点地址!',
+    EnterDiffSite: '当前版本同一个站点暂只允许一个用户登录!',
     ErrorSiteInput: '站点信息不符合规则!',
     ErrorGetAssetDetail: '获取资产数列表失败',
     Account: '账号',

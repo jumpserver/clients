@@ -36,13 +36,11 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import { useMessage } from 'naive-ui';
-import { watch, onMounted, ref } from 'vue';
-import { readText } from 'clipboard-polyfill';
-import { useUserStore } from '@renderer/store/module/userStore';
-
-import { Warning24Regular } from '@vicons/fluent';
+import {useI18n} from 'vue-i18n';
+import {useMessage} from 'naive-ui';
+import {onMounted, ref, watch} from 'vue';
+import {readText} from 'clipboard-polyfill';
+import {useUserStore} from '@renderer/store/module/userStore';
 
 const URL_REGEXP =
   /^(https?:\/\/)?(([a-zA-Z0-9-]{1,63}\.)+[a-zA-Z]{2,}|(\d{1,3}\.){3}\d{1,3}|\[?[a-fA-F0-9]{1,4}:([a-fA-F0-9]{1,4}:){1,7}[a-fA-F0-9]{1,4}\]?)(:\d{1,5})?$/;
@@ -51,14 +49,14 @@ const props = withDefaults(
   defineProps<{
     showModal: boolean;
   }>(),
-  { showModal: false }
+  {showModal: false}
 );
 
 const emits = defineEmits<{
   (e: 'close-mask'): void;
 }>();
 
-const { t } = useI18n();
+const {t} = useI18n();
 const message = useMessage();
 const userStore = useUserStore();
 
@@ -82,7 +80,7 @@ const handleMaskClick = (): void => {
     return;
   }
 
-  message.error(`${t('Message.EnterSiteAddress')}`, { closable: true });
+  message.error(`${t('Message.EnterSiteAddress')}`, {closable: true});
 };
 
 /**
@@ -92,20 +90,30 @@ const jumpToLogin = () => {
   const hasProtocol = /^https?:\/\//i.test(siteLocation.value);
 
   if (!hasProtocol) {
-    message.error(t('Message.ProtocolRequired'), { closable: true });
+    message.error(t('Message.ProtocolRequired'), {closable: true});
     inputStatus.value = 'error';
     return;
   }
 
-  if (URL_REGEXP.test(siteLocation.value)) {
-    userStore.setCurrentSit(siteLocation.value);
-    inputStatus.value = 'success';
-    window.open(`${siteLocation.value}/core/auth/login/?next=client`);
+  const sameSiteUser = userStore.userInfo.filter(
+    (item) => item.currentSite === siteLocation.value
+  );
+
+  if (sameSiteUser.length !== 0) {
+    message.error(t('Message.EnterDiffSite'), {closable: true});
+    inputStatus.value = 'error';
     return;
   }
 
-  message.error(t('Message.EnterTheCorrectSite'), { closable: true });
-  inputStatus.value = 'error';
+  if (!URL_REGEXP.test(siteLocation.value)) {
+    message.error(t('Message.EnterTheCorrectSite'), {closable: true});
+    inputStatus.value = 'error';
+    return;
+  }
+
+  userStore.setCurrentSit(siteLocation.value);
+  inputStatus.value = 'success';
+  window.open(`${siteLocation.value}/core/auth/login/?next=client`);
 };
 
 /**
@@ -120,7 +128,7 @@ const handleContextMenu = async () => {
 
       if (!hasProtocol) {
         siteLocation.value = text;
-        message.error(t('Message.ProtocolRequired'), { closable: true });
+        message.error(t('Message.ProtocolRequired'), {closable: true});
         return;
       }
 
@@ -128,10 +136,11 @@ const handleContextMenu = async () => {
         siteLocation.value = text;
       } else {
         siteLocation.value = text;
-        message.error(`${text} ${t('Message.ErrorSiteInput')}`, { closable: true });
+        message.error(`${text} ${t('Message.ErrorSiteInput')}`, {closable: true});
       }
     }
-  } catch (e) {}
+  } catch (e) {
+  }
 };
 
 watch(
@@ -141,7 +150,7 @@ watch(
       window.removeEventListener('contextmenu', handleContextMenu, false);
     }
   },
-  { immediate: true }
+  {immediate: true}
 );
 
 onMounted(() => {

@@ -92,6 +92,7 @@ export default {
     EnterSiteAddress: 'Please enter the site address!',
     ClickSigInToAuth: 'Please click "Sign In" to authenticate!',
     EnterTheCorrectSite: 'Please enter the correct site address.!',
+    EnterDiffSite: 'The current version only allows one user to log in to the same site!',
     ErrorSiteInput: 'Site information does not comply with the rules!',
     ErrorSiteTip: 'Please enter a site address with the http:// or https:// protocol!',
     ErrorGetAssetDetail: 'Failed to Retrieve Asset Count List!',
