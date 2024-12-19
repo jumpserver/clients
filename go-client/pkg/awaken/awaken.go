@@ -77,16 +77,17 @@ func (r *Rouse) getUserName() string {
 
 func (r *Rouse) getName() string {
 	name, _ := url.QueryUnescape(r.Name)
-	return strings.Replace(name, " ", "", -1)
+	replacer := strings.NewReplacer(" ", "", ":", "_", "-", "_")
+	return replacer.Replace(name)
 }
 
 func removeCurRdpFile() {
 	re := regexp.MustCompile(".*\\.rdp$")
-	dir := filepath.Dir(os.Args[0])
-	rd, _ := ioutil.ReadDir(dir)
+	dir, _ := os.UserConfigDir()
+	rd, _ := ioutil.ReadDir(filepath.Join(dir, "jumpserver-client"))
 	for _, v := range rd {
 		if !v.IsDir() && re.MatchString(v.Name()) {
-			os.Remove(filepath.Join(dir, v.Name()))
+			os.Remove(filepath.Join(dir, "jumpserver-client", v.Name()))
 		}
 	}
 }
@@ -94,7 +95,8 @@ func removeCurRdpFile() {
 func (r *Rouse) HandleRDP(appConfig *config.AppConfig) {
 	removeCurRdpFile()
 	fileName, _ := url.QueryUnescape(r.File.Name)
-	filePath := filepath.Join(filepath.Dir(os.Args[0]), fileName+".rdp")
+	dir, _ := os.UserConfigDir()
+	filePath := filepath.Join(dir, "jumpserver-client", fileName+".rdp")
 	err := ioutil.WriteFile(filePath, []byte(r.Content), os.ModePerm)
 	if err != nil {
 		global.LOG.Error(err.Error())

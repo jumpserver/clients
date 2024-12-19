@@ -30,12 +30,14 @@ type POINT struct {
 }
 
 var (
-	dll64        *syscall.LazyDLL
-	controlClick *syscall.LazyProc
-	controlSend  *syscall.LazyProc
-	run          *syscall.LazyProc
-	winActivate  *syscall.LazyProc
-	winWait      *syscall.LazyProc
+	dll64          *syscall.LazyDLL
+	controlClick   *syscall.LazyProc
+	controlSend    *syscall.LazyProc
+	controlSetText *syscall.LazyProc
+	run            *syscall.LazyProc
+	winWaitActive  *syscall.LazyProc
+	winWait        *syscall.LazyProc
+	send           *syscall.LazyProc
 )
 
 func LoadAuto() {
@@ -46,9 +48,11 @@ func LoadAuto() {
 	dll64 := syscall.NewLazyDLL(filepath.Join(filepath.Dir(os.Args[0]), autoItX3))
 	controlClick = dll64.NewProc("AU3_ControlClick")
 	controlSend = dll64.NewProc("AU3_ControlSend")
+	controlSetText = dll64.NewProc("AU3_ControlSetText")
 	run = dll64.NewProc("AU3_Run")
-	winActivate = dll64.NewProc("AU3_WinActivate")
+	winWaitActive = dll64.NewProc("AU3_WinWaitActive")
 	winWait = dll64.NewProc("AU3_WinWait")
+	send = dll64.NewProc("AU3_Send")
 }
 
 // Run -- Run a windows program
@@ -163,20 +167,31 @@ func ControlClick(title, text, control string, args ...interface{}) int {
 	return int(ret)
 }
 
-// WinActivate ( "title" [, "text"]) int
-func WinActivate(title string, args ...interface{}) int {
-	text := ""
+// WinWaitActive ( "title" [, "text"]) int
+func WinWaitActive(szTitle string, args ...interface{}) int {
+	var szText string
+	var nTimeout int
 	var ok bool
-	argsLen := len(args)
-	if argsLen > 1 {
-		panic("argument count > 2")
-	}
-	if argsLen == 1 {
-		if text, ok = args[0].(string); !ok {
-			panic("text must be a string")
+	if len(args) == 0 {
+		szText = ""
+		nTimeout = 0
+	} else if len(args) == 1 {
+		if szText, ok = args[0].(string); !ok {
+			panic("szText must be a string")
 		}
+		nTimeout = 0
+	} else if len(args) == 2 {
+		if szText, ok = args[0].(string); !ok {
+			panic("szText must be a string")
+		}
+		if nTimeout, ok = args[1].(int); !ok {
+			panic("nTimeout must be a int")
+		}
+	} else {
+		panic("Too more parameter")
 	}
-	ret, _, lastErr := winActivate.Call(strPtr(title), strPtr(text))
+
+	ret, _, lastErr := winWaitActive.Call(strPtr(szTitle), strPtr(szText), intPtr(nTimeout))
 	if int(ret) == 0 {
 		println(lastErr)
 	}
@@ -201,6 +216,32 @@ func ControlSend(title, text, control, sendText string, args ...interface{}) int
 		println(lastErr)
 	}
 	return int(ret)
+}
+
+// ControlSetText -- Sets text of a control.
+func ControlSetText(title, text, control, newText string) int {
+	ret, _, lastErr := controlSetText.Call(strPtr(title), strPtr(text), strPtr(control), strPtr(newText))
+	if int(ret) == 0 {
+		println(lastErr)
+	}
+	return int(ret)
+}
+
+// Send -- Send simulates input on the keyboard
+// flag: 0: normal, 1: raw
+func Send(key string, args ...interface{}) {
+	var nMode int
+	var ok bool
+	if len(args) == 0 {
+		nMode = 0
+	} else if len(args) == 1 {
+		if nMode, ok = args[0].(int); !ok {
+			panic("nMode must be a int")
+		}
+	} else {
+		panic("Too more parameter")
+	}
+	send.Call(strPtr(key), intPtr(nMode))
 }
 
 func findTermChr(buff []uint16) int {
