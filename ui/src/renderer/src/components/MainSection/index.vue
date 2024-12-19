@@ -116,6 +116,7 @@ const yRight = ref(0);
 
 const showLeftDropdown = ref(false);
 const showRightDropdown = ref(false);
+const lastSelectedAccount = ref<Permed_accounts | null>(null);
 
 const selectedItem: Ref<IListItem> = ref({} as IListItem);
 const connectData: Ref<IConnectData> = ref({} as IConnectData);
@@ -308,24 +309,69 @@ const handleSelect = async (key: string) => {
 };
 
 /**
- * @description 左键选择账号
- * @param key
+ * @description 快速连接
  */
-const handleAccountSelect = async (key: string) => {
-  // 重置连接数据
+const handleFastConnect = async () => {
+  if (!detailMessage.value) return;
+
+  // 获取要使用的账号：上次选择的账号或第一个普通账号（排除 @USER 和 @INPUT）
+  const accountToUse =
+    (lastSelectedAccount.value?.alias !== '@USER' && lastSelectedAccount.value?.alias !== '@INPUT'
+      ? lastSelectedAccount.value
+      : null) ||
+    detailMessage.value.permed_accounts.find(
+      account =>
+        account.alias !== '@ANON' && account.alias !== '@USER' && account.alias !== '@INPUT'
+    );
+
+  if (!accountToUse) return;
+
+  // 获取要使用的协议：已选择的协议或第一个协议
+  const protocolToUse =
+    selectedProtocols.value.get(detailMessage.value.id) || detailMessage.value.permed_protocols[0];
+
+  if (!protocolToUse) return;
+
+  // 设置连接数据
   connectData.value = {
-    asset: '',
-    account: '',
-    protocol: '',
-    input_username: '',
+    asset: detailMessage.value.id,
+    account: accountToUse.name,
+    protocol: protocolToUse.name,
+    input_username: accountToUse.username,
     input_secret: ''
   };
 
+  // 由于已经排除了 @USER 和 @INPUT，这里只需要处理普通账号的情况
+  if (!accountToUse.has_secret) {
+    const { inputPassword, confirmed } = useAccountModal('@OTHER', t);
+    watch(confirmed, async newValue => {
+      if (newValue && inputPassword.value) {
+        connectData.value.input_secret = inputPassword.value;
+        await handleConnection(protocolToUse);
+      }
+    });
+  } else {
+    await handleConnection(protocolToUse);
+  }
+};
+
+// 修改 handleAccountSelect，记录选择的账号
+const handleAccountSelect = async (key: string) => {
   const currentAccount = detailMessage.value.permed_accounts.find(
     (item: Permed_accounts) => item.id === key
   );
 
   if (currentAccount) {
+    lastSelectedAccount.value = currentAccount;
+    // 重置连接数据
+    connectData.value = {
+      asset: '',
+      account: '',
+      protocol: '',
+      input_username: '',
+      input_secret: ''
+    };
+
     connectData.value.asset = detailMessage.value.id;
     connectData.value.account = currentAccount.name;
     connectData.value.input_username = '';
@@ -434,7 +480,44 @@ const handleAccountSelect = async (key: string) => {
   showLeftDropdown.value = false;
 };
 
-// 修改错误处理函数
+// 抽离连接逻辑到单独的函数
+const handleConnection = async (protocol: Permed_protocols) => {
+  try {
+    let method: string;
+    switch (protocol.name) {
+      case 'ssh':
+      case 'telnet':
+        method = 'ssh_client';
+        break;
+      case 'rdp':
+        method = 'mstsc';
+        break;
+      case 'sftp':
+        method = 'sftp_client';
+        break;
+      case 'vnc':
+        method = 'vnc_client';
+        break;
+      default:
+        method = 'db_client';
+    }
+
+    const token = await createConnectToken(connectData.value, method);
+
+    if (token) {
+      mittBus.emit('checkMatch', connectData.value.protocol as string);
+      historyStore.setHistorySession({ ...detailMessage.value });
+      getLocalClientUrl(token).then(res => {
+        if (res) {
+          window.electron.ipcRenderer.send('open-client', res.url);
+        }
+      });
+    }
+  } catch (error: any) {
+    handleConnectionError(error);
+  }
+};
+
 const handleConnectionError = (error: any) => {
   const errorData = error?.response?.data;
 
@@ -451,13 +534,6 @@ const handleConnectionError = (error: any) => {
       return;
     }
   }
-};
-
-/**
- * @description 快速连接
- */
-const handleFastConnect = async () => {
-  await handleSelect('fast-connection');
 };
 
 // 在选择新的资产项时重置左侧菜单
