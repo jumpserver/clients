@@ -108,6 +108,8 @@ export default {
     ChangeSuccess: 'Modified successfully',
     EnableOneOption: 'Please enable at least one option!',
     CopyToClipboard: 'Copied to clipboard',
-    NotMatched: 'Client that does not match the corresponding protocol!'
+    NotMatched: 'Client that does not match the corresponding protocol!',
+    PleaseAuthFirst: 'Login authentication is required first',
+    HistoryRequireAuth: 'Authentication required to view history'
   }
 };
