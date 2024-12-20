@@ -22,14 +22,13 @@
       show-arrow
       size="small"
       placement="bottom"
-      trigger="click"
-      class="w-120 rounded-xl"
+      class="rounded-xl"
       :style="{
-        width: '16rem'
+        width: '16rem',
+        marginLeft: '1.5rem'
       }"
       :options="[]"
       :content-style="{ width: '300px', minWidth: '300px' }"
-      v-model:value="value"
     >
       <n-flex
         align="center"
@@ -88,7 +87,7 @@
       </n-flex>
 
       <template #header>
-        <n-flex align="center">
+        <n-flex align="center" class="!flex-nowrap">
           <n-avatar
             round
             size="medium"
@@ -96,11 +95,17 @@
             :src="currentUser ? (currentUser.avatar_url as string) : ''"
           />
 
-          <n-flex class="!flex-col">
+          <n-flex vertical class="!gap-0">
             <n-text> {{ currentUser?.username }} </n-text>
 
             <n-tag :bordered="false" size="small" type="info" class="cursor-pointer">
-              {{ t('Common.DataSource') }}： 'currentSite'
+              <n-ellipsis style="width: 10rem">
+                {{ t('Common.DataSource') }} : {{ currentUser?.currentSite }}
+
+                <template #tooltip>
+                  {{ t('Common.DataSource') }} : {{ currentUser?.currentSite }}
+                </template>
+              </n-ellipsis>
             </n-tag>
           </n-flex>
         </n-flex>
@@ -111,17 +116,16 @@
           scrollable
           show-arrow
           size="small"
-          trigger="click"
           placement="right-start"
-          v-model:value="value"
+          v-model:value="currentUser!.token"
           :style="{
-            width: '12rem'
+            width: '16rem',
+            padding: '0.5rem 0'
           }"
-          :content-style="{
-            width: '100%'
-          }"
-          :render-label="accountRenderLabel"
-          :options="accountOptions"
+          class="rounded-xl account-list"
+          :render-label="accountRenderLabelWithRemove"
+          :options="userOptions"
+          @update:value="handleAccountChange"
         >
           <n-button text class="w-full"> 账号列表 </n-button>
         </n-popselect>
@@ -141,15 +145,15 @@ import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { menuOptions } from './config';
 import { useDebounceFn } from '@vueuse/core';
-import { computed, watch, h, nextTick, ref } from 'vue';
+import { computed, watch, ref } from 'vue';
 import { useUserStore } from '@renderer/store/module/userStore';
 import { NAvatar, NText, NPopover, NTag, NEllipsis, NFlex } from 'naive-ui';
 
-import { accountRenderLabel } from '@renderer/utils/render';
+import { createAccountRenderLabel } from '@renderer/utils/render';
 
 import mittBus from '@renderer/eventBus';
 
-import type { SelectOption, SelectRenderLabel } from 'naive-ui';
+import type { SelectOption } from 'naive-ui';
 import type { IUserInfo } from '@renderer/store/interface';
 
 withDefaults(defineProps<{ collapsed: boolean }>(), {
@@ -179,28 +183,14 @@ const userOptions = computed(() => {
   );
 });
 
-const value = ref('');
 const selectedKey = ref('linux-page');
-
-const accountOptions = [
-  {
-    label: 'Drive My Car',
-    value: 'Drive My Car'
-  },
-  {
-    label: 'Norwegian Wood',
-    value: 'Norwegian Wood'
-  }
-];
-
-console.log(currentUser.value);
 
 /**
  * @description 切换账号的逻辑
  */
-const handleAccountChange = (value: string, _option: SelectOption) => {
+const handleAccountChange = (token: string, _option: SelectOption) => {
   if (userStore.userInfo) {
-    const user = userStore.userInfo.find((item: IUserInfo) => item.token === value);
+    const user = userStore.userInfo.find((item: IUserInfo) => item.token === token);
 
     if (user) {
       userStore.setToken(user.token);
@@ -208,86 +198,6 @@ const handleAccountChange = (value: string, _option: SelectOption) => {
       userStore.setCurrentSit(user.currentSite as string);
     }
   }
-};
-
-/**
- * @description 自定义渲染内容
- * @param option
- */
-const renderLabel: SelectRenderLabel = option => {
-  return h(
-    'div',
-    {
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        width: '100%'
-      }
-    },
-    [
-      h(NAvatar, {
-        src: option.avatar_url as string,
-        round: true,
-        size: 'medium',
-        style: {
-          cursor: 'pointer',
-          flexShrink: 0
-        }
-      }),
-      h(
-        'div',
-        {
-          style: {
-            marginLeft: '12px',
-            padding: '4px 0',
-            flex: 1,
-            minWidth: 0
-          }
-        },
-        [
-          h(
-            'div',
-            {
-              style: {
-                marginBottom: '4px'
-              }
-            },
-            option.label as string
-          ),
-          h(
-            NTag,
-            {
-              bordered: false,
-              size: 'small',
-              type: 'info',
-              style: {
-                maxWidth: '100%',
-                cursor: 'pointer'
-              }
-            },
-            {
-              default: () =>
-                h(
-                  NEllipsis,
-                  {
-                    style: {
-                      maxWidth: '200px'
-                    },
-                    tooltip: {
-                      placement: 'top',
-                      showArrow: true
-                    }
-                  },
-                  {
-                    default: () => `${t('Common.DataSource')}：${option.currentSite}`
-                  }
-                )
-            }
-          )
-        ]
-      )
-    ]
-  );
 };
 
 /**
@@ -301,19 +211,23 @@ const handleAddAccount = () => {
 /**
  * @description 移除账号
  */
-const handleRemoveAccount = () => {
-  mittBus.emit('removeAccount');
-  selectedKey.value = 'linux-page';
+const handleRemoveAccount = (token: string) => {
+  if (userStore.userInfo) {
+    userStore.userInfo = userStore.userInfo.filter(user => user.token !== token);
 
-  nextTick(() => {
-    if (userStore.userInfo && userStore.userInfo.length > 0) {
+    // 如果删除的是当前账号，切换到第一个账号
+    if (token === userStore.currentUser?.token && userStore.userInfo.length > 0) {
       const firstUser = userStore.userInfo[0];
       userStore.setToken(firstUser.token);
       userStore.setCurrentUser({ ...firstUser });
       userStore.setCurrentSit(firstUser.currentSite as string);
     }
-  });
+  }
+
+  selectedKey.value = 'linux-page';
 };
+
+const accountRenderLabelWithRemove = createAccountRenderLabel(handleRemoveAccount);
 
 const debouncedSearch = useDebounceFn(() => {
   mittBus.emit('search', 'reset');
@@ -331,4 +245,8 @@ watch(
 
 <style scoped lang="scss">
 @use './index.scss';
+
+:deep(.n-base-select-menu .n-base-select-option::before) {
+  border-radius: 0.75rem !important;
+}
 </style>
