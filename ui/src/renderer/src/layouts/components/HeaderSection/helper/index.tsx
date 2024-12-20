@@ -13,11 +13,10 @@ export interface ICustomBody {
 }
 
 export const renderIcon = (icon: Component) => {
-  return () => {
-    return h(NIcon, null, {
+  return () =>
+    h(NIcon, null, {
       default: () => h(icon)
     });
-  };
 };
 
 /**

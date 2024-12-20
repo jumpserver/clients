@@ -12,83 +12,67 @@
       <n-divider class="!my-3" />
     </div>
 
+    <!-- 未登录状态 -->
     <n-flex v-if="userOptions.length === 0" align="center" justify="center">
       <n-button text strong> {{ t('Common.UnLogged') }} </n-button>
     </n-flex>
 
-    <n-flex v-else align="center" justify="space-between" class="w-full px-8">
-      <n-avatar
-        v-if="currentUser?.avatar_url"
-        round
-        size="medium"
-        class="cursor-pointer"
-        :src="currentUser?.avatar_url"
-      />
+    <n-popselect
+      v-else
+      show-arrow
+      size="small"
+      placement="bottom"
+      trigger="click"
+      class="w-120 rounded-xl"
+      :style="{
+        width: '16rem'
+      }"
+      :options="[]"
+      :content-style="{ width: '300px', minWidth: '300px' }"
+      v-model:value="value"
+    >
+      <n-flex
+        align="center"
+        :justify="collapsed ? 'center' : 'space-between'"
+        :style="{ padding: collapsed ? '0' : '0 1rem' }"
+        class="w-full cursor-pointer transition-all duration-300 ease-in-out"
+      >
+        <n-flex
+          align="center"
+          class="!gap-0"
+          :style="{ justifyContent: collapsed ? 'center' : '' }"
+        >
+          <n-avatar
+            v-if="currentUser?.avatar_url"
+            round
+            size="medium"
+            class="cursor-pointer w-8 h-8 transition-all duration-300"
+            :src="currentUser?.avatar_url"
+          />
 
-      <n-icon
-        v-if="!collapsed"
-        :component="ArrowBackIosNewFilled"
-        size="20"
-        class="cursor-pointer icon-hover"
-      />
-    </n-flex>
-
-    <!-- <n-flex align="center" justify="center" class="!flex-nowrap">
-      <template v-if="userOptions.length === 0">
-        <n-button text strong class="flex w-full h-8"> {{ t('Common.UnLogged') }} </n-button>
-      </template>
-      <template v-else>
-        <n-avatar
-          v-if="currentUser?.avatar_url"
-          round
-          size="medium"
-          class="cursor-pointer"
-          :src="currentUser?.avatar_url"
-        />
-
-        <div v-if="userOptions.length > 0" class="flex flex-col w-[60%]">
-          <div class="flex w-full">
-            <n-text depth="1" strong class="!inline-flex !items-center justify-between w-full">
+          <n-flex
+            v-if="!collapsed"
+            vertical
+            class="ml-3 overflow-hidden transition-all duration-500"
+            :style="{
+              maxWidth: collapsed ? '0' : '200px',
+              opacity: collapsed ? '0' : '1',
+              transform: collapsed ? 'translateX(-20px)' : 'translateX(0)',
+              gap: '2px'
+            }"
+          >
+            <n-text depth="1" strong class="whitespace-nowrap">
               {{ currentUser?.username }}
-
-              <n-popselect
-                trigger="click"
-                placement="right-end"
-                class="w-80 rounded-xl py-1"
-                :content-style="{
-                  width: '100%'
-                }"
-                :options="userOptions"
-                :render-label="renderLabel"
-                v-model:value="currentUser!.token"
-                @update:value="handleAccountChange"
-              >
-                <n-popover>
-                  <template #trigger>
-                    <n-icon
-                      size="14"
-                      :component="ArrowsHorizontal"
-                      class="ml-[10px] cursor-pointer icon-hover"
-                    />
-                  </template>
-                  {{ t('Common.SwitchAccount') }}
-                </n-popover>
-                <template #action>
-                  <n-button text class="w-1/2" @click="handleAddAccount">
-                    {{ t('Common.AddAccount') }}
-                  </n-button>
-                  <n-button text class="w-1/2" @click="handleRemoveAccount">
-                    {{ t('Common.RemoveAccount') }}
-                  </n-button>
-                </template>
-              </n-popselect>
             </n-text>
-          </div>
 
-          <div style="font-size: 12px">
             <n-popover>
               <template #trigger>
-                <n-text depth="2">
+                <n-text
+                  depth="2"
+                  type="success"
+                  style="font-size: 0.85rem"
+                  class="cursor-pointer whitespace-nowrap"
+                >
                   {{ currentUser?.display_name?.[0] ?? '' }}
                 </n-text>
               </template>
@@ -99,27 +83,71 @@
                 </span>
               </template>
             </n-popover>
-          </div>
-        </div>
+          </n-flex>
+        </n-flex>
+      </n-flex>
+
+      <template #header>
+        <n-flex align="center">
+          <n-avatar
+            round
+            size="medium"
+            class="cursor-pointer w-8 h-8 transition-all duration-300"
+            :src="currentUser ? (currentUser.avatar_url as string) : ''"
+          />
+
+          <n-flex class="!flex-col">
+            <n-text> {{ currentUser?.username }} </n-text>
+
+            <n-tag :bordered="false" size="small" type="info" class="cursor-pointer">
+              {{ t('Common.DataSource') }}： 'currentSite'
+            </n-tag>
+          </n-flex>
+        </n-flex>
       </template>
-    </n-flex> -->
+
+      <template #empty>
+        <n-popselect
+          scrollable
+          show-arrow
+          size="small"
+          trigger="click"
+          placement="right-start"
+          v-model:value="value"
+          :style="{
+            width: '12rem'
+          }"
+          :content-style="{
+            width: '100%'
+          }"
+          :render-label="accountRenderLabel"
+          :options="accountOptions"
+        >
+          <n-button text class="w-full"> 账号列表 </n-button>
+        </n-popselect>
+      </template>
+
+      <template #action>
+        <n-button text class="w-full" @click="handleAddAccount">
+          {{ t('Common.AddAccount') }}
+        </n-button>
+      </template>
+    </n-popselect>
   </n-flex>
 </template>
 
 <script setup lang="ts">
-import { NAvatar, NText, NPopover, NTag, NEllipsis } from 'naive-ui';
-import { ArrowsHorizontal } from '@vicons/carbon';
-import { ArrowBackIosNewFilled } from '@vicons/material';
-import { computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
+import { menuOptions } from './config';
 import { useDebounceFn } from '@vueuse/core';
+import { computed, watch, h, nextTick, ref } from 'vue';
+import { useUserStore } from '@renderer/store/module/userStore';
+import { NAvatar, NText, NPopover, NTag, NEllipsis, NFlex } from 'naive-ui';
+
+import { accountRenderLabel } from '@renderer/utils/render';
 
 import mittBus from '@renderer/eventBus';
-
-import { useUserStore } from '@renderer/store/module/userStore';
-import { menuOptions } from './config';
-import { h, nextTick, ref } from 'vue';
-import { storeToRefs } from 'pinia';
-import { useI18n } from 'vue-i18n';
 
 import type { SelectOption, SelectRenderLabel } from 'naive-ui';
 import type { IUserInfo } from '@renderer/store/interface';
@@ -151,7 +179,21 @@ const userOptions = computed(() => {
   );
 });
 
+const value = ref('');
 const selectedKey = ref('linux-page');
+
+const accountOptions = [
+  {
+    label: 'Drive My Car',
+    value: 'Drive My Car'
+  },
+  {
+    label: 'Norwegian Wood',
+    value: 'Norwegian Wood'
+  }
+];
+
+console.log(currentUser.value);
 
 /**
  * @description 切换账号的逻辑

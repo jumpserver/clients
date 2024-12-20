@@ -13,6 +13,12 @@ module.exports = {
       },
       borderColor: {
         primary: 'rgb(var(--el-border-color) / <alpha-value>)'
+      },
+      colors: {
+        primary: {
+          100: 'rgba(var(--primary-color), 0.1)',
+          900: 'rgba(var(--primary-color), 0.2)'
+        }
       }
     }
   },

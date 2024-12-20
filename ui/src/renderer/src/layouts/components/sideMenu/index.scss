@@ -12,3 +12,16 @@
     align-items: center;
   }
 }
+
+.overflow-hidden {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:deep(.n-flex) {
+  min-width: 0;
+}
+
+:deep(.n-base-select-option) {
+  width: 100% !important;
+}
