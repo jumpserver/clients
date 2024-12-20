@@ -19,6 +19,10 @@ win:
       arch:
         - x64
         - ia32
+    - target: msiWrapped
+      arch:
+        - x64
+        - ia32
 afterSign: build/sign/notarize.cjs
 nsis:
   artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
