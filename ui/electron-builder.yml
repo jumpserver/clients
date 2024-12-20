@@ -13,7 +13,7 @@ extraResources:
   - from: 'bin'
 win:
   artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
-  executableName: ${productName}
+  executableName: JumpServerClient
   icon: build/icons/icon.ico
   target:
     - target: nsis

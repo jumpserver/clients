@@ -1,11 +1,11 @@
-import path, { join, resolve } from 'path';
-import { Conf, useConf } from 'electron-conf/main';
+import path, {join, resolve} from 'path';
+import {Conf, useConf} from 'electron-conf/main';
 import icon from '../../resources/JumpServer.ico?asset';
-import { electronApp, is, optimizer } from '@electron-toolkit/utils';
-import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
+import {electronApp, is, optimizer} from '@electron-toolkit/utils';
+import {app, BrowserWindow, ipcMain, session, shell} from 'electron';
 
-import { execFile } from 'child_process';
-import { existsSync, readFileSync } from 'fs';
+import {execFile} from 'child_process';
+import {existsSync, readFileSync} from 'fs';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -24,7 +24,7 @@ if (!existsSync(configFilePath)) {
   const data = readFileSync(path.join(subPath, 'config.json'), 'utf8');
   defaults = JSON.parse(data);
 }
-const conf = new Conf({ defaults: defaults! });
+const conf = new Conf({defaults: defaults!});
 
 const setDefaultProtocol = () => {
   if (process.defaultApp) {
@@ -50,7 +50,6 @@ const handleUrl = (url: string) => {
       } else {
         handleClientPullUp(url);
       }
-      console.error();
     } catch (error) {
       console.error('Failed to parse decoded token:', error);
     }
@@ -104,7 +103,7 @@ const createWindow = async (): Promise<void> => {
     autoHideMenuBar: true,
     title: 'JumpServer Client',
     titleBarStyle: 'hidden',
-    ...(process.platform === 'linux' ? { icon } : { icon }),
+    ...(process.platform === 'linux' ? {icon} : {icon}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -118,7 +117,7 @@ const createWindow = async (): Promise<void> => {
 
   mainWindow.webContents.setWindowOpenHandler(details => {
     shell.openExternal(details.url);
-    return { action: 'deny' };
+    return {action: 'deny'};
   });
 
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
@@ -167,6 +166,10 @@ app.whenReady().then(async () => {
 
   await createWindow();
   setDefaultProtocol();
+
+  if (process.platform === 'win32') {
+    handleArgv(process.argv);
+  }
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
