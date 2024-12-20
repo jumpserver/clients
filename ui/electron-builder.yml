@@ -12,7 +12,8 @@ files:
 extraResources:
   - from: 'bin'
 win:
-  executableName: JumpServerClient
+  artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
+  executableName: ${productName}
   icon: build/icons/icon.ico
   target:
     - target: nsis
@@ -25,7 +26,6 @@ win:
         - ia32
 afterSign: build/sign/notarize.cjs
 nsis:
-  artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
