@@ -2,7 +2,7 @@
   <n-modal
     :show="showModal"
     :show-icon="false"
-    :closable="false"
+    :closable="true"
     :mask-closable="false"
     preset="dialog"
     class="rounded-[10px]"
@@ -10,7 +10,6 @@
   >
     <template #header>
       <n-flex align="center">
-        <!--  <n-icon size="30" :component="Warning24Regular" color="#4B9E5F" /> -->
         <n-text depth="1">{{ t('Common.Tip') }}</n-text>
       </n-flex>
     </template>
@@ -36,11 +35,11 @@
 </template>
 
 <script setup lang="ts">
-import {useI18n} from 'vue-i18n';
-import {useMessage} from 'naive-ui';
-import {onMounted, ref, watch} from 'vue';
-import {readText} from 'clipboard-polyfill';
-import {useUserStore} from '@renderer/store/module/userStore';
+import { useI18n } from 'vue-i18n';
+import { useMessage } from 'naive-ui';
+import { onMounted, ref, watch } from 'vue';
+import { readText } from 'clipboard-polyfill';
+import { useUserStore } from '@renderer/store/module/userStore';
 
 const URL_REGEXP =
   /^(https?:\/\/)?(([a-zA-Z0-9-]{1,63}\.)+[a-zA-Z]{2,}|(\d{1,3}\.){3}\d{1,3}|\[?[a-fA-F0-9]{1,4}:([a-fA-F0-9]{1,4}:){1,7}[a-fA-F0-9]{1,4}\]?)(:\d{1,5})?$/;
@@ -49,14 +48,14 @@ const props = withDefaults(
   defineProps<{
     showModal: boolean;
   }>(),
-  {showModal: false}
+  { showModal: false }
 );
 
 const emits = defineEmits<{
   (e: 'close-mask'): void;
 }>();
 
-const {t} = useI18n();
+const { t } = useI18n();
 const message = useMessage();
 const userStore = useUserStore();
 
@@ -67,20 +66,18 @@ const siteLocation = ref('');
  * @description 不输入站点之前不允许关闭遮罩
  */
 const handleMaskClick = (): void => {
-  const userInfo = userStore.userInfo;
+  emits('close-mask');
 
-  if (userInfo && userInfo.length > 0) {
-    emits('close-mask');
-
-    return;
-  }
-
-  if (siteLocation.value) {
-    message.error(`${t('Message.ClickSigInToAuth')}`);
-    return;
-  }
-
-  message.error(`${t('Message.EnterSiteAddress')}`, {closable: true});
+  // const userInfo = userStore.userInfo;
+  // if (userInfo && userInfo.length > 0) {
+  //   emits('close-mask');
+  //   return;
+  // }
+  // if (siteLocation.value) {
+  //   message.error(`${t('Message.ClickSigInToAuth')}`);
+  //   return;
+  // }
+  // message.error(`${t('Message.EnterSiteAddress')}`, { closable: true });
 };
 
 /**
@@ -90,23 +87,21 @@ const jumpToLogin = () => {
   const hasProtocol = /^https?:\/\//i.test(siteLocation.value);
 
   if (!hasProtocol) {
-    message.error(t('Message.ProtocolRequired'), {closable: true});
+    message.error(t('Message.ProtocolRequired'), { closable: true });
     inputStatus.value = 'error';
     return;
   }
 
-  const sameSiteUser = userStore.userInfo.filter(
-    (item) => item.currentSite === siteLocation.value
-  );
+  const sameSiteUser = userStore.userInfo.filter(item => item.currentSite === siteLocation.value);
 
   if (sameSiteUser.length !== 0) {
-    message.error(t('Message.EnterDiffSite'), {closable: true});
+    message.error(t('Message.EnterDiffSite'), { closable: true });
     inputStatus.value = 'error';
     return;
   }
 
   if (!URL_REGEXP.test(siteLocation.value)) {
-    message.error(t('Message.EnterTheCorrectSite'), {closable: true});
+    message.error(t('Message.EnterTheCorrectSite'), { closable: true });
     inputStatus.value = 'error';
     return;
   }
@@ -128,7 +123,7 @@ const handleContextMenu = async () => {
 
       if (!hasProtocol) {
         siteLocation.value = text;
-        message.error(t('Message.ProtocolRequired'), {closable: true});
+        message.error(t('Message.ProtocolRequired'), { closable: true });
         return;
       }
 
@@ -136,11 +131,10 @@ const handleContextMenu = async () => {
         siteLocation.value = text;
       } else {
         siteLocation.value = text;
-        message.error(`${text} ${t('Message.ErrorSiteInput')}`, {closable: true});
+        message.error(`${text} ${t('Message.ErrorSiteInput')}`, { closable: true });
       }
     }
-  } catch (e) {
-  }
+  } catch (e) {}
 };
 
 watch(
@@ -150,7 +144,7 @@ watch(
       window.removeEventListener('contextmenu', handleContextMenu, false);
     }
   },
-  {immediate: true}
+  { immediate: true }
 );
 
 onMounted(() => {

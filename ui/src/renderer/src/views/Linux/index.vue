@@ -21,6 +21,7 @@ defineProps<{
 const { hasMore, loadingStatus, listData, handleScroll, getAssetsFromServer } = useAssetList('linux');
 
 onMounted(() => {
+  getAssetsFromServer()
   mittBus.on('search', getAssetsFromServer);
 });
 

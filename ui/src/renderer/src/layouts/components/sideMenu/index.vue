@@ -11,7 +11,9 @@
 
     <n-flex align="center" justify="center" class="!flex-nowrap">
       <template v-if="userOptions.length === 0">
-        <n-button text strong class="flex w-full h-8"> {{ t('Common.UnLogged') }} </n-button>
+        <n-button text strong class="flex w-full h-8" @click="handleOpenLogoModal">
+          {{ t('Common.UnLogged') }}
+        </n-button>
       </template>
       <template v-else>
         <n-avatar
@@ -138,6 +140,10 @@ const handleAccountChange = (value: string, _option: SelectOption) => {
       userStore.setCurrentSit(user.currentSite as string);
     }
   }
+};
+
+const handleOpenLogoModal = () => {
+  mittBus.emit('removeAccount');
 };
 
 /**
