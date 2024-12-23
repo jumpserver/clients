@@ -12,6 +12,7 @@ declare module 'vue' {
     LoginModal: typeof import('./src/components/LoginModal/index.vue')['default']
     MainSection: typeof import('./src/components/MainSection/index.vue')['default']
     NA: typeof import('naive-ui')['NA']
+    NAvatar: typeof import('naive-ui')['NAvatar']
     NButton: typeof import('naive-ui')['NButton']
     NCard: typeof import('naive-ui')['NCard']
     NCollapse: typeof import('naive-ui')['NCollapse']

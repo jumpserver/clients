@@ -168,7 +168,8 @@ onMounted(async () => {
   }
 
   // 检查是否需要显示登录框
-  if (!userStore.token || (userStore.userInfo && userStore.userInfo.length <= 0)) showModal.value = true;
+  if (!userStore.token || (userStore.userInfo && userStore.userInfo.length <= 0))
+    showModal.value = true;
 
   window.electron.ipcRenderer.on('set-token', async (_e, token: string) => {
     if (token) {

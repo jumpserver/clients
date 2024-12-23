@@ -21,6 +21,7 @@
       v-else
       show-arrow
       size="small"
+      trigger="click"
       placement="bottom"
       class="rounded-xl"
       :style="{
@@ -28,7 +29,6 @@
         marginLeft: '1.5rem'
       }"
       :options="[]"
-      :content-style="{ width: '300px', minWidth: '300px' }"
     >
       <n-flex
         align="center"
@@ -87,54 +87,39 @@
       </n-flex>
 
       <template #header>
-        <n-flex align="center" class="!flex-nowrap">
-          <n-avatar
-            round
-            size="medium"
-            class="cursor-pointer w-8 h-8 transition-all duration-300"
-            :src="currentUser ? (currentUser.avatar_url as string) : ''"
-          />
-
-          <n-flex vertical class="!gap-0">
-            <n-text> {{ currentUser?.username }} </n-text>
-
-            <n-tag :bordered="false" size="small" type="info" class="cursor-pointer">
-              <n-ellipsis style="width: 10rem">
-                {{ t('Common.DataSource') }} : {{ currentUser?.currentSite }}
-
-                <template #tooltip>
-                  {{ t('Common.DataSource') }} : {{ currentUser?.currentSite }}
-                </template>
-              </n-ellipsis>
-            </n-tag>
-          </n-flex>
-        </n-flex>
+        <n-text depth="3" strong> Switch Account </n-text>
       </template>
 
       <template #empty>
-        <n-popselect
-          scrollable
-          show-arrow
-          size="small"
-          placement="right-start"
-          v-model:value="currentUser!.token"
-          :style="{
-            width: '16rem',
-            padding: '0.5rem 0'
-          }"
-          class="rounded-xl account-list"
-          :render-label="accountRenderLabelWithRemove"
-          :options="userOptions"
-          @update:value="handleAccountChange"
-        >
-          <n-button text class="w-full"> 账号列表 </n-button>
-        </n-popselect>
+        <n-flex vertical justify="start" class="w-full">
+          <template v-for="user of userOptions" :key="user.token">
+            <AccountList
+              :username="user.label!"
+              :user-token="user.value!"
+              :user-site="user.currentSite!"
+              :user-avator="user.avatar_url!"
+              @change-account="handleAccountChange"
+            />
+          </template>
+        </n-flex>
       </template>
 
       <template #action>
-        <n-button text class="w-full" @click="handleAddAccount">
-          {{ t('Common.AddAccount') }}
-        </n-button>
+        <n-flex vertical align="center" justify="start" class="w-full">
+          <n-button text class="w-full justify-start" @click="handleAddAccount">
+            <template #icon>
+              <UserRoundPlus />
+            </template>
+            {{ t('Common.AddAccount') }}
+          </n-button>
+
+          <n-button text class="w-full justify-start" @click="handleRemoveAccount">
+            <template #icon>
+              <LogOut />
+            </template>
+            {{ t('Common.RemoveAccount') }}
+          </n-button>
+        </n-flex>
       </template>
     </n-popselect>
   </n-flex>
@@ -143,17 +128,17 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import { menuOptions } from './config';
-import { useDebounceFn } from '@vueuse/core';
+import { LogOut } from 'lucide-vue-next';
 import { computed, watch, ref } from 'vue';
+import { menuOptions } from './config/index';
+import { useDebounceFn } from '@vueuse/core';
+import { UserRoundPlus } from 'lucide-vue-next';
+import { NAvatar, NText, NPopover, NFlex } from 'naive-ui';
 import { useUserStore } from '@renderer/store/module/userStore';
-import { NAvatar, NText, NPopover, NTag, NEllipsis, NFlex } from 'naive-ui';
-
-import { createAccountRenderLabel } from '@renderer/utils/render';
 
 import mittBus from '@renderer/eventBus';
+import AccountList from '../AccountList/index.vue';
 
-import type { SelectOption } from 'naive-ui';
 import type { IUserInfo } from '@renderer/store/interface';
 
 withDefaults(defineProps<{ collapsed: boolean }>(), {
@@ -188,7 +173,7 @@ const selectedKey = ref('linux-page');
 /**
  * @description 切换账号的逻辑
  */
-const handleAccountChange = (token: string, _option: SelectOption) => {
+const handleAccountChange = (token: string) => {
   if (userStore.userInfo) {
     const user = userStore.userInfo.find((item: IUserInfo) => item.token === token);
 
@@ -227,8 +212,6 @@ const handleRemoveAccount = (token: string) => {
   selectedKey.value = 'linux-page';
 };
 
-const accountRenderLabelWithRemove = createAccountRenderLabel(handleRemoveAccount);
-
 const debouncedSearch = useDebounceFn(() => {
   mittBus.emit('search', 'reset');
 }, 300);
@@ -245,8 +228,4 @@ watch(
 
 <style scoped lang="scss">
 @use './index.scss';
-
-:deep(.n-base-select-menu .n-base-select-option::before) {
-  border-radius: 0.75rem !important;
-}
 </style>

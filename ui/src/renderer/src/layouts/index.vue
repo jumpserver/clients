@@ -29,7 +29,7 @@
 <script setup lang="ts">
 import HeaderSection from './components/HeaderSection/index.vue';
 import Drawer from '@renderer/components/Drawer/index.vue';
-import SideMenu from './components/sideMenu/index.vue';
+import SideMenu from './components/SideMenu/index.vue';
 
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 
