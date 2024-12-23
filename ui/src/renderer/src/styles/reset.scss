@@ -1,0 +1,32 @@
+.n-base-select-menu {
+  &.n-popselect-menu {
+    .n-base-select-option {
+      padding: 0 !important;
+      margin: 4px 0;
+      border-radius: 6px;
+
+      &:hover {
+        background-color: transparent !important;
+      }
+
+      &--selected {
+        background-color: transparent !important;
+        color: inherit !important;
+
+        .n-base-select-option__content {
+          background-color: transparent !important;
+        }
+      }
+
+      .n-base-select-option__content {
+        width: 100% !important;
+        padding: 0 !important;
+      }
+    }
+
+    .n-base-select-menu__empty,
+    .n-base-select-menu__action {
+      padding: 8px 12px !important;
+    }
+  }
+}
