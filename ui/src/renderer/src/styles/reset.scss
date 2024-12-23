@@ -24,6 +24,10 @@
       }
     }
 
+    .n-base-select-menu__header {
+      border-bottom: unset;
+    }
+
     .n-base-select-menu__empty,
     .n-base-select-menu__action {
       padding: 8px 12px !important;

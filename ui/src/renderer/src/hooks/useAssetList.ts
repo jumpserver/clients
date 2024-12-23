@@ -3,12 +3,14 @@ import { useUserStore } from '@renderer/store/module/userStore';
 import { getAssets } from '@renderer/api/modals/asset';
 import { useMessage } from 'naive-ui';
 import { useI18n } from 'vue-i18n';
+import { useLoadingBar } from 'naive-ui';
 import type { IListItem } from '@renderer/components/MainSection/interface';
 
 export function useAssetList(type: string) {
   const { t } = useI18n();
   const message = useMessage();
   const userStore = useUserStore();
+  const loadingBar = useLoadingBar();
 
   const hasMore = ref(true);
   const loadingStatus = ref(true);
@@ -35,6 +37,7 @@ export function useAssetList(type: string) {
   };
 
   const getAssetsFromServer = async (searchInput?: string) => {
+    loadingBar.start();
     if (searchInput !== undefined) {
       params.value.offset = 0;
       params.value.search = searchInput;
@@ -72,6 +75,8 @@ export function useAssetList(type: string) {
       loadingStatus.value = false;
       hasMore.value = false;
       message.error(`${t('Message.FailedRetrieveAssetDataList')}`, { closable: true });
+    } finally {
+      loadingBar.finish();
     }
   };
 

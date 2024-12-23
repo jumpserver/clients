@@ -21,8 +21,8 @@
       v-else
       show-arrow
       size="small"
-      trigger="click"
       placement="bottom"
+      trigger="click"
       class="rounded-xl"
       :style="{
         width: '16rem',

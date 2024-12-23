@@ -1,24 +1,20 @@
 <template>
-  <n-spin :show="loadingStatus" class="w-full h-[80%]">
-    <MainSection
-      :list-data="listData"
-      :class="active ? 'show-drawer' : ''"
-      @loadMore="handleScroll"
-    />
-  </n-spin>
+  <RenderList type="linux" />
 </template>
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted } from 'vue';
 import mittBus from '@renderer/eventBus';
 import MainSection from '@renderer/components/MainSection/index.vue';
-import { useAssetList } from '@renderer/composables/useAssetList';
+import { useAssetList } from '@renderer/hooks/useAssetList';
+import RenderList from '@renderer/components/RenderList/index.vue';
 
 defineProps<{
   active: boolean;
 }>();
 
-const { hasMore, loadingStatus, listData, handleScroll, getAssetsFromServer } = useAssetList('linux');
+const { hasMore, loadingStatus, listData, handleScroll, getAssetsFromServer } =
+  useAssetList('linux');
 
 onMounted(() => {
   mittBus.on('search', getAssetsFromServer);

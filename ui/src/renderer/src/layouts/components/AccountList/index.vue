@@ -10,7 +10,7 @@
     </n-avatar>
 
     <n-flex class="flex-1 min-w-0">
-      <n-popover delay="1000" style="width: 20rem" placement="right">
+      <n-popover :delay="1000" style="width: 20rem" placement="right">
         <template #trigger>
           <n-flex align="center" justify="start" class="w-full !flex-nowrap">
             <n-text depth="1" class="cursor-pointer truncate">
@@ -25,7 +25,10 @@
           </n-flex>
         </template>
 
-        {{ t('Common.DataSource') }} : {{ userSite }}
+        <n-tag :bordered="false" size="small" type="info">
+          {{ t('Common.DataSource') }}
+        </n-tag>
+        : {{ userSite }}
       </n-popover>
     </n-flex>
   </n-flex>

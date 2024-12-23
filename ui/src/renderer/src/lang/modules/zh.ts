@@ -49,7 +49,9 @@ export default {
     Confirm: '确认',
     UsernamePlaceholder: '请输入用户名',
     InputAccountPassword: '手动输入',
-    None: '无'
+    None: '无',
+    Address: '地址',
+    Connectability: '可连接性'
   },
   Dialog: {
     'Save&Default': '保存且默认',
