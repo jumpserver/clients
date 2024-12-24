@@ -8,6 +8,8 @@ import { useRouter } from 'vue-router';
 import { createDiscreteApi } from 'naive-ui';
 import { getProfile } from '@renderer/api/modals/user';
 import { useUserStore } from '@renderer/store/module/userStore';
+import { getSystemSetting } from "@renderer/api/modals/setting";
+import { useSettingStore } from "@renderer/store/module/settingStore";
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 
 import { Conf } from 'electron-conf/renderer';
@@ -19,7 +21,7 @@ import LoginModal from '@renderer/components/LoginModal/index.vue';
 
 const conf = new Conf();
 const router = useRouter();
-const { t, locale } = useI18n();
+const {t, locale} = useI18n();
 
 const iconImage = ref('');
 const defaultLang = ref('');
@@ -27,6 +29,7 @@ const defaultTheme = ref('');
 const showModal = ref(false);
 
 const userStore = useUserStore();
+const settingStore = useSettingStore();
 
 let avatarImage: string;
 
@@ -52,7 +55,7 @@ watch(
   }
 );
 
-const { notification } = createDiscreteApi(['notification'], {
+const {notification} = createDiscreteApi(['notification'], {
   configProviderProps: configProviderPropsRef
 });
 
@@ -168,8 +171,17 @@ onMounted(async () => {
         duration: 2000
       });
 
-      await router.push({ name: 'Linux' });
+      await router.push({name: 'Linux'});
     }
+
+    const setting = await getSystemSetting();
+    if (setting) {
+      settingStore.setRdpClientOption(setting.graphics.rdp_client_option)
+      settingStore.setKeyboardLayout(setting.graphics.keyboard_layout)
+      settingStore.setRdpSmartSize(setting.graphics.rdp_smart_size)
+      settingStore.setRdpColorQuality(setting.graphics.rdp_color_quality)
+    }
+
   } catch (e: any) {
     const status = e.response?.status;
 
@@ -214,7 +226,15 @@ onMounted(async () => {
           });
 
           mittBus.emit('search');
-          await router.push({ name: 'Linux' });
+          await router.push({name: 'Linux'});
+
+          const setting = await getSystemSetting();
+          if (setting) {
+            settingStore.setRdpClientOption(setting.graphics.rdp_client_option)
+            settingStore.setKeyboardLayout(setting.graphics.keyboard_layout)
+            settingStore.setRdpSmartSize(setting.graphics.rdp_smart_size)
+            settingStore.setRdpColorQuality(setting.graphics.rdp_color_quality)
+          }
         }
       } catch (e) {
         showModal.value = false;
@@ -247,12 +267,12 @@ onBeforeUnmount(() => {
       <n-message-provider>
         <div class="custom-header ele_drag bg-primary border-b-primary border-b">
           <div class="logo">
-            <img :src="iconImage" alt="" />
+            <img :src="iconImage" alt=""/>
             <span class="title text-primary">JumpServer Client</span>
           </div>
         </div>
-        <LoginModal :show-modal="showModal" @close-mask="handleCloseMask" />
-        <router-view />
+        <LoginModal :show-modal="showModal" @close-mask="handleCloseMask"/>
+        <router-view/>
       </n-message-provider>
     </n-modal-provider>
   </n-config-provider>

@@ -79,39 +79,3 @@ export function loadOriManualAuthInfo() {
   }
   LocalStorageService.delete(manualAuthInfoKey);
 }
-
-export function setPreConnectData(asset, connectData) {
-  const { account, protocol, connectMethod, manualAuthInfo, connectOption } = connectData;
-  const key = `JMS_PRE_${asset.id}`;
-
-  const saveData = {
-    account: { alias: account.alias, username: account.username, has_secret: account.has_secret },
-    connectMethod: { value: connectMethod.value },
-    protocol: { name: protocol.name },
-    downloadRDP: connectData.downloadRDP,
-    autoLogin: connectData.autoLogin,
-    connectOption
-  };
-  setAccountLocalAuth(asset, account, manualAuthInfo);
-  LocalStorageService.set(key, saveData);
-}
-
-export function getPreConnectData(asset: Asset) {
-  const key = `JMS_PRE_${asset.id}`;
-  const connectData = LocalStorageService.get(key) as ConnectData;
-  if (!connectData) {
-    return null;
-  }
-  connectData.manualAuthInfo = new AuthInfo();
-  if (connectData.account.has_secret) {
-    return connectData;
-  }
-  if (connectData.account) {
-    const auths = getAccountLocalAuth(asset.id);
-    const matched = auths.find(item => item.alias === connectData.account.alias);
-    if (matched) {
-      connectData.manualAuthInfo = matched;
-    }
-  }
-  return connectData;
-}
