@@ -12,6 +12,7 @@ files:
 extraResources:
   - from: 'bin'
 win:
+  artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
   executableName: JumpServerClient
   icon: build/icons/icon.ico
   target:
@@ -19,9 +20,12 @@ win:
       arch:
         - x64
         - ia32
-#afterSign: build/sign/notarize.cjs
+    - target: msiWrapped
+      arch:
+        - x64
+        - ia32
+afterSign: build/sign/notarize.cjs
 nsis:
-  artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
@@ -61,4 +65,4 @@ electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/
 protocols:
   - name: 'JumpServerClient Protocol'
-    schemes: ['jms']
+    schemes: [ 'jms' ]

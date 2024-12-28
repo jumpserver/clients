@@ -8,7 +8,7 @@ export const useSettingStore = defineStore('setting', {
     is_backspace_as_ctrl_h: false,
     rdp_resolution: 'auto',
     keyboard_layout: 'en-us-qwerty',
-    rdp_client_option: ['multi_screen', 'full_screen'],
+    rdp_client_option: [],
     rdp_color_quality: '32',
     rdp_smart_size: '0'
   }),
