@@ -106,7 +106,7 @@ export default {
     ChangeSuccess: '修改成功',
     EnableOneOption: '请至少启用一个选项!',
     CopyToClipboard: '已复制到剪切板',
-    NotMatched: '未匹配对应���议的客户端!',
+    NotMatched: '未匹配对应协议的客户端!',
     PleaseAuthFirst: '请先进行登录认证!',
     HistoryRequireAuth: '查看历史记录需要先登录认证'
   }

@@ -9,7 +9,7 @@
           style="max-height: calc(100vh - 200px)"
           :class="{ 'list-layout': currentLayout !== 'list' }"
           :distance="10"
-          @load="handleLoad"
+          @load="debounceLoad"
         >
           <ListItem
             v-for="item of listData"
@@ -174,9 +174,9 @@ conf.get('defaultSetting').then(res => {
   }
 });
 
-const handleLoad = () => {
+const debounceLoad = useDebounceFn(() => {
   emit('loadMore');
-};
+}, 2000);
 
 /**
  * @description 重置左键菜单
@@ -410,6 +410,7 @@ const handleAccountSelect = async (key: string) => {
         }
 
         const token = await createConnectToken(connectData.value, method);
+
         if (token) {
           mittBus.emit('checkMatch', connectData.value.protocol as string);
           historyStore.setHistorySession({ ...detailMessage.value });
