@@ -1,7 +1,7 @@
 import { h } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { NTag, NButton, NButtonGroup } from 'naive-ui';
-import { CircleX, CircleCheck, Cable, EllipsisVertical } from 'lucide-vue-next';
+import { Cable, EllipsisVertical } from 'lucide-vue-next';
 
 import type { DataTableColumns } from 'naive-ui';
 import type { IListItem } from '@renderer/components/MainSection/interface';
@@ -13,7 +13,11 @@ export const getColumns = (): DataTableColumns<IListItem> => {
     {
       title: t('Common.AssetName'),
       key: 'name',
-      width: 200
+      width: 300
+    },
+    {
+      title: t('Common.Address'),
+      key: 'address'
     },
     {
       title: t('Common.Organization'),
@@ -25,17 +29,6 @@ export const getColumns = (): DataTableColumns<IListItem> => {
             {row.org_name}
           </NTag>
         );
-      }
-    },
-    {
-      title: t('Common.Address'),
-      key: 'address'
-    },
-    {
-      title: t('Common.Connectability'),
-      key: 'is_active',
-      render: row => {
-        return row.is_active ? <CircleCheck color="#18a058" /> : <CircleX color="#e88080" />;
       }
     },
     {

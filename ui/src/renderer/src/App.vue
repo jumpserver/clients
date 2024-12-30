@@ -221,7 +221,6 @@ onBeforeUnmount(() => {
   mittBus.off('addAccount', handleAddAccount);
   mittBus.off('changeLang', handleLangChange);
   mittBus.off('changeTheme', handleThemeChange);
-  mittBus.off('removeAccount', handleRemoveAccount);
 });
 </script>
 
