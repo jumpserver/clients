@@ -2,10 +2,10 @@
   <n-modal
     :show="showModal"
     :show-icon="false"
-    :closable="true"
     :mask-closable="false"
     preset="dialog"
     class="rounded-[10px]"
+    @close="handleMaskClick"
     @mask-click="handleMaskClick"
   >
     <template #header>
