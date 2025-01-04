@@ -1,11 +1,11 @@
-import path, {join, resolve} from 'path';
-import {Conf, useConf} from 'electron-conf/main';
+import path, { join, resolve } from 'path';
+import { Conf, useConf } from 'electron-conf/main';
 import icon from '../../resources/JumpServer.ico?asset';
-import {electronApp, is, optimizer} from '@electron-toolkit/utils';
-import {app, BrowserWindow, ipcMain, session, shell} from 'electron';
+import { electronApp, is, optimizer } from '@electron-toolkit/utils';
+import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
 
-import {execFile} from 'child_process';
-import {existsSync, readFileSync} from 'fs';
+import { execFile } from 'child_process';
+import { existsSync, readFileSync } from 'fs';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -24,7 +24,7 @@ if (!existsSync(configFilePath)) {
   const data = readFileSync(path.join(subPath, 'config.json'), 'utf8');
   defaults = JSON.parse(data);
 }
-const conf = new Conf({defaults: defaults!});
+const conf = new Conf({ defaults: defaults! });
 
 const setDefaultProtocol = () => {
   if (process.defaultApp) {
@@ -103,7 +103,8 @@ const createWindow = async (): Promise<void> => {
     autoHideMenuBar: true,
     title: 'JumpServer Client',
     titleBarStyle: 'hidden',
-    ...(process.platform === 'linux' ? {icon} : {icon}),
+    ...(process.platform === 'linux' ? { icon } : { icon }),
+    ...(process.platform !== 'darwin' ? { titleBarOverlay: true } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -117,7 +118,7 @@ const createWindow = async (): Promise<void> => {
 
   mainWindow.webContents.setWindowOpenHandler(details => {
     shell.openExternal(details.url);
-    return {action: 'deny'};
+    return { action: 'deny' };
   });
 
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
@@ -167,6 +168,8 @@ app.whenReady().then(async () => {
   await createWindow();
   setDefaultProtocol();
 
+  setTitleBar(conf.get('defaultSetting.theme') as string);
+
   if (process.platform === 'win32') {
     handleArgv(process.argv);
   }
@@ -212,6 +215,23 @@ app.on('second-instance', (_event: Event, argv: string) => {
 // @ts-ignore
 app.on('open-url', (_event: Event, url: string) => {
   handleUrl(url);
+});
+
+const setTitleBar = (theme: string) => {
+  if (mainWindow && process.platform !== 'darwin') {
+    theme === 'dark'
+      ? mainWindow.setTitleBarOverlay({
+          color: '#00000000',
+          symbolColor: '#fff'
+        })
+      : mainWindow.setTitleBarOverlay({
+          color: '#00000000',
+          symbolColor: '#000'
+        });
+  }
+};
+ipcMain.on('update-titlebar-overlay', (_, theme) => {
+  setTitleBar(theme);
 });
 
 ipcMain.on('open-client', (_, url) => {
