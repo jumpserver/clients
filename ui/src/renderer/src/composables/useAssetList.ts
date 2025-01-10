@@ -1,6 +1,6 @@
 import { ref, watch } from 'vue';
 import { useUserStore } from '@renderer/store/module/userStore';
-import { getAssets } from '@renderer/api/modals/asset';
+import { getAssets, getFavoriteAssets } from '@renderer/api/modals/asset';
 import { useMessage } from 'naive-ui';
 import { useI18n } from 'vue-i18n';
 import type { IListItem } from '@renderer/components/MainSection/interface';
@@ -13,8 +13,20 @@ export function useAssetList(type: string) {
   const hasMore = ref(true);
   const loadingStatus = ref(true);
   const listData = ref<IListItem[]>([]);
+  let typeObject = {};
+  switch (type) {
+    case 'linux':
+      typeObject = { type: 'linux' };
+      break;
+    case 'windows':
+      typeObject = { type: 'windows' };
+      break;
+    case 'databases':
+      typeObject = { category: 'database' };
+      break;
+  }
   const params = ref({
-    type,
+    ...typeObject,
     offset: 0,
     limit: 20,
     search: '',
@@ -67,7 +79,8 @@ export function useAssetList(type: string) {
     loadingStatus.value = true;
 
     try {
-      const res = await getAssets(params.value);
+      const func = type === 'favorite' ? getFavoriteAssets : getAssets;
+      const res = await func(params.value);
 
       if (res) {
         const { results, count: total } = res;

@@ -162,6 +162,12 @@ app.whenReady().then(async () => {
     optimizer.watchWindowShortcuts(window);
   });
 
+  app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+    //允许私有证书
+    event.preventDefault();
+    callback(true);
+  });
+
   conf.registerRendererListener();
   useConf();
 

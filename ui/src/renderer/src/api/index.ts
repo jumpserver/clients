@@ -1,9 +1,9 @@
-import type { ResultData, CustomAxiosRequestConfig } from './interface/index';
-import type { AxiosResponse, AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
+import type { CustomAxiosRequestConfig, ResultData } from './interface/index';
+import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios from 'axios';
 import { useUserStore } from '@renderer/store/module/userStore';
 import { createDiscreteApi } from 'naive-ui';
 import { router } from '@renderer/router';
-import axios from 'axios';
 
 const { message } = createDiscreteApi(['message']);
 
@@ -83,12 +83,15 @@ class RequestHttp {
   get(url: string, params?: object, _object = {}): Promise<any> {
     return this.service.get(url, { params, ..._object });
   }
+
   post<T>(url: string, params?: object | string, _object = {}): Promise<ResultData<T>> {
     return this.service.post(url, params, _object);
   }
+
   put<T>(url: string, params?: object, _object = {}): Promise<ResultData<T>> {
     return this.service.put(url, params, _object);
   }
+
   delete<T>(url: string, params?: any, _object = {}): Promise<ResultData<T>> {
     return this.service.delete(url, { params, ..._object });
   }
