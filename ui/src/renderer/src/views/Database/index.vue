@@ -18,7 +18,7 @@ defineProps<{
   active: boolean;
 }>();
 
-const { hasMore, loadingStatus, listData, handleScroll, getAssetsFromServer } = useAssetList('database');
+const { hasMore, loadingStatus, listData, handleScroll, getAssetsFromServer } = useAssetList('databases');
 
 onMounted(() => {
   getAssetsFromServer();
