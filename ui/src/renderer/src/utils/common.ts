@@ -1,5 +1,3 @@
-import { LocalStorageService } from '@renderer/utils/localstorage';
-
 export function getCookie(name: string): string {
   let cookieValue = '';
   if (document.cookie && document.cookie !== '') {
@@ -65,17 +63,34 @@ export function getConnectOption(params): Object {
   return connectOption;
 }
 
-export function loadOriManualAuthInfo() {
-  const manualAuthInfoKey = 'ManualAuthInfo';
-  const authInfos = LocalStorageService.get(manualAuthInfoKey);
-  if (!authInfos) {
-    return;
+/**
+ * @description 获取 Logo
+ */
+export const getIconImage = async () => {
+  try {
+    const res = await import('../assets/Logo.svg');
+
+    if (res) return res.default;
+
+    return null;
+  } catch (e) {
+    console.error(e);
+    return null;
   }
-  if (authInfos && typeof authInfos === 'object') {
-    for (const [key, auths] of Object.entries(authInfos)) {
-      const newKey = `JMS_MA_${key}`;
-      LocalStorageService.set(newKey, auths);
-    }
+};
+
+/**
+ * @description 获取头像
+ */
+export const getAvatarImage = async () => {
+  try {
+    const res = await import('../assets/avatar.png');
+
+    if (res) return res.default;
+
+    return null;
+  } catch (e) {
+    console.error(e);
+    return null;
   }
-  LocalStorageService.delete(manualAuthInfoKey);
-}
+};

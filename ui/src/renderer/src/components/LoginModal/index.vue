@@ -2,10 +2,10 @@
   <n-modal
     :show="showModal"
     :show-icon="false"
-    :mask-closable="false"
+    :closable="true"
     preset="dialog"
-    class="rounded-[10px]"
-    @close="handleMaskClick"
+    class="rounded-lg"
+    style="width: 31rem"
     @mask-click="handleMaskClick"
   >
     <template #header>
@@ -15,14 +15,20 @@
     </template>
 
     <template #default>
-      <n-flex vertical justify="space-evenly" align="flex-start" class="w-full h-[70px]">
+      <n-flex vertical justify="space-evenly" align="flex-start" class="w-full h-20">
         <n-input
-          v-model:value="siteLocation"
+          round
           clearable
+          size="medium"
+          class="w-20"
           :status="inputStatus"
           :placeholder="t('Common.LoginModalPlaceholder')"
-          class="rounded-[10px]"
-        />
+          v-model:value="siteLocation"
+        >
+          <template #prefix>
+            <n-icon :component="Location" />
+          </template>
+        </n-input>
       </n-flex>
     </template>
 
@@ -36,13 +42,13 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { useMessage } from 'naive-ui';
-import { onMounted, ref, watch } from 'vue';
+import { Location } from '@vicons/carbon';
 import { readText } from 'clipboard-polyfill';
+import { useMessage } from 'naive-ui';
+import { URL_REGEXP } from '@renderer/config/constance';
 import { useUserStore } from '@renderer/store/module/userStore';
-
-const URL_REGEXP =
-  /^(https?:\/\/)?(([a-zA-Z0-9-]{1,63}\.)+[a-zA-Z]{2,}|(\d{1,3}\.){3}\d{1,3}|\[?[a-fA-F0-9]{1,4}:([a-fA-F0-9]{1,4}:){1,7}[a-fA-F0-9]{1,4}\]?)(:\d{1,5})?$/;
+import { useDebounceFn } from '@vueuse/core';
+import { onMounted, ref, watch, onBeforeUnmount } from 'vue';
 
 const props = withDefaults(
   defineProps<{
@@ -67,17 +73,6 @@ const siteLocation = ref('');
  */
 const handleMaskClick = (): void => {
   emits('close-mask');
-
-  // const userInfo = userStore.userInfo;
-  // if (userInfo && userInfo.length > 0) {
-  //   emits('close-mask');
-  //   return;
-  // }
-  // if (siteLocation.value) {
-  //   message.error(`${t('Message.ClickSigInToAuth')}`);
-  //   return;
-  // }
-  // message.error(`${t('Message.EnterSiteAddress')}`, { closable: true });
 };
 
 /**
@@ -92,7 +87,9 @@ const jumpToLogin = () => {
     return;
   }
 
-  const sameSiteUser = userStore.userInfo.filter(item => item.currentSite === siteLocation.value);
+  const sameSiteUser = userStore.userInfo
+    ? userStore.userInfo.filter(item => item.currentSite === siteLocation.value)
+    : [];
 
   if (sameSiteUser.length !== 0) {
     message.error(t('Message.EnterDiffSite'), { closable: true });
@@ -137,11 +134,23 @@ const handleContextMenu = async () => {
   } catch (e) {}
 };
 
+/**
+ * @description 监听回车键
+ */
+const handleEnterKeyDown = (e: KeyboardEvent) => {
+  if (e.key === 'Enter') {
+    jumpToLogin();
+  }
+};
+
+const debounceHandleEnterKeyDown = useDebounceFn(handleEnterKeyDown, 500);
+
 watch(
   () => props.showModal,
   newValue => {
     if (!newValue) {
       window.removeEventListener('contextmenu', handleContextMenu, false);
+      window.removeEventListener('keydown', debounceHandleEnterKeyDown, false);
     }
   },
   { immediate: true }
@@ -149,5 +158,11 @@ watch(
 
 onMounted(() => {
   window.addEventListener('contextmenu', handleContextMenu, false);
+  window.addEventListener('keydown', debounceHandleEnterKeyDown, false);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('contextmenu', handleContextMenu, false);
+  window.removeEventListener('keydown', debounceHandleEnterKeyDown, false);
 });
 </script>

@@ -1,7 +1,7 @@
 import { ref, watch } from 'vue';
 import { useUserStore } from '@renderer/store/module/userStore';
 import { getAssets, getFavoriteAssets } from '@renderer/api/modals/asset';
-import { useMessage } from 'naive-ui';
+import { useLoadingBar, useMessage } from 'naive-ui';
 import { useI18n } from 'vue-i18n';
 import type { IListItem } from '@renderer/components/MainSection/interface';
 
@@ -9,6 +9,7 @@ export function useAssetList(type: string) {
   const { t } = useI18n();
   const message = useMessage();
   const userStore = useUserStore();
+  const loadingBar = useLoadingBar();
 
   const hasMore = ref(true);
   const loadingStatus = ref(true);
@@ -33,19 +34,8 @@ export function useAssetList(type: string) {
     order: userStore.sort
   });
 
-  // 检查登录状态
-  const checkAuthStatus = () => {
-    if (!userStore.token || (userStore.userInfo && userStore.userInfo.length === 0)) {
-      loadingStatus.value = false;
-      message.warning(t('Message.PleaseAuthFirst'), { closable: true });
-      return false;
-    }
-    return true;
-  };
-
   const handleScroll = async () => {
     if (!hasMore.value || loadingStatus.value) return;
-    if (!checkAuthStatus()) return;
 
     params.value.offset += 20;
     params.value.order = userStore.sort;
@@ -58,13 +48,11 @@ export function useAssetList(type: string) {
   };
 
   const getAssetsFromServer = async (searchInput?: string) => {
-    if (!checkAuthStatus()) return;
-
+    loadingBar.start();
     if (searchInput !== undefined) {
       params.value.offset = 0;
       params.value.search = searchInput;
       params.value.order = userStore.sort;
-      listData.value = [];
       hasMore.value = true;
     }
 
@@ -98,6 +86,8 @@ export function useAssetList(type: string) {
       loadingStatus.value = false;
       hasMore.value = false;
       message.error(`${t('Message.FailedRetrieveAssetDataList')}`, { closable: true });
+    } finally {
+      loadingBar.finish();
     }
   };
 
@@ -124,7 +114,7 @@ export function useAssetList(type: string) {
         listData.value = [];
         userStore.setToken('');
       } else {
-        getAssetsFromServer();
+        getAssetsFromServer('reset');
       }
     },
     { immediate: true }

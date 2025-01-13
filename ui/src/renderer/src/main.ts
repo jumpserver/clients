@@ -1,4 +1,6 @@
 import './styles/main.css';
+import '@renderer/styles/reset.scss';
+
 import App from './App.vue';
 import { createApp } from 'vue';
 import { i18n } from '@renderer/lang';

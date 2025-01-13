@@ -1,7 +1,17 @@
 <template>
   <n-layout has-sider>
-    <n-layout-sider bordered class="!w-[185px]">
-      <SideMenu />
+    <n-layout-sider
+      bordered
+      show-trigger
+      collapse-mode="width"
+      :width="240"
+      :collapsed="collapsed"
+      :collapsed-width="64"
+      @collapse="collapsed = true"
+      @expand="collapsed = false"
+      class="h-full"
+    >
+      <SideMenu :collapsed="collapsed" />
     </n-layout-sider>
     <n-layout>
       <n-layout-content>
@@ -19,13 +29,14 @@
 <script setup lang="ts">
 import HeaderSection from './components/HeaderSection/index.vue';
 import Drawer from '@renderer/components/Drawer/index.vue';
-import SideMenu from './components/sideMenu/index.vue';
+import SideMenu from './components/SideMenu/index.vue';
 
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 
 import mittBus from '@renderer/eventBus';
 
 const active = ref(false);
+const collapsed = ref(false);
 
 const handleCreateDrawer = () => {
   active.value = !active.value;
