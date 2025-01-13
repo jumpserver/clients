@@ -58,7 +58,6 @@
         v-if="!collapsed"
         show-arrow
         size="small"
-        trigger="click"
         placement="bottom"
         class="custom-popselect rounded-xl"
         :class="{ 'account-popselect': true }"
