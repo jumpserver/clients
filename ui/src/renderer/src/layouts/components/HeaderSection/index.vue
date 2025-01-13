@@ -70,11 +70,15 @@
 
         <!-- Layout  -->
         <n-popselect
+          show-arrow
+          size="small"
           trigger="click"
-          style="width: 150px"
+          class="rounded-xl"
+          :style="{
+            width: '8rem'
+          }"
           :options="layoutOption"
           :render-label="renderLabel"
-          class="rounded-[10px] py-[5px]"
           v-model:value="popLayoutSelectValue"
           @update:value="handleUpdateLayoutValue"
         >
@@ -121,13 +125,14 @@
 </template>
 
 <script setup lang="ts">
-import { VNodeChild, watch } from 'vue';
+import { onMounted, VNodeChild, watch } from 'vue';
 import type { SelectOption } from 'naive-ui';
 
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { createLabel } from './helper';
 import { useUserStore } from '@renderer/store/module/userStore';
+import { useElectronConfig } from '@renderer/hooks/useElectronConfig';
 
 import { Conf } from 'electron-conf/renderer';
 
@@ -150,6 +155,8 @@ defineProps<{
 }>();
 
 const { t, locale } = useI18n();
+const { getDefaultSetting } = useElectronConfig();
+
 const userStore = useUserStore();
 
 const conf = new Conf();
@@ -185,6 +192,7 @@ watch(
 );
 
 conf.get('defaultSetting').then(res => {
+  console.log(res);
   if (res) {
     // @ts-ignore
     popLayoutSelectValue.value = res.layout;
@@ -232,6 +240,11 @@ const handleUpdateLayoutValue = async (value: string, _option: SelectOption) => 
   }
 };
 
+/**
+ * @description 更新排序
+ * @param value
+ * @param _option
+ */
 const handleListSort = (value: string, _option: SelectOption) => {
   userStore.setCurrentListSort(value);
 };
@@ -320,8 +333,24 @@ const onKeyEnter = (event: KeyboardEvent) => {
     mittBus.emit('search', searchInput.value);
   }
 };
+
+onMounted(async () => {
+  try {
+    const { layout } = await getDefaultSetting();
+
+    popLayoutSelectValue.value = layout;
+  } catch (e) {}
+});
 </script>
 
 <style scoped lang="scss">
 @use './index.scss';
+
+.n-base-select-menu {
+  display: none !important;
+}
+
+::v-deep(.n-popselect-menu .n-base-select-option) {
+  padding: 0 1rem !important;
+}
 </style>

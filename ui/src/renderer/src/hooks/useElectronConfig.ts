@@ -2,6 +2,7 @@ import { Conf } from 'electron-conf/renderer';
 
 export interface IDefaultSetting {
   theme: string;
+  layout: string;
   language: string;
 
   [key: string]: string;
@@ -19,12 +20,14 @@ export const useElectronConfig = () => {
     if (res) {
       return {
         theme: res?.theme,
+        layout: res?.layout,
         language: res?.language
       };
     }
 
     return {
       theme: 'light',
+      layout: 'list',
       language: 'zh'
     };
   };

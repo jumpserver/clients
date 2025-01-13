@@ -58,8 +58,10 @@
         v-if="!collapsed"
         show-arrow
         size="small"
+        trigger="click"
         placement="bottom"
-        class="rounded-xl"
+        class="custom-popselect rounded-xl"
+        :class="{ 'account-popselect': true }"
         :style="{
           width: '16rem',
           marginLeft: '1.5rem'
@@ -111,8 +113,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
+import { menuOptions } from './config';
 import { computed, watch, ref } from 'vue';
-import { menuOptions } from './config/index';
 import { useDebounceFn } from '@vueuse/core';
 import { UserRoundPlus } from 'lucide-vue-next';
 import { NAvatar, NText, NFlex } from 'naive-ui';
@@ -186,11 +188,11 @@ const handleRemoveAccount = () => {
   userStore.userInfo = userInfo?.filter(user => user.token !== token);
 
   if (userStore.userInfo && userStore.userInfo.length > 0) {
-      const firstUser = userStore.userInfo[0];
+    const firstUser = userStore.userInfo[0];
 
-      userStore.setToken(firstUser.token);
-      userStore.setCurrentUser({ ...firstUser });
-      userStore.setCurrentSit(firstUser.currentSite as string);
+    userStore.setToken(firstUser.token);
+    userStore.setCurrentUser({ ...firstUser });
+    userStore.setCurrentSit(firstUser.currentSite as string);
   }
 
   selectedKey.value = 'linux-page';
