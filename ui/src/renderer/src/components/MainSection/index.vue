@@ -6,6 +6,7 @@
           <n-h3 class="h-full" strong> {{ t('Common.AssetsList') }} </n-h3>
         </template>
         <n-infinite-scroll
+          v-if="listData.length > 0"
           style="max-height: calc(100vh - 200px)"
           :class="{ 'list-layout': currentLayout !== 'list' }"
           :distance="10"
@@ -21,6 +22,8 @@
             @contextmenu="handleContextMenuWrapper(item, $event)"
           />
         </n-infinite-scroll>
+
+        <n-empty v-else :description="t('Common.NoData')" class="h-full w-full items-center justify-center" />
       </n-list>
     </n-flex>
 

@@ -51,7 +51,8 @@ export default {
     InputAccountPassword: '手动输入',
     None: '无',
     Address: '地址',
-    Connectability: '可连接性'
+    Connectability: '可连接性',
+    NoData: '暂无数据'
   },
   Dialog: {
     'Save&Default': '保存且默认',
@@ -67,7 +68,8 @@ export default {
     Language: '语言设置',
     Back: '返回',
     Favorite: '收藏',
-    History: '历史记录'
+    History: '历史记录',
+    Device: '网络设备'
   },
   Language: {
     ChooseLanguage: '选择语言'
