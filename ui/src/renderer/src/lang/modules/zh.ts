@@ -49,7 +49,9 @@ export default {
     Confirm: '确认',
     UsernamePlaceholder: '请输入用户名',
     InputAccountPassword: '手动输入',
-    None: '无'
+    None: '无',
+    Address: '地址',
+    Connectability: '可连接性'
   },
   Dialog: {
     'Save&Default': '保存且默认',
@@ -107,6 +109,7 @@ export default {
     EnableOneOption: '请至少启用一个选项!',
     CopyToClipboard: '已复制到剪切板',
     NotMatched: '未匹配对应协议的客户端!',
+    GetDefaultSettingFailed: '自动启用默认设置',
     PleaseAuthFirst: '请先进行登录认证!',
     HistoryRequireAuth: '查看历史记录需要先登录认证'
   }
