@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n';
 import { h } from 'vue';
 
 import { BrandWindows, Database, Terminal2, Star, History } from '@vicons/tabler';
+import { Devices } from '@vicons/carbon';
 import { RouterLink } from 'vue-router';
 
 import type { MenuOption } from 'naive-ui';
@@ -52,6 +53,20 @@ export const menuOptions = () => {
         ),
       key: 'database-page',
       icon: renderIcon(Database)
+    },
+    {
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: 'Device'
+            }
+          },
+          { default: () => t('Router.Device') }
+        ),
+      key: 'device-page',
+      icon: renderIcon(Devices)
     },
     {
       label: () =>

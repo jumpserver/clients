@@ -100,12 +100,9 @@ const handleThemeChange = async (theme: string) => {
     }
   }
 
-  setDefaultSetting({ theme: defaultTheme.value });
   window.electron.ipcRenderer.send('update-titlebar-overlay', defaultTheme.value);
-  await conf.set('defaultSetting', {
-    ...currentSettings,
-    theme: defaultTheme.value
-  });
+
+  setDefaultSetting({ theme: defaultTheme.value });
 };
 
 /**

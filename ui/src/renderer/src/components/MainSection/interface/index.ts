@@ -34,6 +34,11 @@ interface Setting {
   old_ssh_version: boolean;
 }
 
+export interface ITypeObject {
+  type?: string;
+  category?: string;
+}
+
 export interface Permed_accounts {
   id: string;
   alias: string;

@@ -1,9 +1,11 @@
 import { ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useLoadingBar, useMessage } from 'naive-ui';
 import { useUserStore } from '@renderer/store/module/userStore';
 import { getAssets, getFavoriteAssets } from '@renderer/api/modals/asset';
-import { useLoadingBar, useMessage } from 'naive-ui';
-import { useI18n } from 'vue-i18n';
-import type { IListItem } from '@renderer/components/MainSection/interface';
+
+import type { Ref } from 'vue';
+import type { IListItem, ITypeObject } from '@renderer/components/MainSection/interface';
 
 export function useAssetList(type: string) {
   const { t } = useI18n();
@@ -13,21 +15,27 @@ export function useAssetList(type: string) {
 
   const hasMore = ref(true);
   const loadingStatus = ref(true);
-  const listData = ref<IListItem[]>([]);
-  let typeObject = {};
+
+  const listData: Ref<IListItem[]> = ref([]);
+  const typeObject: Ref<ITypeObject> = ref({});
+
   switch (type) {
     case 'linux':
-      typeObject = { type: 'linux' };
+      typeObject.value = { type: 'linux' };
       break;
     case 'windows':
-      typeObject = { type: 'windows' };
+      typeObject.value = { type: 'windows' };
       break;
     case 'databases':
-      typeObject = { category: 'database' };
+      typeObject.value = { category: 'database' };
+      break;
+    case 'device':
+      typeObject.value = { category: 'device' };
       break;
   }
+
   const params = ref({
-    ...typeObject,
+    ...typeObject.value,
     offset: 0,
     limit: 20,
     search: '',
@@ -49,6 +57,7 @@ export function useAssetList(type: string) {
 
   const getAssetsFromServer = async (searchInput?: string) => {
     loadingBar.start();
+
     if (searchInput !== undefined) {
       params.value.offset = 0;
       params.value.search = searchInput;
@@ -68,6 +77,7 @@ export function useAssetList(type: string) {
 
     try {
       const func = type === 'favorite' ? getFavoriteAssets : getAssets;
+
       const res = await func(params.value);
 
       if (res) {

@@ -51,7 +51,8 @@ export default {
     InputAccountPassword: 'Manual input',
     None: 'None',
     Address: 'Address',
-    Connectability: 'Connectability'
+    Connectability: 'Connectability',
+    NoData: 'No Data'
   },
   Dialog: {
     'Save&Default': 'Save And Default',
@@ -67,7 +68,8 @@ export default {
     Language: 'Language',
     Back: 'Back',
     Favorite: 'Favorite',
-    History: 'History'
+    History: 'History',
+    Device: 'Device'
   },
   Language: {
     ChooseLanguage: 'Choose Language'
