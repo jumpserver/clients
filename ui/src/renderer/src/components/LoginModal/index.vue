@@ -2,8 +2,7 @@
   <n-modal
     :show="showModal"
     :show-icon="false"
-    :closable="false"
-    :mask-closable="false"
+    :closable="true"
     preset="dialog"
     class="rounded-lg"
     style="width: 31rem"
@@ -43,13 +42,13 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { useMessage } from 'naive-ui';
 import { Location } from '@vicons/carbon';
-import { onMounted, ref, watch } from 'vue';
-import { useDebounceFn } from '@vueuse/core';
 import { readText } from 'clipboard-polyfill';
+import { useMessage } from 'naive-ui';
 import { URL_REGEXP } from '@renderer/config/constance';
 import { useUserStore } from '@renderer/store/module/userStore';
+import { useDebounceFn } from '@vueuse/core';
+import { onMounted, ref, watch, onBeforeUnmount } from 'vue';
 
 const props = withDefaults(
   defineProps<{
@@ -73,20 +72,7 @@ const siteLocation = ref('');
  * @description 不输入站点之前不允许关闭遮罩
  */
 const handleMaskClick = (): void => {
-  const userInfo = userStore.userInfo;
-
-  if (userInfo && userInfo.length > 0) {
-    emits('close-mask');
-
-    return;
-  }
-
-  if (siteLocation.value) {
-    message.error(`${t('Message.ClickSigInToAuth')}`);
-    return;
-  }
-
-  message.error(`${t('Message.EnterSiteAddress')}`, { closable: true });
+  emits('close-mask');
 };
 
 /**
@@ -173,5 +159,10 @@ watch(
 onMounted(() => {
   window.addEventListener('contextmenu', handleContextMenu, false);
   window.addEventListener('keydown', debounceHandleEnterKeyDown, false);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('contextmenu', handleContextMenu, false);
+  window.removeEventListener('keydown', debounceHandleEnterKeyDown, false);
 });
 </script>

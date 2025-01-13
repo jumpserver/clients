@@ -14,126 +14,109 @@
 
     <!-- 未登录状态 -->
     <n-flex v-if="userOptions.length === 0" align="center" justify="center">
-      <n-button text strong> {{ t('Common.UnLogged') }} </n-button>
+      <n-button text strong @click="handleAddAccount"> {{ t('Common.UnLogged') }} </n-button>
     </n-flex>
 
-    <n-popselect
+    <n-flex
       v-else
-      show-arrow
-      size="small"
-      placement="bottom"
-      trigger="click"
-      class="rounded-xl"
-      :style="{
-        width: '16rem',
-        marginLeft: '1.5rem'
-      }"
-      :options="[]"
+      align="center"
+      :justify="collapsed ? 'center' : 'space-between'"
+      :style="{ padding: collapsed ? '0' : '0 1rem' }"
+      class="w-full !flex-nowrap cursor-pointer transition-all duration-300 ease-in-out"
     >
       <n-flex
         align="center"
-        :justify="collapsed ? 'center' : 'space-between'"
-        :style="{ padding: collapsed ? '0' : '0 1rem' }"
-        class="w-full cursor-pointer transition-all duration-300 ease-in-out"
+        class="!gap-0 w-full"
+        :style="{ justifyContent: collapsed ? 'center' : '' }"
       >
+        <n-avatar
+          v-if="currentUser?.avatar_url"
+          round
+          size="medium"
+          class="cursor-pointer w-8 h-8 transition-all duration-300"
+          :src="currentUser?.avatar_url"
+        />
+
         <n-flex
-          align="center"
-          class="!gap-0"
-          :style="{ justifyContent: collapsed ? 'center' : '' }"
+          v-if="!collapsed"
+          vertical
+          class="ml-3 overflow-hidden transition-all duration-500"
+          :style="{
+            maxWidth: collapsed ? '0' : '200px',
+            opacity: collapsed ? '0' : '1',
+            transform: collapsed ? 'translateX(-20px)' : 'translateX(0)',
+            gap: '2px'
+          }"
         >
-          <n-avatar
-            v-if="currentUser?.avatar_url"
-            round
-            size="medium"
-            class="cursor-pointer w-8 h-8 transition-all duration-300"
-            :src="currentUser?.avatar_url"
-          />
-
-          <n-flex
-            v-if="!collapsed"
-            vertical
-            class="ml-3 overflow-hidden transition-all duration-500"
-            :style="{
-              maxWidth: collapsed ? '0' : '200px',
-              opacity: collapsed ? '0' : '1',
-              transform: collapsed ? 'translateX(-20px)' : 'translateX(0)',
-              gap: '2px'
-            }"
-          >
-            <n-text depth="1" strong class="whitespace-nowrap">
-              {{ currentUser?.username }}
-            </n-text>
-
-            <n-popover>
-              <template #trigger>
-                <n-text
-                  depth="2"
-                  type="success"
-                  style="font-size: 0.85rem"
-                  class="cursor-pointer whitespace-nowrap"
-                >
-                  {{ currentUser?.display_name?.[0] ?? '' }}
-                </n-text>
-              </template>
-
-              <template #default>
-                <span v-for="item of currentUser?.display_name" :key="item">
-                  {{ item }}
-                </span>
-              </template>
-            </n-popover>
-          </n-flex>
+          <n-text depth="1" strong class="whitespace-nowrap text-sm">
+            {{ currentUser?.username }}
+          </n-text>
         </n-flex>
       </n-flex>
 
-      <template #header>
-        <n-text depth="3" strong> Switch Account </n-text>
-      </template>
+      <n-popselect
+        v-if="!collapsed"
+        show-arrow
+        size="small"
+        placement="bottom"
+        class="rounded-xl"
+        :style="{
+          width: '16rem',
+          marginLeft: '1.5rem'
+        }"
+        :options="[]"
+      >
+        <ArrowRightLeft :size="18" @mousedown.prevent />
 
-      <template #empty>
-        <n-flex vertical justify="start" class="w-full">
-          <template v-for="user of userOptions" :key="user.token">
-            <AccountList
-              :username="user.label!"
-              :user-token="user.value!"
-              :user-site="user.currentSite!"
-              :user-avator="user.avatar_url!"
-              @change-account="handleAccountChange"
-            />
-          </template>
-        </n-flex>
-      </template>
+        <template #header>
+          <n-text depth="3" strong> Switch Account </n-text>
+        </template>
 
-      <template #action>
-        <n-flex vertical align="center" justify="start" class="w-full">
-          <n-button text class="w-full justify-start" @click="handleAddAccount">
-            <template #icon>
-              <UserRoundPlus />
+        <template #empty>
+          <n-flex vertical justify="start" class="w-full">
+            <template v-for="user of userOptions" :key="user.token">
+              <AccountList
+                :username="user.label!"
+                :user-token="user.value!"
+                :user-site="user.currentSite!"
+                :user-avator="user.avatar_url!"
+                @change-account="handleAccountChange"
+              />
             </template>
-            {{ t('Common.AddAccount') }}
-          </n-button>
+          </n-flex>
+        </template>
 
-          <n-button text class="w-full justify-start" @click="handleRemoveAccount">
-            <template #icon>
-              <LogOut />
-            </template>
-            {{ t('Common.RemoveAccount') }}
-          </n-button>
-        </n-flex>
-      </template>
-    </n-popselect>
+        <template #action>
+          <n-flex vertical align="center" justify="start" class="w-full">
+            <n-button text class="w-full justify-start" @click="handleAddAccount">
+              <template #icon>
+                <UserRoundPlus />
+              </template>
+              {{ t('Common.AddAccount') }}
+            </n-button>
+
+            <n-button text class="w-full justify-start" @click="handleRemoveAccount">
+              <template #icon>
+                <LogOut />
+              </template>
+              {{ t('Common.RemoveAccount') }}
+            </n-button>
+          </n-flex>
+        </template>
+      </n-popselect>
+    </n-flex>
   </n-flex>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import { LogOut } from 'lucide-vue-next';
 import { computed, watch, ref } from 'vue';
 import { menuOptions } from './config/index';
 import { useDebounceFn } from '@vueuse/core';
 import { UserRoundPlus } from 'lucide-vue-next';
-import { NAvatar, NText, NPopover, NFlex } from 'naive-ui';
+import { NAvatar, NText, NFlex } from 'naive-ui';
+import { LogOut, ArrowRightLeft } from 'lucide-vue-next';
 import { useUserStore } from '@renderer/store/module/userStore';
 
 import mittBus from '@renderer/eventBus';
@@ -155,8 +138,7 @@ const currentUser = computed(() => storeCurrentUser?.value);
 
 const userOptions = computed(() => {
   return (
-    // @ts-ignore
-    userStore?.userInfo.map((item: IUserInfo) => {
+    userStore.userInfo?.map((item: IUserInfo) => {
       return {
         label: item.username,
         value: item.token,

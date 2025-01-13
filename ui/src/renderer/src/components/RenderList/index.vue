@@ -22,6 +22,7 @@ import { onMounted, onBeforeUnmount } from 'vue';
 import { getColumns } from './config';
 import { useAssetList } from '@renderer/hooks/useAssetList';
 import { getDynamicHeight } from './helper';
+
 import mittBus from "@renderer/eventBus";
 
 const props = withDefaults(
@@ -52,22 +53,15 @@ const handleTableScroll = (e: Event) => {
 onMounted(async () => {
   try {
     getAssetsFromServer();
+    mittBus.on('search', getAssetsFromServer);
   } catch (error) {
     console.error(error);
   }
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', () => {});
-});
-
-onMounted(() => {
-  getAssetsFromServer();
-  mittBus.on('search', getAssetsFromServer);
-});
-
-onBeforeUnmount(() => {
   mittBus.off('search', getAssetsFromServer);
+  window.removeEventListener('resize', () => {});
 });
 </script>
 
