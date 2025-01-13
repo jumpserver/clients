@@ -178,17 +178,19 @@ const handleAddAccount = () => {
 /**
  * @description 移除账号
  */
-const handleRemoveAccount = (token: string) => {
-  if (userStore.userInfo) {
-    userStore.userInfo = userStore.userInfo.filter(user => user.token !== token);
+const handleRemoveAccount = () => {
+  const token = userStore.currentUser?.token;
+  const userInfo = userStore.userInfo;
 
-    // 如果删除的是当前账号，切换到第一个账号
-    if (token === userStore.currentUser?.token && userStore.userInfo.length > 0) {
+  // 移除之前的用户信息
+  userStore.userInfo = userInfo?.filter(user => user.token !== token);
+
+  if (userStore.userInfo && userStore.userInfo.length > 0) {
       const firstUser = userStore.userInfo[0];
+
       userStore.setToken(firstUser.token);
       userStore.setCurrentUser({ ...firstUser });
       userStore.setCurrentSit(firstUser.currentSite as string);
-    }
   }
 
   selectedKey.value = 'linux-page';
