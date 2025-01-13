@@ -41,14 +41,14 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Location } from '@vicons/carbon';
-import { readText } from 'clipboard-polyfill';
 import { useMessage } from 'naive-ui';
+import { Location } from '@vicons/carbon';
+import { useDebounceFn } from '@vueuse/core';
+import { readText } from 'clipboard-polyfill';
 import { URL_REGEXP } from '@renderer/config/constance';
 import { useUserStore } from '@renderer/store/module/userStore';
-import { useDebounceFn } from '@vueuse/core';
-import { onMounted, ref, watch, onBeforeUnmount } from 'vue';
 
 const props = withDefaults(
   defineProps<{
@@ -151,18 +151,11 @@ watch(
     if (!newValue) {
       window.removeEventListener('contextmenu', handleContextMenu, false);
       window.removeEventListener('keydown', debounceHandleEnterKeyDown, false);
+    } else {
+      window.addEventListener('contextmenu', handleContextMenu, false);
+      window.addEventListener('keydown', debounceHandleEnterKeyDown, false);
     }
   },
   { immediate: true }
 );
-
-onMounted(() => {
-  window.addEventListener('contextmenu', handleContextMenu, false);
-  window.addEventListener('keydown', debounceHandleEnterKeyDown, false);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('contextmenu', handleContextMenu, false);
-  window.removeEventListener('keydown', debounceHandleEnterKeyDown, false);
-});
 </script>

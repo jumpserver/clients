@@ -191,16 +191,6 @@ watch(
   { immediate: true }
 );
 
-conf.get('defaultSetting').then(res => {
-  console.log(res);
-  if (res) {
-    // @ts-ignore
-    popLayoutSelectValue.value = res.layout;
-    // @ts-ignore
-    currentTheme.value = res.theme;
-  }
-});
-
 /**
  * @description 自定义 label 渲染
  * @param option
