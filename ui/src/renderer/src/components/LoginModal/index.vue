@@ -6,6 +6,7 @@
     preset="dialog"
     class="rounded-lg"
     style="width: 31rem"
+    @close="handleMaskClick"
     @mask-click="handleMaskClick"
   >
     <template #header>

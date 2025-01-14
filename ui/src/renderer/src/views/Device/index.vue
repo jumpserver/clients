@@ -19,7 +19,6 @@ defineProps<{
 const { listData, handleScroll, getAssetsFromServer } = useAssetList('device');
 
 onMounted(() => {
-  getAssetsFromServer();
   mittBus.on('search', getAssetsFromServer);
 });
 

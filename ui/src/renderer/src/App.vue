@@ -204,7 +204,6 @@ onMounted(async () => {
             duration: 2000
           });
 
-          mittBus.emit('search');
           await router.push({ name: 'Linux' });
         }
       } catch (e) {
