@@ -44,12 +44,8 @@ mac:
 dmg:
   artifactName: JumpServer-Client-Installer-${os}-v${version}-${arch}.${ext}
 linux:
-  icon: build/icons/,
+  icon: build/icons
   target:
-    - target: AppImage
-      arch:
-        - x64
-        - arm64
     - target: deb
       arch:
         - x64
