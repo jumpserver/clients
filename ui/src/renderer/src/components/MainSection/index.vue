@@ -71,8 +71,6 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useDebounceFn } from '@vueuse/core';
 import { useI18n } from 'vue-i18n';
 
-import { Conf } from 'electron-conf/renderer';
-
 import type {
   IItemDetail,
   IListItem,
@@ -89,9 +87,11 @@ import { ArrowEnterLeft20Filled, ProtocolHandler24Regular } from '@vicons/fluent
 
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@renderer/store/module/userStore';
+import { useElectronConfig } from '@renderer/hooks/useElectronConfig';
 
 const { t } = useI18n();
 const { message } = createDiscreteApi(['message']);
+const { getDefaultSetting, setDefaultSetting } = useElectronConfig();
 
 withDefaults(
   defineProps<{
@@ -101,8 +101,6 @@ withDefaults(
     listData: () => [] as IListItem[]
   }
 );
-
-const conf = new Conf();
 
 const loadingBar = useLoadingBar();
 // @ts-ignore
@@ -169,17 +167,9 @@ const currentLayout = ref('');
 
 const emit = defineEmits(['loadMore']);
 
-// 初始值
-conf.get('defaultSetting').then(res => {
-  if (res) {
-    // @ts-ignore
-    currentLayout.value = res?.layout;
-  }
-});
-
 const debounceLoad = useDebounceFn(() => {
   emit('loadMore');
-}, 2000);
+}, 500);
 
 /**
  * @description 重置左键菜单
@@ -256,14 +246,9 @@ const onClickRightOutside = () => {
  * @param layout
  */
 const handleLayoutChange = async (layout: string) => {
-  const currentSettings = (await conf.get('defaultSetting')) as Record<string, any>;
-
   currentLayout.value = layout;
 
-  await conf.set('defaultSetting', {
-    ...currentSettings,
-    layout: layout
-  });
+  await setDefaultSetting({ layout });
 };
 
 /**
@@ -619,7 +604,11 @@ const handleItemContextMenu = useDebounceFn(async (_item: IListItem, _event: Mou
   }
 }, 300);
 
-onMounted(() => {
+onMounted(async () => {
+  const { layout } = await getDefaultSetting();
+
+  currentLayout.value = layout;
+
   mittBus.on('connectAsset', handleFastConnect);
   mittBus.on('changeLayout', handleLayoutChange);
 });

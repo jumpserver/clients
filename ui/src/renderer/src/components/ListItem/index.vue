@@ -1,48 +1,4 @@
 <template>
-  <!--  <n-popover :show-arrow="true" :delay="1000" style="width: 15rem">-->
-  <!--    <template #trigger>-->
-  <!--      -->
-  <!--    </template>-->
-  <!--    <n-descriptions label-placement="left" title="更多信息" :columns="1">-->
-  <!--      <n-descriptions-item>-->
-  <!--        <template #label>-->
-  <!--          <n-text depth="1" strong> 资产名称 </n-text>-->
-  <!--        </template>-->
-  <!--        {{ itemData.name }}-->
-  <!--      </n-descriptions-item>-->
-  <!--      <n-descriptions-item>-->
-  <!--        <template #label>-->
-  <!--          <n-text depth="1" strong> 资产地址 </n-text>-->
-  <!--        </template>-->
-  <!--        {{ itemData.address }}-->
-  <!--      </n-descriptions-item>-->
-  <!--      <n-descriptions-item>-->
-  <!--        <template #label>-->
-  <!--          <n-text depth="1" strong> 归属组织 </n-text>-->
-  <!--        </template>-->
-  <!--        {{ itemData.org_name }}-->
-  <!--      </n-descriptions-item>-->
-  <!--      <n-descriptions-item>-->
-  <!--        <template #label>-->
-  <!--          <n-text depth="1" strong> 连接性 </n-text>-->
-  <!--        </template>-->
-  <!--        {{ itemData.connectivity.label }}-->
-  <!--      </n-descriptions-item>-->
-  <!--      <n-descriptions-item>-->
-  <!--        <template #label>-->
-  <!--          <n-text depth="1" strong> 平台 </n-text>-->
-  <!--        </template>-->
-  <!--        {{ itemData.platform.name }}-->
-  <!--      </n-descriptions-item>-->
-  <!--      <n-descriptions-item>-->
-  <!--        <template #label>-->
-  <!--          <n-text depth="1" strong> 创建者 </n-text>-->
-  <!--        </template>-->
-  <!--        {{ itemData.created_by }}-->
-  <!--      </n-descriptions-item>-->
-  <!--    </n-descriptions>-->
-  <!--  </n-popover>-->
-
   <n-list-item class="h-20 group">
     <n-flex class="h-full w-full" align="center" justify="space-between">
       <n-flex
@@ -109,18 +65,14 @@
                 </n-popover>
               </n-descriptions-item>
             </n-descriptions>
-
-            <!--            <n-button round> 圆角 </n-button>-->
           </template>
 
           <template v-else>
             <n-ellipsis :style="{ maxWidth: layout === 'grid' ? '110px' : '' }">
-              <n-popover>
-                <template #trigger>
-                  {{ itemData.name }}
-                </template>
+              {{ itemData.name }}
+              <template #tooltip>
                 {{ t('Message.Organization') }}: {{ itemData.name }}
-              </n-popover>
+              </template>
             </n-ellipsis>
           </template>
         </n-flex>
@@ -131,9 +83,8 @@
 </template>
 
 <script setup lang="ts">
-import { NIcon } from 'naive-ui';
-import { DataBase } from '@vicons/carbon';
 import { Terminal2 } from '@vicons/tabler';
+import { DataBase, Devices } from '@vicons/carbon';
 import { DesktopWindowsFilled } from '@vicons/material';
 
 import { useI18n } from 'vue-i18n';
@@ -158,6 +109,9 @@ watch(
         break;
       case 'windows':
         renderedIcon.value = DesktopWindowsFilled;
+        break;
+      case 'general':
+        renderedIcon.value = Devices;
         break;
       default:
         renderedIcon.value = DataBase;

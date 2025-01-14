@@ -21,7 +21,6 @@ defineProps<{
 const { listData, handleScroll, getAssetsFromServer } = useAssetList('databases');
 
 onMounted(() => {
-  getAssetsFromServer();
   mittBus.on('search', getAssetsFromServer);
 });
 
