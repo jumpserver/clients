@@ -13,7 +13,7 @@
             <span class="title text-primary">JumpServer Client</span>
           </div>
         </div>
-        <LoginModal :show-modal="showModal" @close-mask="handleCloseMask" />
+        <LoginModal :show-modal="showLoginModal" @close-mask="handleModalOpacity" />
         <router-view />
       </n-message-provider>
     </n-modal-provider>
@@ -26,9 +26,10 @@ import { useRouter } from 'vue-router';
 import { getProfile } from './api/modals/user';
 import { useUserStore } from './store/module/userStore';
 import { darkThemeOverrides, lightThemeOverrides } from './overrides';
-import { computed, watch, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, watch, onBeforeUnmount, onMounted, ref, provide } from 'vue';
 import { darkTheme, enUS, zhCN, lightTheme, createDiscreteApi } from 'naive-ui';
 
+import { useUserAccount } from './hooks/useUserAccount';
 import { useElectronConfig } from './hooks/useElectronConfig';
 import { getIconImage, getAvatarImage } from './utils/common';
 
@@ -39,6 +40,14 @@ import LoginModal from './components/LoginModal/index.vue';
 
 const { t, locale } = useI18n();
 const { getDefaultSetting, setDefaultSetting } = useElectronConfig();
+const {
+  showLoginModal,
+  setNewAccount,
+  removeAccount,
+  switchAccount,
+  handleModalOpacity,
+  handleTokenReceived
+} = useUserAccount();
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -52,6 +61,10 @@ const avatarImage = ref<string | null>(null);
 const configProviderPropsRef = computed<ConfigProviderProps>(() => ({
   theme: defaultTheme.value === 'light' ? lightTheme : darkTheme
 }));
+
+provide('setNewAccount', setNewAccount);
+provide('removeAccount', removeAccount);
+provide('switchAccount', switchAccount);
 
 watch(
   () => defaultLang.value,
@@ -105,39 +118,6 @@ const handleThemeChange = async (theme: string) => {
   setDefaultSetting({ theme: defaultTheme.value });
 };
 
-/**
- * @description 添加账号
- */
-const handleAddAccount = () => {
-  showModal.value = true;
-};
-
-/**
- * @description 移除账号
- */
-const handleRemoveAccount = () => {
-  userStore.removeCurrentUser();
-
-  const userInfo = userStore.userInfo;
-
-  if (userInfo && userInfo.length > 0) {
-    userStore.setCurrentUser({
-      ...userInfo[0]
-    });
-
-    mittBus.emit('search');
-  } else {
-    showModal.value = true;
-  }
-};
-
-/**
- * @description 关闭遮罩
- */
-const handleCloseMask = () => {
-  showModal.value = !showModal.value;
-};
-
 onMounted(async () => {
   try {
     iconImage.value = await getIconImage();
@@ -148,7 +128,6 @@ onMounted(async () => {
     defaultTheme.value = theme;
     defaultLang.value = language;
 
-    // 如果有 token 才去验证
     if (userStore.token) {
       try {
         await getProfile();
@@ -170,56 +149,17 @@ onMounted(async () => {
   }
 
   // 检查是否需要显示登录框
-  if (!userStore.token || (userStore.userInfo && userStore.userInfo.length <= 0))
-    showModal.value = true;
+  if (!userStore.token || (userStore.userInfo && userStore.userInfo.length <= 0)) {
+    handleModalOpacity();
+  }
 
-  window.electron.ipcRenderer.on('set-token', async (_e, token: string) => {
-    if (token) {
-      showModal.value = false;
-      userStore.setToken(token);
+  window.electron.ipcRenderer.on('set-token', (_e, token: string) => handleTokenReceived(token));
 
-      try {
-        const res = await getProfile();
-
-        userStore.setUserInfo({
-          token,
-          username: res?.username,
-          display_name: res?.system_roles.map((item: any) => item.display_name),
-          avatar_url: avatarImage.value,
-          currentSite: userStore.currentSite
-        });
-
-        userStore.setCurrentUser({
-          token,
-          username: res?.username,
-          display_name: res?.system_roles.map((item: any) => item.display_name),
-          avatar_url: avatarImage.value,
-          currentSite: userStore.currentSite
-        });
-
-        if (res) {
-          notification.create({
-            type: 'success',
-            content: t('Message.AuthenticatedSuccess'),
-            duration: 2000
-          });
-
-          await router.push({ name: 'Linux' });
-        }
-      } catch (e) {
-        showModal.value = false;
-      }
-    }
-  });
-
-  mittBus.on('addAccount', handleAddAccount);
   mittBus.on('changeLang', handleLangChange);
   mittBus.on('changeTheme', handleThemeChange);
-  mittBus.on('removeAccount', handleRemoveAccount);
 });
 
 onBeforeUnmount(() => {
-  mittBus.off('addAccount', handleAddAccount);
   mittBus.off('changeLang', handleLangChange);
   mittBus.off('changeTheme', handleThemeChange);
 });
