@@ -66,6 +66,7 @@
           marginLeft: '1.5rem'
         }"
         :options="[]"
+        @update:show="showPopconfirm = false"
       >
         <ArrowRightLeft :size="18" @mousedown.prevent />
 
@@ -81,7 +82,7 @@
                 :user-token="user.value!"
                 :user-site="user.currentSite!"
                 :user-avator="user.avatar_url!"
-                @change-account="handleAccountChange"
+                @change-account="switchAccount"
               />
             </template>
           </n-flex>
@@ -96,12 +97,28 @@
               {{ t('Common.AddAccount') }}
             </n-button>
 
-            <n-button text class="w-full justify-start" @click="handleRemoveAccount">
+            <n-popconfirm v-model:show="showPopconfirm" placement="bottom-start">
               <template #icon>
-                <LogOut />
+                <ShieldAlert />
               </template>
-              {{ t('Common.RemoveAccount') }}
-            </n-button>
+              <template #trigger>
+                <n-button text class="w-full justify-start">
+                  <template #icon>
+                    <LogOut />
+                  </template>
+                  {{ t('Common.RemoveAccount') }}
+                </n-button>
+              </template>
+              <template #action>
+                <n-button size="small" secondary round @click="showPopconfirm = false">
+                  取消
+                </n-button>
+                <n-button size="small" secondary type="error" round @click="handleRemoveAccount">
+                  确定
+                </n-button>
+              </template>
+              确定要删除当前账号吗?
+            </n-popconfirm>
           </n-flex>
         </template>
       </n-popselect>
@@ -110,15 +127,15 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import { storeToRefs } from 'pinia';
-import { menuOptions } from './config';
-import { computed, watch, ref } from 'vue';
-import { useDebounceFn } from '@vueuse/core';
-import { UserRoundPlus } from 'lucide-vue-next';
-import { NAvatar, NText, NFlex } from 'naive-ui';
-import { LogOut, ArrowRightLeft } from 'lucide-vue-next';
+import { LogOut, ArrowRightLeft, ShieldAlert } from 'lucide-vue-next';
 import { useUserStore } from '@renderer/store/module/userStore';
+import { computed, watch, ref, inject } from 'vue';
+import { NAvatar, NText, NFlex } from 'naive-ui';
+import { UserRoundPlus } from 'lucide-vue-next';
+import { useDebounceFn } from '@vueuse/core';
+import { menuOptions } from './config';
+import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
 
 import mittBus from '@renderer/eventBus';
 import AccountList from '../AccountList/index.vue';
@@ -129,10 +146,10 @@ withDefaults(defineProps<{ collapsed: boolean }>(), {
   collapsed: false
 });
 
-const { t } = useI18n();
 const options = menuOptions();
 const userStore = useUserStore();
 
+const { t } = useI18n();
 const { currentUser: storeCurrentUser } = storeToRefs(userStore);
 
 const currentUser = computed(() => storeCurrentUser?.value);
@@ -151,50 +168,27 @@ const userOptions = computed(() => {
   );
 });
 
+const showPopconfirm = ref(false);
 const selectedKey = ref('linux-page');
 
-/**
- * @description 切换账号的逻辑
- */
-const handleAccountChange = (token: string) => {
-  if (userStore.userInfo) {
-    const user = userStore.userInfo.find((item: IUserInfo) => item.token === token);
-
-    if (user) {
-      userStore.setToken(user.token);
-      userStore.setCurrentUser({ ...user });
-      userStore.setCurrentSit(user.currentSite as string);
-    }
-  }
-};
+const setNewAccount = inject('setNewAccount');
+const removeAccount = inject('removeAccount');
+const switchAccount = inject('switchAccount');
 
 /**
  * @description 添加账号
  */
 const handleAddAccount = () => {
-  mittBus.emit('addAccount');
-  selectedKey.value = 'linux-page';
+  setNewAccount();
+  // selectedKey.value = 'linux-page';
 };
 
 /**
  * @description 移除账号
  */
 const handleRemoveAccount = () => {
-  const token = userStore.currentUser?.token;
-  const userInfo = userStore.userInfo;
-
-  // 移除之前的用户信息
-  userStore.userInfo = userInfo?.filter(user => user.token !== token);
-
-  if (userStore.userInfo && userStore.userInfo.length > 0) {
-    const firstUser = userStore.userInfo[0];
-
-    userStore.setToken(firstUser.token);
-    userStore.setCurrentUser({ ...firstUser });
-    userStore.setCurrentSit(firstUser.currentSite as string);
-  }
-
-  selectedKey.value = 'linux-page';
+  removeAccount();
+  // selectedKey.value = 'linux-page';
 };
 
 const debouncedSearch = useDebounceFn(() => {
