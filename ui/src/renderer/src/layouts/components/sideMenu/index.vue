@@ -97,7 +97,7 @@
               {{ t('Common.AddAccount') }}
             </n-button>
 
-            <n-popconfirm v-model:show="showPopconfirm" placement="bottom-start">
+            <n-popconfirm v-model:show="showPopconfirm" placement="right">
               <template #icon>
                 <ShieldAlert />
               </template>
@@ -171,15 +171,15 @@ const userOptions = computed(() => {
 const showPopconfirm = ref(false);
 const selectedKey = ref('linux-page');
 
-const setNewAccount = inject('setNewAccount');
-const removeAccount = inject('removeAccount');
-const switchAccount = inject('switchAccount');
+const setNewAccount = inject<() => void>('setNewAccount');
+const removeAccount = inject<() => void>('removeAccount');
+const switchAccount = inject<(token: string) => void>('switchAccount');
 
 /**
  * @description 添加账号
  */
 const handleAddAccount = () => {
-  setNewAccount();
+  setNewAccount ? setNewAccount() : null;
   // selectedKey.value = 'linux-page';
 };
 
@@ -187,7 +187,7 @@ const handleAddAccount = () => {
  * @description 移除账号
  */
 const handleRemoveAccount = () => {
-  removeAccount();
+  removeAccount ? removeAccount() : null;
   // selectedKey.value = 'linux-page';
 };
 
