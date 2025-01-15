@@ -30,7 +30,6 @@ export const useUserAccount = () => {
    * @description 设置新账号
    */
   const setNewAccount = () => {
-    console.log('setNewAccount');
     showLoginModal.value = true;
   };
 
