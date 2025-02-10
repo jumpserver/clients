@@ -15,17 +15,29 @@ export interface IUserInfo {
 }
 
 export interface IUser {
+  loading: boolean;
+
+  sort: string;
+
   token: string;
 
   currentSite: string;
 
-  userInfo: IUserInfo[];
+  currentOrginization: string;
 
-  loading: boolean;
+  userInfo: IUserInfo[];
 
   currentUser: Partial<IUserInfo>;
 
-  sort: string;
+  orginization: Array<IOrginization>;
+}
+
+export interface IOrginization {
+  id: string;
+  is_default: boolean;
+  is_root: boolean;
+  is_system: boolean;
+  name: string;
 }
 
 export interface ISetting {

@@ -1,8 +1,8 @@
 import mittBus from '@renderer/eventBus';
 
 import { useI18n } from 'vue-i18n';
-import { NPopselect, NIcon } from 'naive-ui';
-import { ref, VNodeChild, Fragment, watch, onMounted, defineComponent } from 'vue';
+import { NPopselect, NIcon, NFlex } from 'naive-ui';
+import { ref, VNodeChild, watch, onMounted, defineComponent } from 'vue';
 
 import { MdSettings } from '@vicons/ionicons4';
 import { DownloadOutlined } from '@vicons/antd';
@@ -144,7 +144,7 @@ export const RightIconZone = defineComponent({
     };
 
     return () => (
-      <Fragment>
+      <NFlex class="gap-2 !flex-nowrap">
         <NPopselect
           size="small"
           trigger="click"
@@ -186,7 +186,7 @@ export const RightIconZone = defineComponent({
         />
 
         <NIcon size="20" component={MdSettings} class="icon-hover" onClick={handleGlobalSetting} />
-      </Fragment>
+      </NFlex>
     );
   }
 });

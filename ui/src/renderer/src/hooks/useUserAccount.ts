@@ -8,7 +8,7 @@ import { useUserStore } from '@renderer/store/module/userStore';
 import { createDiscreteApi, lightTheme, darkTheme } from 'naive-ui';
 
 import type { ConfigProviderProps } from 'naive-ui';
-import type { IUserInfo } from '@renderer/store/interface';
+import type { IUserInfo, IOrginization } from '@renderer/store/interface';
 
 export const useUserAccount = () => {
   const { t } = useI18n();
@@ -90,6 +90,8 @@ export const useUserAccount = () => {
     try {
       const res = await getProfile();
 
+      console.log(res.audit_orgs);
+
       if (res) {
         notification.create({
           type: 'success',
@@ -97,7 +99,6 @@ export const useUserAccount = () => {
           duration: 2000
         });
 
-        // todo 没必要设置两次
         userStore.setUserInfo({
           token,
           username: res?.username,
@@ -112,6 +113,10 @@ export const useUserAccount = () => {
           display_name: res?.system_roles.map((item: any) => item.display_name),
           avatar_url: await getAvatarImage(),
           currentSite: userStore.currentSite
+        });
+
+        res.audit_orgs.forEach((org: IOrginization) => {
+          userStore.setOrginization(org);
         });
 
         showLoginModal.value = false;

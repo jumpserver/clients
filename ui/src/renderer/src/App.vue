@@ -127,19 +127,6 @@ onMounted(async () => {
 
     defaultTheme.value = theme;
     defaultLang.value = language;
-
-    if (userStore.token) {
-      try {
-        await getProfile();
-      } catch (e: any) {
-        const status = e.response?.status;
-
-        if (status === 401 || status === 403) {
-          userStore.setToken('');
-          showModal.value = true;
-        }
-      }
-    }
   } catch (e) {
     notification.create({
       type: 'info',

@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia';
-import { piniaPersistConfig } from '@renderer/store/helper';
-import type { IUser } from '@renderer/store/interface';
 import { IUserInfo } from '@renderer/store/interface';
+import { piniaPersistConfig } from '@renderer/store/helper';
+
+import type { IUser, IOrginization } from '@renderer/store/interface';
 
 export const useUserStore = defineStore({
   id: 'client-user',
@@ -11,7 +12,9 @@ export const useUserStore = defineStore({
     userInfo: [],
     currentSite: '',
     currentUser: {},
-    sort: 'name'
+    currentOrginization: '',
+    sort: 'name',
+    orginization: []
   }),
   actions: {
     setToken(token: string) {
@@ -38,6 +41,18 @@ export const useUserStore = defineStore({
     },
     setCurrentListSort(type) {
       this.sort = type;
+    },
+    setOrginization(orgInfo: IOrginization) {
+      this.orginization?.push({
+        id: orgInfo.id,
+        is_default: orgInfo.is_default,
+        is_root: orgInfo.is_root,
+        is_system: orgInfo.is_system,
+        name: orgInfo.name
+      });
+    },
+    setCurrentOrginization(orgId: string) {
+      this.currentOrginization = orgId;
     }
   },
   persist: piniaPersistConfig('client-user')
