@@ -113,6 +113,7 @@ export default {
     NotMatched: '未匹配对应协议的客户端!',
     GetDefaultSettingFailed: '自动启用默认设置',
     PleaseAuthFirst: '请先进行登录认证!',
-    HistoryRequireAuth: '查看历史记录需要先登录认证'
+    HistoryRequireAuth: '查看历史记录需要先登录认证',
+    LoginAuthenticationExpired: '登录认证已失效'
   }
 };

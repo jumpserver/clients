@@ -93,9 +93,10 @@ export function useAssetList(type: string) {
         loadingStatus.value = false;
       }
     } catch (e) {
-      loadingStatus.value = false;
       hasMore.value = false;
-      message.error(`${t('Message.FailedRetrieveAssetDataList')}`, { closable: true });
+      loadingStatus.value = false;
+
+      message.error(`${t('Message.FailedRetrieveAssetDataList')}`, { closable: true, duration: 5000 });
     } finally {
       loadingBar.finish();
     }
