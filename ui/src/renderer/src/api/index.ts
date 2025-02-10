@@ -7,7 +7,6 @@ import { useElectronConfig } from '@renderer/hooks/useElectronConfig';
 import type { ConfigProviderProps } from 'naive-ui';
 import type { CustomAxiosRequestConfig, ResultData } from './interface/index';
 import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { useI18n } from 'vue-i18n';
 
 const config = {
   timeout: 5000,
@@ -54,8 +53,8 @@ class RequestHttp {
         userStore.setLoading(config.loading);
 
         if (config.headers && typeof config.headers.set === 'function') {
+          config.headers['X-JMS-ORG'] = userStore.currentOrginization;
           config.headers['Authorization'] = `Bearer ${userStore.token}`;
-          config.headers['X-JMS-ORG'] = '00000000-0000-0000-0000-000000000000';
           config.headers['X-TZ'] = Intl.DateTimeFormat().resolvedOptions().timeZone;
         }
 
