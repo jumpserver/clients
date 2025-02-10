@@ -114,6 +114,7 @@ export default {
     CopyToClipboard: 'Copied to clipboard',
     NotMatched: 'Client that does not match the corresponding protocol!',
     PleaseAuthFirst: 'Login authentication is required first',
-    HistoryRequireAuth: 'Authentication required to view history'
+    HistoryRequireAuth: 'Authentication required to view history',
+    LoginAuthenticationExpired: 'Login authentication has expired'
   }
 };

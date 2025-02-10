@@ -71,7 +71,7 @@
         <ArrowRightLeft :size="18" @mousedown.prevent />
 
         <template #header>
-          <n-text depth="3" strong> Switch Account </n-text>
+          <n-text depth="3" strong> {{ t('Common.SwitchAccount') }} </n-text>
         </template>
 
         <template #empty>
@@ -180,7 +180,6 @@ const switchAccount = inject<(token: string) => void>('switchAccount');
  */
 const handleAddAccount = () => {
   setNewAccount ? setNewAccount() : null;
-  // selectedKey.value = 'linux-page';
 };
 
 /**
@@ -188,7 +187,7 @@ const handleAddAccount = () => {
  */
 const handleRemoveAccount = () => {
   removeAccount ? removeAccount() : null;
-  // selectedKey.value = 'linux-page';
+  showPopconfirm.value = false;
 };
 
 const debouncedSearch = useDebounceFn(() => {
