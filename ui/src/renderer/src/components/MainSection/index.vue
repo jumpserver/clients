@@ -1,13 +1,13 @@
 <template>
-  <div>
-    <n-flex class="h-[calc(100vh-135px)]">
-      <n-list hoverable clickable :show-divider="false" class="w-full h-full">
+  <div style="height: calc(100vh - 3.2rem)">
+    <n-flex class="h-full">
+      <n-list hoverable clickable :show-divider="false" class="relative w-full h-full">
         <template #header>
           <n-h3 class="h-full" strong> {{ t('Common.AssetsList') }} </n-h3>
         </template>
         <n-infinite-scroll
           v-if="listData.length > 0"
-          style="max-height: calc(100vh - 200px)"
+          style="max-height: calc(100vh - 10.625rem)"
           :class="{ 'list-layout': currentLayout !== 'list' }"
           :distance="10"
           @load="debounceLoad"
@@ -23,7 +23,11 @@
           />
         </n-infinite-scroll>
 
-        <n-empty v-else :description="t('Common.NoData')" class="h-full w-full items-center justify-center" />
+        <n-empty
+          v-else
+          :description="t('Common.NoData')"
+          class="absolute top-0 left-0 h-full w-full items-center justify-center"
+        />
       </n-list>
     </n-flex>
 

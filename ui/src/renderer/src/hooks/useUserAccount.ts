@@ -1,10 +1,10 @@
 import { useI18n } from 'vue-i18n';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { getProfile } from '@renderer/api/modals/user';
 import { useElectronConfig } from './useElectronConfig';
 import { getAvatarImage } from '@renderer/utils/common';
 import { useUserStore } from '@renderer/store/module/userStore';
+import { getProfile, getOrginization } from '@renderer/api/modals/user';
 import { createDiscreteApi, lightTheme, darkTheme } from 'naive-ui';
 
 import type { ConfigProviderProps } from 'naive-ui';
@@ -41,6 +41,7 @@ export const useUserAccount = () => {
     userStore.removeCurrentUser();
 
     if (userStore.userInfo && userStore.userInfo.length === 0) {
+      showLoginModal.value = true;
       return userStore.reset();
     }
 
@@ -87,11 +88,10 @@ export const useUserAccount = () => {
     }
 
     userStore.setToken(token);
+    userStore.resetOrginization();
 
     try {
       const res = await getProfile();
-
-      console.log(res.audit_orgs);
 
       if (res) {
         notification.create({
@@ -126,6 +126,16 @@ export const useUserAccount = () => {
       }
     } catch (e) {
       showLoginModal.value = false;
+    }
+
+    try {
+      const orgRes = await getOrginization();
+
+      if (orgRes) {
+        userStore.setCurrentOrginization(orgRes?.id);
+      }
+    } catch(e) {
+      useMessage.error(t('Message.GetOrginizationFailed'));
     }
   };
 

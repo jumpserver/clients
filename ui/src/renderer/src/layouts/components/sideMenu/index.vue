@@ -209,7 +209,7 @@ const debouncedSearch = useDebounceFn(() => {
 watch(
   () => userStore.currentUser,
   newUser => {
-    if (newUser) {
+    if (newUser && Reflect.ownKeys(newUser).length > 0) {
       debouncedSearch();
     }
   }
