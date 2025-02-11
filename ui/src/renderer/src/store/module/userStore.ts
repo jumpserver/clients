@@ -53,6 +53,15 @@ export const useUserStore = defineStore({
     },
     setCurrentOrginization(orgId: string) {
       this.currentOrginization = orgId;
+    },
+    reset() {
+      this.token = '';
+      this.loading = false;
+      this.userInfo = [];
+      this.currentSite = '';
+      this.currentUser = {};
+      this.currentOrginization = '';
+      this.orginization = [];
     }
   },
   persist: piniaPersistConfig('client-user')

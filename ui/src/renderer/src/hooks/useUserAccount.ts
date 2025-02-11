@@ -37,11 +37,12 @@ export const useUserAccount = () => {
    * @description 移除账号
    */
   const removeAccount = () => {
-    const token = userStore.currentUser?.token;
-    const userInfo = userStore.userInfo;
-
     // 移除之前的用户信息
-    userStore.userInfo = userInfo?.filter(user => user.token !== token);
+    userStore.removeCurrentUser();
+
+    if (userStore.userInfo && userStore.userInfo.length === 0) {
+      return userStore.reset();
+    }
 
     if (userStore.userInfo && userStore.userInfo.length > 0) {
       const firstUser = userStore.userInfo[0];
