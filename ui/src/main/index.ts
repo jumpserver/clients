@@ -1,29 +1,43 @@
 import path, { join, resolve } from 'path';
 import { Conf, useConf } from 'electron-conf/main';
-import icon from '../../resources/JumpServer.ico?asset';
-import { electronApp, is, optimizer } from '@electron-toolkit/utils';
+
 import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
 
 import { execFile } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 
-let mainWindow: BrowserWindow | null = null;
-
-const platform =
-  process.platform === 'win32' ? 'windows' : process.platform === 'darwin' ? 'macos' : 'linux';
+import icon from '../../resources/JumpServer.ico?asset';
+import { electronApp, is, optimizer } from '@electron-toolkit/utils';
 
 process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 
+let defaults = {
+  windowBounds: {
+    width: 1280,
+    height: 800
+  },
+  defaultSetting: {
+    theme: 'light',
+    layout: 'list',
+    language: 'en'
+  }
+};
+let mainWindow: BrowserWindow | null = null;
+
+const platform = process.platform === 'win32' ? 'windows' : process.platform === 'darwin' ? 'macos' : 'linux';
 const configFilePath = path.join(app.getPath('userData'), 'config.json');
-let defaults = {};
+
 if (!existsSync(configFilePath)) {
   let subPath = path.join(process.resourcesPath);
+
   if (is.dev) {
     subPath = 'bin';
   }
+
   const data = readFileSync(path.join(subPath, 'config.json'), 'utf8');
   defaults = JSON.parse(data);
 }
+
 const conf = new Conf({ defaults: defaults! });
 
 const setDefaultProtocol = () => {
@@ -56,7 +70,6 @@ const handleUrl = (url: string) => {
   }
 };
 
-// Window
 const handleArgv = (argv: any) => {
   const offset = app.isPackaged ? 1 : 2;
   const url = argv.find((arg, i) => i >= offset && arg.startsWith('jms'));
@@ -94,9 +107,11 @@ const handleClientPullUp = (url: string) => {
 };
 
 const createWindow = async (): Promise<void> => {
+  const windowBounds = (conf.get('windowBounds') as { width: number; height: number }) || defaults.windowBounds;
+
   mainWindow = new BrowserWindow({
-    width: 1300,
-    height: 800,
+    width: windowBounds.width,
+    height: windowBounds.height,
     show: false,
     frame: false, // 无边框窗口
     center: true,
@@ -133,16 +148,30 @@ const createWindow = async (): Promise<void> => {
     });
   });
 
+  mainWindow.on('close', () => {
+    try {
+      if (!mainWindow?.isDestroyed()) {
+        const bounds = mainWindow?.getBounds();
+        conf.set('windowBounds', bounds);
+      }
+    } catch (error) {
+      console.error('Error saving window bounds:', error);
+    }
+  });
+
+  mainWindow.on('resize', () => {
+    try {
+      if (!mainWindow?.isDestroyed()) {
+        const bounds = mainWindow?.getBounds();
+        conf.set('windowBounds', bounds);
+      }
+    } catch (error) {
+      console.error('Error saving window bounds on resize:', error);
+    }
+  });
+
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.webContents.openDevTools();
-
-    const token =
-      'eyJ0eXBlIjogImF1dGgiLCAiYmVhcmVyX3Rva2VuIjogImZpRlA3Uk82dzd0ZzhSeWtzRE5qS1NqYVdacjkwMFU4ZFZ4VSIsICJkYXRlX2V4cGlyZWQiOiAxNzMxNjIyMzIwLjgzNjc4Nn0=';
-
-    const decodedTokenJson = Buffer.from(token, 'base64').toString('utf-8');
-    const decodedToken = JSON.parse(decodedTokenJson);
-
-    mainWindow?.webContents.send('set-token', decodedToken.bearer_token);
 
     await mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
   } else {
@@ -201,6 +230,7 @@ app.whenReady().then(async () => {
 
 // 除外 macOS 外，关闭所有窗口时退出 app
 app.on('window-all-closed', () => {
+  // mainWindow 可能已经被销毁，所以不要再尝试访问它
   if (process.platform !== 'darwin') {
     app.quit();
   }
@@ -236,6 +266,7 @@ const setTitleBar = (theme: string) => {
         });
   }
 };
+
 ipcMain.on('update-titlebar-overlay', (_, theme) => {
   setTitleBar(theme);
 });
