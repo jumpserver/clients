@@ -2,7 +2,7 @@
   <n-grid
     :cols="3"
     x-gap="12"
-    class="px-[1.6rem] py-[1.6rem] border-b border-primary bg-primary"
+    class="px-[1.6rem] py-[1.6rem] border-b-2 border-primary bg-primary"
     :class="active ? 'show-drawer' : ''"
   >
     <n-grid-item :span="2">

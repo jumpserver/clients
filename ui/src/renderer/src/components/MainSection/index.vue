@@ -5,6 +5,7 @@
         <template #header>
           <n-h3 class="h-full" strong> {{ t('Common.AssetsList') }} </n-h3>
         </template>
+
         <n-infinite-scroll
           v-if="listData.length > 0"
           style="max-height: calc(100vh - 10.625rem)"
