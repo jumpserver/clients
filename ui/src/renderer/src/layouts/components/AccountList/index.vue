@@ -7,38 +7,29 @@
   >
     <n-avatar round class="flex-shrink-0" :src="userAvator" />
 
-    <n-flex align="center" justify="start" class="w-full !flex-nowrap">
+    <n-flex align="center" vertical justify="start" class="w-full !flex-nowrap !gap-0">
       <n-text depth="1" class="cursor-pointer truncate">
         {{ username }}
       </n-text>
 
-      <n-popover :delay="500" style="width: 20rem" placement="right">
-        <template #trigger>
-          <Eye
-            :size="18"
-            color="gray"
-            class="cursor-pointer flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-          />
-        </template>
-
-        <n-tag :bordered="false" size="small" type="info">
-          {{ t('Common.DataSource') }}
+      <n-flex align="center" justify="start" class="flex-nowrap w-full">
+        <n-tag :bordered="false" size="small" type="primary">
+          {{ t('Common.DataSource') }} : {{ userSite }}
         </n-tag>
-        : {{ userSite }}
-      </n-popover>
-
-      <Check
-        :size="18"
-        :color="userToken === userStore.currentUser!.token ? '#63e2b7' : 'gray'"
-        class="cursor-pointer flex-shrink-0"
-      />
+      </n-flex>
     </n-flex>
+
+    <Check
+      :size="18"
+      :color="userToken === userStore.currentUser!.token ? '#63e2b7' : 'gray'"
+      class="cursor-pointer flex-shrink-0"
+    />
   </n-flex>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { Check, Eye } from 'lucide-vue-next';
+import { Check } from 'lucide-vue-next';
 import { useUserStore } from '@renderer/store/module/userStore';
 
 import type { Component } from 'vue';
