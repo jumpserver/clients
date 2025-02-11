@@ -1,7 +1,7 @@
 import mittBus from '@renderer/eventBus';
 
 import { useI18n } from 'vue-i18n';
-import { NPopselect, NIcon, NFlex } from 'naive-ui';
+import { NPopselect, NIcon, NFlex, useMessage } from 'naive-ui';
 import { ref, VNodeChild, watch, onMounted, defineComponent } from 'vue';
 
 import { MdSettings } from '@vicons/ionicons4';
@@ -25,6 +25,7 @@ export const RightIconZone = defineComponent({
   setup() {
     const { t, locale } = useI18n();
     const { getDefaultSetting } = useElectronConfig();
+    const message = useMessage();
     const userStore = useUserStore();
 
     const currentTheme = ref('');
@@ -115,7 +116,13 @@ export const RightIconZone = defineComponent({
     };
 
     const handleRefresh = () => {
-      mittBus.emit('search', 'reset');
+      const hasUser = userStore.currentUser && Reflect.ownKeys(userStore.currentUser).length > 0;
+
+      if (!hasUser) {
+        return message.error(t('Message.PleaseAuthFirst'));
+      }
+
+      return mittBus.emit('search', 'reset');
     };
 
     const handleGlobalSetting = () => {

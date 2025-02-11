@@ -2,7 +2,7 @@
   <n-grid
     :cols="3"
     x-gap="12"
-    class="px-5 py-5 border-b border-primary bg-primary"
+    class="px-[1.6rem] py-[1.6rem] border-b border-primary bg-primary"
     :class="active ? 'show-drawer' : ''"
   >
     <n-grid-item :span="2">
@@ -28,7 +28,7 @@
         <n-select
           class="w-1/2 !rounded-4xl"
           :options="orginizationList"
-          v-model:value="currentOrginization"
+          v-model:value="userStore.currentOrginization"
           @update:value="handleChangeOrginization"
         />
 
@@ -40,11 +40,9 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { useMessage } from 'naive-ui';
 import { Search } from 'lucide-vue-next';
-import { ref, computed, onMounted, nextTick } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import { RightIconZone } from './helper/renderer';
-import { getOrginization } from '@renderer/api/modals/user';
 import { useUserStore } from '@renderer/store/module/userStore';
 
 import mittBus from '@renderer/eventBus';
@@ -54,11 +52,9 @@ defineProps<{
 }>();
 
 const { t } = useI18n();
-const message = useMessage();
 const userStore = useUserStore();
 
 const searchInput = ref('');
-const currentOrginization = ref('');
 
 const orginizationList = computed(() => {
   return userStore.orginization?.map(item => ({
@@ -88,19 +84,6 @@ const onKeyEnter = (event: KeyboardEvent) => {
     mittBus.emit('search', searchInput.value);
   }
 };
-
-onMounted(async () => {
-  try {
-    const res = await getOrginization();
-
-    if (res) {
-      currentOrginization.value = res?.id;
-      userStore.setCurrentOrginization(res?.id);
-    }
-  } catch (e) {
-    message.error(t('Message.GetOrginizationFailed'));
-  }
-});
 </script>
 
 <style scoped lang="scss">

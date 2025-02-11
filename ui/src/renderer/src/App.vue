@@ -9,7 +9,7 @@
       <n-message-provider>
         <div class="custom-header ele_drag bg-primary border-b-primary border-b">
           <div class="logo">
-            <img :src="iconImage" alt="" />
+            <img :src="<string>iconImage" alt="" />
             <span class="title text-primary">JumpServer Client</span>
           </div>
         </div>
@@ -22,8 +22,6 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
-import { getProfile } from './api/modals/user';
 import { useUserStore } from './store/module/userStore';
 import { darkThemeOverrides, lightThemeOverrides } from './overrides';
 import { computed, watch, onBeforeUnmount, onMounted, ref, provide } from 'vue';
@@ -49,10 +47,8 @@ const {
   handleTokenReceived
 } = useUserAccount();
 
-const router = useRouter();
 const userStore = useUserStore();
 
-const showModal = ref(false);
 const defaultLang = ref('');
 const defaultTheme = ref('');
 const iconImage = ref<string | null>(null);
