@@ -1,36 +1,73 @@
+<!-- TODO: 整个页面的逻辑需要进行拆分 -->
 <template>
   <div style="height: calc(100vh - 3.2rem)">
-    <n-flex class="h-full">
-      <n-list hoverable clickable :show-divider="false" class="relative w-full h-full">
-        <template #header>
-          <n-h3 class="h-full" strong> {{ t('Common.AssetsList') }} </n-h3>
-        </template>
+    <n-flex align="center" class="title h-12">
+      <n-h3 strong class="flex items-center h-full pl-4"> {{ t('Common.AssetsList') }} </n-h3>
+    </n-flex>
 
-        <n-infinite-scroll
-          v-if="listData.length > 0"
-          style="max-height: calc(100vh - 10.625rem)"
-          :class="{ 'list-layout': currentLayout !== 'list' }"
-          :distance="10"
-          @load="debounceLoad"
-        >
-          <ListItem
-            v-for="item of listData"
-            :key="item.id"
-            :item-data="item"
-            :layout="currentLayout"
-            :class="{ 'bg-secondary': selectedItem.id === item.id }"
+    <n-infinite-scroll
+      style="max-height: calc(100vh - 11rem)"
+      class="h-full"
+      :class="{ 'list-layout': currentLayout !== 'list' }"
+      :distance="10"
+      @load="debounceLoad"
+    >
+      <n-grid
+        v-if="listData.length > 0"
+        :x-gap="12"
+        :y-gap="12"
+        :item-responsive="true"
+        :cols="currentLayout === 'grid' ? 3 : 1"
+        class="h-full px-4"
+        responsive="screen"
+      >
+        <n-gi v-for="item of listData" :key="item.id">
+          <n-card
+            hoverable
+            size="small"
+            class="h-32 rounded-lg cursor-pointer"
             @click="selectItem(item, $event)"
             @contextmenu="handleContextMenuWrapper(item, $event)"
-          />
-        </n-infinite-scroll>
+          >
+            <template #header>
+              <n-flex align="center" class="w-full !flex-nowrap">
+                <n-icon
+                  depth="2"
+                  class="mr-1 cursor-pointer"
+                  :size="26"
+                  :component="renderedIcon(item)"
+                />
 
-        <n-empty
-          v-else
-          :description="t('Common.NoData')"
-          class="absolute top-0 left-0 h-full w-full items-center justify-center"
-        />
-      </n-list>
-    </n-flex>
+                <n-ellipsis style="max-width: 180px">
+                  <n-text depth="2" class="cursor-pointer font-mono font-light text-sm">
+                    {{ item.name }}
+                  </n-text>
+                </n-ellipsis>
+              </n-flex>
+            </template>
+
+            <template #header-extra>
+              <n-tooltip trigger="hover">
+                <template #trigger>
+                  <Link
+                    :size="16"
+                    class="outline-none icon-hover"
+                    @click.stop.prevent="handleIconConnect(item, $event)"
+                  />
+                </template>
+
+                <n-text depth="2"> 快速连接 </n-text>
+              </n-tooltip>
+            </template>
+          </n-card>
+        </n-gi>
+      </n-grid>
+      <n-empty
+        v-else
+        :description="t('Common.NoData')"
+        class="absolute top-0 left-0 h-full w-full items-center justify-center"
+      />
+    </n-infinite-scroll>
 
     <!-- 左键点击下拉菜单 -->
     <n-dropdown
@@ -66,7 +103,11 @@
 
 <script setup lang="ts">
 import mittBus from '@renderer/eventBus';
-import ListItem from '../ListItem/index.vue';
+
+import { Terminal2 } from '@vicons/tabler';
+import { Link } from 'lucide-vue-next';
+import { DataBase, Devices } from '@vicons/carbon';
+import { DesktopWindowsFilled } from '@vicons/material';
 
 import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
 import { moveElementToEnd, renderCustomHeader, useAccountModal } from './helper/index';
@@ -171,6 +212,20 @@ const rightOptions: Ref<DropdownOption[]> = ref([
 const currentLayout = ref('');
 
 const emit = defineEmits(['loadMore']);
+
+const renderedIcon = (item: IListItem) => {
+  switch (item.type?.value) {
+    case 'linux':
+      return Terminal2;
+    case 'windows':
+      return DesktopWindowsFilled;
+      break;
+    case 'general':
+      return Devices;
+    default:
+      return DataBase;
+  }
+};
 
 const debounceLoad = useDebounceFn(() => {
   emit('loadMore');
@@ -337,6 +392,7 @@ const handleFastConnect = async () => {
   // 由于已经排除了 @USER 和 @INPUT，这里只需要处理普通账号的情况
   if (!accountToUse.has_secret) {
     const { inputPassword, confirmed } = useAccountModal('@OTHER', t);
+
     watch(confirmed, async newValue => {
       if (newValue && inputPassword.value) {
         connectData.value.input_secret = inputPassword.value;
@@ -598,6 +654,12 @@ const handleItemContextMenu = useDebounceFn(async (_item: IListItem, _event: Mou
           });
         });
 
+      if ((_event.target as Element).tagName.toLowerCase() === 'svg') {
+        loadingBar.finish();
+        showRightDropdown.value = false;
+        return;
+      }
+
       loadingBar.finish();
       showRightDropdown.value = true;
       xRight.value = _event.clientX;
@@ -608,6 +670,14 @@ const handleItemContextMenu = useDebounceFn(async (_item: IListItem, _event: Mou
     showRightDropdown.value = false;
   }
 }, 300);
+
+const handleIconConnect = (item: IListItem, event: MouseEvent) => {
+  handleContextMenuWrapper(item, event);
+
+  setTimeout(() => {
+    handleFastConnect();
+  }, 300);
+};
 
 onMounted(async () => {
   const { layout } = await getDefaultSetting();

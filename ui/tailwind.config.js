@@ -19,6 +19,9 @@ module.exports = {
           100: 'rgba(var(--primary-color), 0.1)',
           900: 'rgba(var(--primary-color), 0.2)'
         }
+      },
+      fontFamily: {
+        'custom': ['YourFontName', 'sans-serif'],
       }
     }
   },

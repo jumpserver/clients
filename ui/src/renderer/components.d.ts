@@ -8,6 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     Drawer: typeof import('./src/components/Drawer/index.vue')['default']
+    ListContainer: typeof import('./src/components/ListContainer/index.vue')['default']
     ListItem: typeof import('./src/components/ListItem/index.vue')['default']
     LoginModal: typeof import('./src/components/LoginModal/index.vue')['default']
     MainSection: typeof import('./src/components/MainSection/index.vue')['default']
@@ -33,6 +34,7 @@ declare module 'vue' {
     NFom: typeof import('naive-ui')['NFom']
     NForm: typeof import('naive-ui')['NForm']
     NFormItem: typeof import('naive-ui')['NFormItem']
+    NGi: typeof import('naive-ui')['NGi']
     NGrid: typeof import('naive-ui')['NGrid']
     NGridForm: typeof import('naive-ui')['NGridForm']
     NGridItem: typeof import('naive-ui')['NGridItem']
@@ -63,6 +65,7 @@ declare module 'vue' {
     NTag: typeof import('naive-ui')['NTag']
     NTex: typeof import('naive-ui')['NTex']
     NText: typeof import('naive-ui')['NText']
+    NTooltip: typeof import('naive-ui')['NTooltip']
     RenderList: typeof import('./src/components/RenderList/index.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
