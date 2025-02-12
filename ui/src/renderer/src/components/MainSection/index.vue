@@ -12,7 +12,7 @@
       :distance="10"
       @load="debounceLoad"
     >
-      <n-grid
+      <!-- <n-grid
         v-if="listData.length > 0"
         :x-gap="12"
         :y-gap="12"
@@ -61,7 +61,9 @@
             </template>
           </n-card>
         </n-gi>
-      </n-grid>
+      </n-grid> -->
+
+      <ListContainer v-if="listData.length > 0" :current-layout="currentLayout" :list-data="listData" />
       <n-empty
         v-else
         :description="t('Common.NoData')"
@@ -85,7 +87,7 @@
     />
 
     <!-- 右键点击下拉菜单 -->
-    <n-dropdown
+    <!-- <n-dropdown
       placement="bottom-start"
       trigger="manual"
       size="small"
@@ -97,12 +99,13 @@
       :on-clickoutside="onClickRightOutside"
       @select="handleSelect"
       class="min-w-60"
-    />
+    /> -->
   </div>
 </template>
 
 <script setup lang="ts">
 import mittBus from '@renderer/eventBus';
+import ListContainer from '@renderer/components/ListContainer/index.vue';
 
 import { Terminal2 } from '@vicons/tabler';
 import { Link } from 'lucide-vue-next';
@@ -338,7 +341,7 @@ const selectedProtocols = ref(new Map<string, Permed_protocols>());
 /**
  * @description 右键选择协议
  * @param key
- */
+*/
 const handleSelect = async (key: string) => {
   if (key === 'detail-message') return;
 

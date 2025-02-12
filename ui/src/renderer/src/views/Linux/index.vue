@@ -1,5 +1,4 @@
 <template>
-  <!-- <RenderList type="linux" /> -->
   <MainSection
     :list-data="listData"
     :class="active ? 'show-drawer' : ''"
@@ -8,10 +7,10 @@
 </template>
 
 <script setup lang="ts">
-// import RenderList from '@renderer/components/RenderList/index.vue';
-import { onBeforeUnmount, onMounted, watch } from 'vue';
 import mittBus from '@renderer/eventBus';
 import MainSection from '@renderer/components/MainSection/index.vue';
+
+import { onBeforeUnmount, onMounted } from 'vue';
 import { useAssetList } from '@renderer/hooks/useAssetList';
 
 defineProps<{
