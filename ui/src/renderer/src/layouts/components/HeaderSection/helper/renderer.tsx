@@ -177,20 +177,20 @@ export const RightIconZone = defineComponent({
           <NIcon size="20" component={SortOutlined} class="icon-hover" />
         </NPopselect>
 
-        {currentTheme.value === 'light' ? (
+        {/* {currentTheme.value === 'light' ? (
           <NIcon size="20" component={Moon} class="icon-hover" onClick={handleChangeTheme} />
         ) : (
           <NIcon size="20" component={Sun} class="icon-hover" onClick={handleChangeTheme} />
-        )}
+        )} */}
 
         <NIcon size="20" component={RefreshSharp} class="icon-hover" onClick={handleRefresh} />
 
-        <NIcon
+        {/* <NIcon
           size="20"
           component={LanguageOutline}
           class="icon-hover"
           onClick={handleChangeLanguage}
-        />
+        /> */}
 
         <NIcon size="20" component={MdSettings} class="icon-hover" onClick={handleGlobalSetting} />
       </NFlex>

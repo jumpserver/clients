@@ -8,14 +8,12 @@
     <n-avatar round class="flex-shrink-0" :src="userAvator" />
 
     <n-flex align="center" vertical justify="start" class="w-full !flex-nowrap !gap-0">
-      <n-text depth="1" class="cursor-pointer truncate">
+      <n-text depth="1" strong class="cursor-pointer truncate font-medium text-sm">
         {{ username }}
       </n-text>
 
       <n-flex align="center" justify="start" class="flex-nowrap w-full">
-        <n-tag :bordered="false" size="small" type="primary">
-          {{ t('Common.DataSource') }} : {{ userSite }}
-        </n-tag>
+        <n-text depth="3" class="text-xs"> {{ userSite }} </n-text>
       </n-flex>
     </n-flex>
 

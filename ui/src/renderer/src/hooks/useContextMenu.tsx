@@ -2,9 +2,6 @@ import type { Ref } from 'vue';
 import type { DropdownOption, ConfigProviderProps } from 'naive-ui';
 import type { IListItem, IItemDetail } from '@renderer/components/MainSection/interface';
 
-import { useI18n } from 'vue-i18n';
-import { ref, reactive, computed } from 'vue';
-import { useElectronConfig } from './useElectronConfig';
 import {
   NFlex,
   NText,
@@ -15,6 +12,9 @@ import {
   darkTheme,
   createDiscreteApi
 } from 'naive-ui';
+import { useI18n } from 'vue-i18n';
+import { ref, reactive, computed } from 'vue';
+import { useElectronConfig } from './useElectronConfig';
 import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
 
 import { Link, Eye, FileText, UsersRound, UserRoundCheck, Check } from 'lucide-vue-next';

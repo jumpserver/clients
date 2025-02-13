@@ -3,10 +3,12 @@ import { useI18n } from 'vue-i18n';
 import { h } from 'vue';
 
 import { BrandWindows, Database, Terminal2, Star, History } from '@vicons/tabler';
+import { Trash2, CircleCheck } from 'lucide-vue-next';
+import { NFlex, NAvatar, NText } from 'naive-ui';
 import { Devices } from '@vicons/carbon';
 import { RouterLink } from 'vue-router';
 
-import type { MenuOption } from 'naive-ui';
+import type { MenuOption, SelectOption } from 'naive-ui';
 
 export const menuOptions = () => {
   const { t } = useI18n();
@@ -97,4 +99,54 @@ export const menuOptions = () => {
       icon: renderIcon(History)
     }
   ] as MenuOption[];
+};
+
+/**
+ * @description 获取账号选项渲染 此处必须由于 render-label 必须返回一个 VNode 因此不能写 TSX
+ * @param option
+ * @returns
+ */
+export const getAccountOptionsRender = (option: SelectOption) => {
+  return h(
+    NFlex,
+    {
+      class: 'w-full',
+      align: 'center',
+      justify: 'start'
+    },
+    {
+      default: () => [
+        h(NAvatar, {
+          size: 20,
+          src: option.avatar_url as string,
+          class: 'mr-2'
+        }),
+        h(
+          NText,
+          {
+            depth: 1,
+            class: 'font-medium text-sm'
+          },
+          { default: () => option.display_name }
+        ),
+        h(
+          NFlex,
+          {
+            class: 'ml-auto'
+          },
+          {
+            default: () => [
+              h(Trash2, {
+                size: 16,
+                class: 'mr-2'
+              }),
+              h(CircleCheck, {
+                size: 16
+              })
+            ]
+          }
+        )
+      ]
+    }
+  );
 };

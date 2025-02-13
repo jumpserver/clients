@@ -17,7 +17,7 @@ export default {
     UnLogged: '未登录',
     SwitchAccount: '切换账号',
     AddAccount: '新增账号',
-    RemoveAccount: '移除账号',
+    RemoveAccount: '退出账号',
     DataSource: '来源',
     Search: '搜索',
     LoginModalPlaceholder: '请填写完整的域名或者 ip 站点地址',
@@ -52,7 +52,9 @@ export default {
     None: '无',
     Address: '地址',
     Connectability: '可连接性',
-    NoData: '暂无数据'
+    NoData: '暂无数据',
+    Appearance: '外观',
+    SwitchLanguage: '切换语言'
   },
   Dialog: {
     'Save&Default': '保存且默认',
