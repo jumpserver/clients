@@ -17,7 +17,7 @@ export default {
     UnLogged: 'Sign in',
     SwitchAccount: 'Switch Account',
     AddAccount: 'Add Account',
-    RemoveAccount: 'Remove Account',
+    RemoveAccount: 'Logout Account',
     DataSource: 'Data Source',
     Search: 'Search',
     LoginModalPlaceholder: 'Please enter the full domain name or IP address of the site.',
@@ -52,7 +52,9 @@ export default {
     None: 'None',
     Address: 'Address',
     Connectability: 'Connectability',
-    NoData: 'No Data'
+    NoData: 'No Data',
+    Appearance: 'Appearance',
+    SwitchLanguage: 'Switch Language'
   },
   Dialog: {
     'Save&Default': 'Save And Default',

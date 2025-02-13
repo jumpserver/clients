@@ -25,13 +25,13 @@
         class="custom-popselect rounded-xl"
         :class="{ 'account-popselect': true }"
         :style="{
-          width: '20rem',
+          width: '16rem',
           marginLeft: '1rem'
         }"
         :options="[]"
         @update:show="handlePopSelectShow"
       >
-        <!-- trigger -->
+        <!-- trigger  -->
         <n-flex
           align="center"
           :justify="collapsed ? 'center' : 'space-between'"
@@ -92,14 +92,69 @@
         </template>
 
         <template #action>
-          <n-flex vertical align="center" justify="start" class="w-full">
-            <n-button text class="w-full justify-start" @click="handleAddAccount">
-              <template #icon>
-                <UserRoundPlus />
-              </template>
-              {{ t('Common.AddAccount') }}
-            </n-button>
+          <n-flex vertical align="center" justify="start" class="w-full !gap-y-[5px]">
+            <!-- 切换账号  -->
+            <n-popselect
+              trigger="click"
+              placement="right"
+              :render-label="getAccountOptionsRender"
+              :options="userOptions"
+              :style="{
+                width: '14rem',
+                marginLeft: '1rem'
+              }"
+              v-model:value="value"
+              :class="{ 'account-popselect': false }"
+            >
+              <n-button text class="w-full justify-start">
+                <template #icon>
+                  <n-icon :component="ArrowSync20Regular" :size="20" />
+                </template>
+                {{ t('Common.SwitchAccount') }}
+              </n-button>
 
+              <template #action>
+                <n-button text class="w-full" @click="handleAddAccount">添加账号</n-button>
+              </template>
+            </n-popselect>
+
+            <!-- 切换语言 -->
+            <n-flex justify="space-between" align="center" class="w-full !flex-nowrap">
+              <n-button text class="flex-1 justify-start w-full" @click="handleChangeLang">
+                <template #icon>
+                  <Earth />
+                </template>
+                {{ t('Common.SwitchLanguage') }}
+              </n-button>
+
+              <n-text class="vertical-middle flex-shrink-0" depth="3"> {{ currentLang }} </n-text>
+            </n-flex>
+
+            <!-- 切换外观 -->
+            <n-flex justify="space-between" align="center" class="w-full !flex-nowrap">
+              <n-button text class="flex-1 justify-start w-full">
+                <template #icon>
+                  <Palette />
+                </template>
+                {{ t('Common.Appearance') }}
+              </n-button>
+
+              <n-switch
+                v-model:value="active"
+                size="medium"
+                class="flex-shrink-0"
+                @update:value="handleChangeTheme"
+              >
+                <template #checked-icon>
+                  <n-icon :component="Sun" />
+                </template>
+                <template #unchecked-icon>
+                  <n-icon :component="Moon" />
+                </template>
+              </n-switch>
+            </n-flex>
+
+            <!-- 登出 -->
             <n-popconfirm v-model:show="showPopconfirm" placement="right">
               <template #icon>
                 <ShieldAlert />
@@ -130,17 +185,29 @@
 </template>
 
 <script setup lang="ts">
+import mittBus from '@renderer/eventBus';
+
+import {
+  Earth,
+  LogOut,
+  Palette,
+  ChevronUp,
+  ShieldAlert,
+  ChevronLeft,
+  UserRoundPlus
+} from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { NAvatar, NText, NFlex } from 'naive-ui';
-import { computed, watch, ref, inject } from 'vue';
-import { LogOut, ShieldAlert, ChevronUp, UserRoundPlus, ChevronLeft } from 'lucide-vue-next';
+import { computed, watch, ref, inject, onMounted } from 'vue';
 
-import mittBus from '@renderer/eventBus';
+import { Moon, Sun } from '@vicons/tabler';
 import { useDebounceFn } from '@vueuse/core';
+import { ArrowSync20Regular } from '@vicons/fluent';
 import { useUserStore } from '@renderer/store/module/userStore';
+import { useElectronConfig } from '@renderer/hooks/useElectronConfig';
 
-import { menuOptions } from './config';
+import { menuOptions, getAccountOptionsRender } from './config';
 import AccountList from '../AccountList/index.vue';
 
 import type { IUserInfo } from '@renderer/store/interface';
@@ -152,7 +219,10 @@ withDefaults(defineProps<{ collapsed: boolean }>(), {
 const options = menuOptions();
 const userStore = useUserStore();
 
-const { t } = useI18n();
+const value = ref('Drive My Car');
+
+const { t, locale } = useI18n();
+const { getDefaultSetting } = useElectronConfig();
 const { currentUser: storeCurrentUser } = storeToRefs(userStore);
 
 const currentUser = computed(() => storeCurrentUser?.value);
@@ -171,8 +241,10 @@ const userOptions = computed(() => {
   );
 });
 
+const active = ref(false);
 const showPopconfirm = ref(false);
 const indicatorArrow = ref(false);
+const currentLang = ref('');
 const selectedKey = ref('linux-page');
 
 const setNewAccount = inject<() => void>('setNewAccount');
@@ -206,6 +278,42 @@ const debouncedSearch = useDebounceFn(() => {
   mittBus.emit('search', 'reset');
 }, 300);
 
+/**
+ * @description 切换外观
+ * @param value
+ */
+const handleChangeTheme = async (value: boolean) => {
+  try {
+    const { theme } = await getDefaultSetting();
+
+    mittBus.emit('changeTheme', theme as string);
+
+    value ? (active.value = true) : (active.value = false);
+  } catch (e) {}
+};
+
+/**
+ * @description 切换语言
+ */
+const handleChangeLang = async () => {
+  const { language } = await getDefaultSetting();
+
+  mittBus.emit('changeLang', language as string);
+
+  switch (currentLang.value) {
+    case 'zh': {
+      locale.value = 'en';
+      break;
+    }
+    case 'en': {
+      locale.value = 'zh';
+      break;
+    }
+  }
+
+  currentLang.value = language === 'zh' ? 'English' : '中文';
+};
+
 watch(
   () => userStore.currentUser,
   newUser => {
@@ -214,6 +322,13 @@ watch(
     }
   }
 );
+
+onMounted(async () => {
+  const { theme, language } = await getDefaultSetting();
+
+  active.value = theme === 'light';
+  currentLang.value = language === 'zh' ? '中文' : 'English';
+});
 </script>
 
 <style scoped lang="scss">

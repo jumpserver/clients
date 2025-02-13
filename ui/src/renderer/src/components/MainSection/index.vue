@@ -12,58 +12,11 @@
       :distance="10"
       @load="debounceLoad"
     >
-      <!-- <n-grid
+      <ListContainer
         v-if="listData.length > 0"
-        :x-gap="12"
-        :y-gap="12"
-        :item-responsive="true"
-        :cols="currentLayout === 'grid' ? 3 : 1"
-        class="h-full px-4"
-        responsive="screen"
-      >
-        <n-gi v-for="item of listData" :key="item.id">
-          <n-card
-            hoverable
-            size="small"
-            class="h-32 rounded-lg cursor-pointer"
-            @click="selectItem(item, $event)"
-            @contextmenu="handleContextMenuWrapper(item, $event)"
-          >
-            <template #header>
-              <n-flex align="center" class="w-full !flex-nowrap">
-                <n-icon
-                  depth="2"
-                  class="mr-1 cursor-pointer"
-                  :size="26"
-                  :component="renderedIcon(item)"
-                />
-
-                <n-ellipsis style="max-width: 180px">
-                  <n-text depth="2" class="cursor-pointer font-mono font-light text-sm">
-                    {{ item.name }}
-                  </n-text>
-                </n-ellipsis>
-              </n-flex>
-            </template>
-
-            <template #header-extra>
-              <n-tooltip trigger="hover">
-                <template #trigger>
-                  <Link
-                    :size="16"
-                    class="outline-none icon-hover"
-                    @click.stop.prevent="handleIconConnect(item, $event)"
-                  />
-                </template>
-
-                <n-text depth="2"> 快速连接 </n-text>
-              </n-tooltip>
-            </template>
-          </n-card>
-        </n-gi>
-      </n-grid> -->
-
-      <ListContainer v-if="listData.length > 0" :current-layout="currentLayout" :list-data="listData" />
+        :current-layout="currentLayout"
+        :list-data="listData"
+      />
       <n-empty
         v-else
         :description="t('Common.NoData')"
@@ -72,7 +25,7 @@
     </n-infinite-scroll>
 
     <!-- 左键点击下拉菜单 -->
-    <n-dropdown
+    <!-- <n-dropdown
       placement="bottom-start"
       trigger="manual"
       size="small"
@@ -84,21 +37,6 @@
       :on-clickoutside="onClickLeftOutside"
       @select="handleAccountSelect"
       class="min-w-60 max-h-80 scrollbar-dark overflow-y-auto p-2"
-    />
-
-    <!-- 右键点击下拉菜单 -->
-    <!-- <n-dropdown
-      placement="bottom-start"
-      trigger="manual"
-      size="small"
-      :x="xRight"
-      :y="yRight"
-      :show-arrow="true"
-      :options="rightOptions"
-      :show="showRightDropdown"
-      :on-clickoutside="onClickRightOutside"
-      @select="handleSelect"
-      class="min-w-60"
     /> -->
   </div>
 </template>
@@ -108,7 +46,6 @@ import mittBus from '@renderer/eventBus';
 import ListContainer from '@renderer/components/ListContainer/index.vue';
 
 import { Terminal2 } from '@vicons/tabler';
-import { Link } from 'lucide-vue-next';
 import { DataBase, Devices } from '@vicons/carbon';
 import { DesktopWindowsFilled } from '@vicons/material';
 
@@ -216,93 +153,9 @@ const currentLayout = ref('');
 
 const emit = defineEmits(['loadMore']);
 
-const renderedIcon = (item: IListItem) => {
-  switch (item.type?.value) {
-    case 'linux':
-      return Terminal2;
-    case 'windows':
-      return DesktopWindowsFilled;
-      break;
-    case 'general':
-      return Devices;
-    default:
-      return DataBase;
-  }
-};
-
 const debounceLoad = useDebounceFn(() => {
   emit('loadMore');
 }, 500);
-
-/**
- * @description 重置左键菜单
- */
-const resetLeftOptions = () => {
-  leftOptions.value = [
-    {
-      key: 'header',
-      type: 'render',
-      render: renderCustomHeader(ClipboardList, `${t('Common.AccountList')}`)
-    },
-    {
-      key: 'header-divider',
-      type: 'divider'
-    }
-  ];
-};
-
-/**
- * @description 重置右键菜单
- */
-const resetRightOptions = () => {
-  rightOptions.value = [
-    {
-      key: 'fast-connection',
-      type: 'render',
-      render: renderCustomHeader(PlugConnected, `${t('Common.QuickConnect')}`, 'fast-connection')
-    },
-    {
-      key: 'detail-message',
-      type: 'render',
-      render: renderCustomHeader(
-        ArrowEnterLeft20Filled,
-        `${t('Common.AssetDetails')}`,
-        'detail-message',
-        detailMessage,
-        () => {
-          showRightDropdown.value = false;
-        }
-      )
-    },
-    {
-      key: 'header-divider',
-      type: 'divider'
-    },
-    {
-      key: 'connect-protocol',
-      type: 'render',
-      render: renderCustomHeader(ProtocolHandler24Regular, `${t('Common.ConnectionProtocol')}`)
-    }
-  ];
-};
-
-/**
- * @description 关闭 dropdown
- */
-const onClickLeftOutside = () => {
-  showLeftDropdown.value = false;
-
-  resetLeftOptions();
-};
-
-/**
- * @description 关闭 dropdown
- */
-const onClickRightOutside = () => {
-  showRightDropdown.value = false;
-
-  resetRightOptions();
-};
 
 /**
  * @description grid 布局与 list 布局的切换
@@ -341,7 +194,7 @@ const selectedProtocols = ref(new Map<string, Permed_protocols>());
 /**
  * @description 右键选择协议
  * @param key
-*/
+ */
 const handleSelect = async (key: string) => {
   if (key === 'detail-message') return;
 
@@ -529,7 +382,6 @@ const handleAccountSelect = async (key: string) => {
     }
   }
 
-  resetLeftOptions();
   showLeftDropdown.value = false;
 };
 
@@ -593,7 +445,6 @@ const handleConnectionError = (error: any) => {
 const selectItem = useDebounceFn(async (item: IListItem, _event: MouseEvent) => {
   loadingBar.start();
   selectedItem.value = item;
-  resetLeftOptions();
 
   try {
     const hasGetMessage: boolean = await getAssetDetailFromServer(item.id);
@@ -627,23 +478,10 @@ const selectItem = useDebounceFn(async (item: IListItem, _event: MouseEvent) => 
 }, 300);
 
 /**
- * @description 由于加了 useDebounceFn 会导致 stopPropagation 的行为无法被触发
- * @param event
- * @param item
- */
-const handleContextMenuWrapper = (item: IListItem, event: MouseEvent) => {
-  event.stopPropagation();
-
-  loadingBar.start();
-  handleItemContextMenu(item, event);
-};
-
-/**
  * @description contextmenu 的回调
  */
 const handleItemContextMenu = useDebounceFn(async (_item: IListItem, _event: MouseEvent) => {
   selectedItem.value = _item;
-  resetRightOptions();
   try {
     const hasGetMessage: boolean = await getAssetDetailFromServer(_item.id);
 
@@ -673,14 +511,6 @@ const handleItemContextMenu = useDebounceFn(async (_item: IListItem, _event: Mou
     showRightDropdown.value = false;
   }
 }, 300);
-
-const handleIconConnect = (item: IListItem, event: MouseEvent) => {
-  handleContextMenuWrapper(item, event);
-
-  setTimeout(() => {
-    handleFastConnect();
-  }, 300);
-};
 
 onMounted(async () => {
   const { layout } = await getDefaultSetting();
