@@ -47,6 +47,7 @@ export default {
     Username: 'Username',
     Password: 'Password',
     Confirm: 'Confirm',
+    Cancel: '取消',
     UsernamePlaceholder: 'Please enter the username',
     InputAccountPassword: 'Manual input',
     None: 'None',
@@ -117,6 +118,8 @@ export default {
     NotMatched: 'Client that does not match the corresponding protocol!',
     PleaseAuthFirst: 'Login authentication is required first',
     HistoryRequireAuth: 'Authentication required to view history',
-    LoginAuthenticationExpired: 'Login authentication has expired'
+    LoginAuthenticationExpired: 'Login authentication has expired',
+    RemoveAccountConfirm: 'Are you sure you want to delete the current account?',
+    RemoveAccount: 'Remove Account'
   }
 };
