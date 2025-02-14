@@ -2,7 +2,17 @@
 <template>
   <div style="height: calc(100vh - 3.2rem)">
     <n-flex align="center" class="title h-12">
-      <n-h3 strong class="flex items-center h-full pl-4"> {{ t('Common.AssetsList') }} </n-h3>
+      <n-h3 strong class="flex items-center h-full pl-4 !mb-0"> {{ t('Common.AssetsList') }} </n-h3>
+
+      <n-popover trigger="hover">
+        <template #trigger>
+          <CircleHelp :size="18" class="icon-hover mt-1" />
+        </template>
+
+        <n-text depth="2">
+          由于每条资产信息并未直接与账号相关联因此需要先手动右击获取账号列表之后才能获得账号列表以及相关信息
+        </n-text>
+      </n-popover>
     </n-flex>
 
     <n-infinite-scroll
@@ -12,7 +22,7 @@
       :distance="10"
       @load="debounceLoad"
     >
-      <ListContainer
+      <list-container
         v-if="listData.length > 0"
         :current-layout="currentLayout"
         :list-data="listData"
@@ -68,6 +78,7 @@ import type { DropdownOption } from 'naive-ui';
 import type { IConnectData } from '@renderer/store/interface';
 
 import { computed } from 'vue';
+import { CircleHelp } from 'lucide-vue-next';
 import { ClipboardList, PlugConnected } from '@vicons/tabler';
 import { ArrowEnterLeft20Filled, ProtocolHandler24Regular } from '@vicons/fluent';
 

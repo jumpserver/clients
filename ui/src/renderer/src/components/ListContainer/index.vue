@@ -12,7 +12,7 @@
       <n-card
         hoverable
         size="small"
-        class="h-32 rounded-lg cursor-pointer"
+        class="h-36 rounded-lg cursor-pointer"
         @contextmenu="handleContextMenu(item, $event)"
       >
         <template #header>
@@ -21,15 +21,49 @@
             <n-icon
               depth="2"
               class="mr-1 cursor-pointer"
-              :size="26"
+              :size="32"
               :component="renderedIcon(item)"
             />
 
-            <n-ellipsis style="max-width: 180px">
-              <n-text depth="2" class="cursor-pointer font-mono font-light text-sm">
-                {{ item.name }}
-              </n-text>
-            </n-ellipsis>
+            <n-flex vertical align="start" class="w-full !flex-nowrap !gap-y-0">
+              <n-ellipsis style="max-width: 180px">
+                <n-text depth="2" class="cursor-pointer font-mono font-light">
+                  {{ item.name }}
+                </n-text>
+              </n-ellipsis>
+
+              <n-flex justify="start" align="center" class="w-full !gap-x-0 !flex-nowrap">
+                <!-- <n-popover trigger="hover">
+                  <template #trigger>
+                    <n-button text type="primary" tag="div">
+                      <template #icon>
+                        <BadgeCheck :size="16" />
+                      </template>
+                    </n-button>
+                  </template>
+
+                  <n-text depth="2"> 可连接 </n-text>
+                </n-popover> -->
+
+                <n-flex class="w-full !flex-nowrap">
+                  <n-ellipsis style="max-width: 300px" class="w-1/2">
+                    <n-text depth="1" class="font-normal text-xs font-mono"> 当前账号: </n-text>
+
+                    <n-text depth="2" class="font-normal text-xs font-mono">
+                      {{ getAssetAccount(item.id)?.label || '-' }}
+                    </n-text>
+                  </n-ellipsis>
+
+                  <n-ellipsis style="max-width: 100px" class="w-1/2">
+                    <n-text depth="1" class="font-normal text-xs font-mono"> 当前协议: </n-text>
+
+                    <n-text depth="2" class="font-normal text-xs font-mono">
+                      {{ getAssetProtocol(item.id)?.label || '-' }}
+                    </n-text>
+                  </n-ellipsis>
+                </n-flex>
+              </n-flex>
+            </n-flex>
           </n-flex>
         </template>
 
@@ -43,6 +77,28 @@
             <n-text depth="2"> 快速连接 </n-text>
           </n-tooltip>
         </template>
+
+        <n-grid :cols="1" class="h-full">
+          <n-gi>
+            <n-flex align="center" justify="start" class="h-full w-full">
+              <n-text depth="1" class="font-normal">地址:</n-text>
+
+              <n-ellipsis style="max-width: 240px">
+                <n-text depth="2"> {{ item.address }} </n-text>
+              </n-ellipsis>
+            </n-flex>
+          </n-gi>
+
+          <n-gi>
+            <n-flex align="center" justify="start" class="h-full w">
+              <n-text depth="1" class="font-normal"> 是否激活: </n-text>
+
+              <n-text depth="2">
+                {{ item.is_active }}
+              </n-text>
+            </n-flex>
+          </n-gi>
+        </n-grid>
       </n-card>
     </n-gi>
   </n-grid>
@@ -65,8 +121,9 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMessage } from 'naive-ui';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
+import { useAssetStore } from '@renderer/store/module/assetStore';
 
-import { Link } from 'lucide-vue-next';
+import { Link, BadgeCheck } from 'lucide-vue-next';
 import { Terminal2 } from '@vicons/tabler';
 import { DataBase, Devices } from '@vicons/carbon';
 import { DesktopWindowsFilled } from '@vicons/material';
@@ -84,13 +141,17 @@ const props = withDefaults(
   }
 );
 
+console.log(props.listData);
+
 const { t } = useI18n();
 const { rightOptions, getAssetDetailMessage, handleOptionSelect } = useContextMenu();
 
 const message = useMessage();
+const assetStore = useAssetStore();
 
 const rightX = ref(0);
 const rightY = ref(0);
+
 const showRightDropdown = ref(false);
 
 const renderedIcon = item => {
@@ -111,6 +172,26 @@ const onClickRightOutside = () => {
 };
 
 /**
+ * @description 获取资产对应的账号信息
+ * @param assetId
+ */
+const getAssetAccount = (assetId: string) => {
+  const assetInfo = assetStore.getAssetMap(assetId);
+
+  return assetInfo?.account;
+};
+
+/**
+ * @description 获取资产对应的协议信息
+ * @param assetId
+ */
+const getAssetProtocol = (assetId: string) => {
+  const assetInfo = assetStore.getAssetMap(assetId);
+
+  return assetInfo?.protocol;
+};
+
+/**
  * @description 处理右键菜单
  * @param item
  * @param event
@@ -121,7 +202,6 @@ const handleContextMenu = async (item: IListItem, event: MouseEvent) => {
   if (!got) {
     showRightDropdown.value = false;
     message.error(`${t('Message.ErrorGetAssetDetail')}`);
-
     return;
   }
 

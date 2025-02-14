@@ -7,14 +7,16 @@ import type { IUser, IOrginization } from '@renderer/store/interface';
 export const useUserStore = defineStore({
   id: 'client-user',
   state: (): Partial<IUser> => ({
-    token: '',
     loading: false,
-    userInfo: [],
-    currentSite: '',
-    currentUser: {},
-    currentOrginization: '',
+
     sort: 'name',
-    orginization: []
+    token: '',
+    currentSite: '',
+    currentOrginization: '',
+
+    userInfo: [],
+    orginization: [],
+    currentUser: {}
   }),
   actions: {
     setToken(token: string) {
