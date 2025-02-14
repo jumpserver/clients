@@ -112,7 +112,9 @@
               </n-button>
 
               <template #action>
-                <n-button text class="w-full" @click="handleAddAccount">添加账号</n-button>
+                <n-button text class="w-full" @click="handleAddAccount">
+                  {{ t('Common.AddAccount') }}
+                </n-button>
               </template>
             </n-popselect>
 

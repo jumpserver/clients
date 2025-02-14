@@ -1,6 +1,9 @@
 import type { Ref } from 'vue';
 import type { DropdownOption, ConfigProviderProps } from 'naive-ui';
 import type { IListItem, IItemDetail } from '@renderer/components/MainSection/interface';
+import type { Permed_protocols, Permed_accounts } from '@renderer/components/MainSection/interface';
+
+import mittBus from '@renderer/eventBus';
 
 import {
   NFlex,
@@ -13,8 +16,9 @@ import {
   createDiscreteApi
 } from 'naive-ui';
 import { useI18n } from 'vue-i18n';
-import { ref, reactive, computed } from 'vue';
+import { ref, computed } from 'vue';
 import { useElectronConfig } from './useElectronConfig';
+import { useAssetStore } from '@renderer/store/module/assetStore';
 import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
 
 import { Link, Eye, FileText, UsersRound, UserRoundCheck, Check } from 'lucide-vue-next';
@@ -24,9 +28,10 @@ export const useContextMenu = () => {
   const { getDefaultSetting } = useElectronConfig();
 
   const loadingBar = useLoadingBar();
+  const assetStore = useAssetStore();
 
-  const selectedAccount = reactive({ id: '', label: '' });
-  const selectedProtocol = reactive({ key: '', label: '' });
+  const selectedAccount = ref('');
+  const selectedProtocol = ref('');
 
   const defaultTheme = ref('');
   const detailMessage: Ref<Partial<IItemDetail>> = ref({});
@@ -77,7 +82,6 @@ export const useContextMenu = () => {
     return Promise.resolve(true);
   };
 
-  // TODO: 优化代码
   const createModal = () => {
     modal.create({
       title: t('Common.AssetDetails'),
@@ -130,7 +134,10 @@ export const useContextMenu = () => {
     });
   };
 
-  const getAssetDetailMessage = async (item: IListItem, event: MouseEvent): Promise<boolean> => {
+  const getAssetDetailMessage = async (
+    item: IListItem,
+    event: MouseEvent
+  ): Promise<boolean | string> => {
     loadingBar.start();
     event.stopPropagation();
 
@@ -141,66 +148,84 @@ export const useContextMenu = () => {
 
       if (assetDetail) {
         // prettier-ignore
-        const accountMenuItem = rightOptions.value.find( option => option.key === 'available-account');
+        const accountMenuItem: DropdownOption = rightOptions.value.find( option => option.key === 'available-account')!;
         // prettier-ignore
-        const protocolMenuItem = rightOptions.value.find(option => option.key === 'optional-protocol');
+        const protocolMenuItem: DropdownOption = rightOptions.value.find(option => option.key === 'optional-protocol')!;
 
+        selectedProtocol.value = assetStore.getAssetMap(assetDetail.id!)?.protocol?.key as string;
+        selectedAccount.value = assetStore.getAssetMap(assetDetail.id!)?.account?.key as string;
+
+        const hoverBackground = defaultTheme.value === 'light' ? '#F3F3F5' : '#FFFFFF17';
+
+        protocolMenuItem!.children = assetDetail.permed_protocols
+          .filter((protocol: Permed_protocols) => protocol.public)
+          .map(protocol => ({
+            type: 'render',
+            render: () => {
+              return (
+                <NFlex
+                  justify="space-between"
+                  align="center"
+                  class={`w-full px-4 py-1 cursor-pointer hover:bg-[${hoverBackground}]`}
+                >
+                  <NText>{protocol.name}</NText>
+
+                  {selectedProtocol.value === protocol.name && (
+                    <Check
+                      size={14}
+                      color={defaultTheme.value === 'light' ? '#18a058' : '#63e2b7'}
+                    />
+                  )}
+                </NFlex>
+              );
+            },
+            key: protocol.name,
+            label: protocol.name
+          })) as DropdownOption[];
+
+        accountMenuItem!.children = assetDetail.permed_accounts
+          .filter((account: Permed_accounts) => account.alias !== '@ANON')
+          .map(account => ({
+            type: 'render',
+            render: () => {
+              return (
+                <NFlex
+                  justify="space-between"
+                  align="center"
+                  class={`!flex-nowrap w-full px-4 py-1 cursor-pointer hover:bg-[${hoverBackground}]`}
+                >
+                  <NText> 
+                    {account.name +
+                      (account.alias === account.username || account.alias.startsWith('@')
+                        ? ''
+                        : '(' + account.username + ')')}
+                  </NText>
+
+                  {selectedAccount.value === account.id && (
+                    <UserRoundCheck
+                      size={14}
+                      color={defaultTheme.value === 'light' ? '#18a058' : '#63e2b7'}
+                    />
+                  )}
+                </NFlex>
+              );
+            },
+            label: account.name,
+            key: account.id
+          })) as DropdownOption[];
+
+        // 检测之前是否修改过默认的 account 和 protocol。 如果修改过，则返回 false，反之为 true
         const checked = await preCheck();
 
         if (checked) {
-          selectedAccount.id = assetDetail.permed_accounts[0].id;
-          selectedAccount.label = assetDetail.permed_accounts[0].name;
-
-          selectedProtocol.key = assetDetail.permed_protocols[0].name;
-          selectedProtocol.label = assetDetail.permed_protocols[0].name;
+          assetStore.setAssetMap(detailMessage.value.id!, {
+            account: accountMenuItem.children[0] as { accountId: string; accountLabel: string },
+            protocol: protocolMenuItem.children[0] as { protocolId: string; protocolLabel: string }
+          });
         }
-
-        protocolMenuItem!.children = assetDetail.permed_protocols.map(protocol => ({
-          type: 'render',
-          render: () => {
-            return (
-              <NFlex
-                justify="space-between"
-                align="center"
-                class="w-full px-4 py-1 cursor-pointer hover:bg-[#F3F3F5]"
-              >
-                <NText>{protocol.name}</NText>
-
-                {selectedProtocol.label === protocol.name && (
-                  <Check size={14} color={defaultTheme.value === 'light' ? '#18a058' : '#63e2b7'} />
-                )}
-              </NFlex>
-            );
-          },
-          key: protocol.name,
-          label: protocol.name
-        }));
-
-        accountMenuItem!.children = assetDetail.permed_accounts.map(account => ({
-          type: 'render',
-          render: () => {
-            return (
-              <NFlex
-                justify="space-between"
-                align="center"
-                class="w-full px-4 py-1 cursor-pointer hover:bg-[#FFFFFF17]"
-              >
-                <NText>{account.name}</NText>
-
-                {selectedAccount.id === account.id && (
-                  <UserRoundCheck
-                    size={14}
-                    color={defaultTheme.value === 'light' ? '#18a058' : '#63e2b7'}
-                  />
-                )}
-              </NFlex>
-            );
-          },
-          key: account.id
-        }));
       }
 
-      return Promise.resolve(true);
+      return Promise.resolve(detailMessage.value.id!);
     } catch (e) {
       return Promise.resolve(false);
     } finally {
@@ -219,6 +244,19 @@ export const useContextMenu = () => {
         break;
     }
   };
+
+  const handleThemeChange = (theme: string) => {
+    switch (theme) {
+      case 'light':
+        defaultTheme.value = 'dark';
+        break;
+      case 'dark':
+        defaultTheme.value = 'light';
+        break;
+    }
+  };
+
+  mittBus.on('changeTheme', handleThemeChange);
 
   return {
     rightOptions,
