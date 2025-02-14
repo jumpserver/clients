@@ -155,8 +155,6 @@ export const useContextMenu = () => {
         selectedProtocol.value = assetStore.getAssetMap(assetDetail.id!)?.protocol?.key as string;
         selectedAccount.value = assetStore.getAssetMap(assetDetail.id!)?.account?.key as string;
 
-        const hoverBackground = defaultTheme.value === 'light' ? '#F3F3F5' : '#FFFFFF17';
-
         protocolMenuItem!.children = assetDetail.permed_protocols
           .filter((protocol: Permed_protocols) => protocol.public)
           .map(protocol => ({
@@ -166,10 +164,13 @@ export const useContextMenu = () => {
                 <NFlex
                   justify="space-between"
                   align="center"
-                  class={`w-full px-4 py-1 cursor-pointer hover:bg-[${hoverBackground}]`}
+                  class={`w-full px-4 py-1 cursor-pointer ${
+                    defaultTheme.value === 'light'
+                      ? 'hover:bg-[#F3F3F5]'
+                      : 'hover:bg-[rgba(255,255,255,0.09)]'
+                  }`}
                 >
                   <NText>{protocol.name}</NText>
-
                   {selectedProtocol.value === protocol.name && (
                     <Check
                       size={14}
@@ -192,15 +193,18 @@ export const useContextMenu = () => {
                 <NFlex
                   justify="space-between"
                   align="center"
-                  class={`!flex-nowrap w-full px-4 py-1 cursor-pointer hover:bg-[${hoverBackground}]`}
+                  class={`w-full px-4 py-1 cursor-pointer ${
+                    defaultTheme.value === 'light'
+                      ? 'hover:bg-[#F3F3F5]'
+                      : 'hover:bg-[rgba(255,255,255,0.09)]'
+                  }`}
                 >
-                  <NText> 
+                  <NText>
                     {account.name +
                       (account.alias === account.username || account.alias.startsWith('@')
                         ? ''
                         : '(' + account.username + ')')}
                   </NText>
-
                   {selectedAccount.value === account.id && (
                     <UserRoundCheck
                       size={14}
