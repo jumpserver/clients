@@ -64,7 +64,7 @@
               }"
             >
               <n-text depth="1" strong class="whitespace-nowrap text-sm">
-                {{ currentUser?.username }}
+                {{ currentUser?.label }}
               </n-text>
 
               <ChevronUp v-if="indicatorArrow" :size="16" />
@@ -79,15 +79,12 @@
 
         <template #empty>
           <n-flex vertical justify="start" class="w-full">
-            <template v-for="user of userOptions" :key="user.token">
-              <AccountList
-                :username="user.label!"
-                :user-token="user.value!"
-                :user-site="user.currentSite!"
-                :user-avator="user.avatar_url!"
-                @change-account="switchAccount"
-              />
-            </template>
+            <AccountList
+              :username="currentUser.label!"
+              :user-token="currentUser.value!"
+              :user-site="currentUser.currentSite!"
+              :user-avator="currentUser.avatar_url!"
+            />
           </n-flex>
         </template>
 
@@ -97,14 +94,15 @@
             <n-popselect
               trigger="click"
               placement="right"
-              :render-label="getAccountOptionsRender"
-              :options="userOptions"
               :style="{
                 width: '14rem',
                 marginLeft: '1rem'
               }"
-              v-model:value="value"
+              :options="userOptions"
               :class="{ 'account-popselect': false }"
+              :render-label="renderLabel"
+              v-model:value="currentAccount"
+              @update:value="handleUpdateCurrentAccount"
             >
               <n-button text class="w-full justify-start">
                 <template #icon>
@@ -154,52 +152,35 @@
               </n-switch>
             </n-flex>
 
-            <!-- 登出 -->
-            <n-popconfirm v-model:show="showPopconfirm" placement="right">
-              <template #icon>
-                <ShieldAlert />
-              </template>
-              <template #trigger>
-                <n-button text class="w-full justify-start">
-                  <template #icon>
-                    <LogOut />
-                  </template>
-                  {{ t('Common.RemoveAccount') }}
-                </n-button>
-              </template>
-              <template #action>
-                <n-button size="small" secondary round @click="showPopconfirm = false">
-                  取消
-                </n-button>
-                <n-button size="small" secondary type="error" round @click="handleRemoveAccount">
-                  确定
-                </n-button>
-              </template>
-              确定要删除当前账号吗?
-            </n-popconfirm>
+            <n-flex justify="space-between" align="center" class="w-full !flex-nowrap">
+              <n-button text class="flex-1 justify-start w-full" @click="showModal = true">
+                <template #icon>
+                  <LogOut />
+                </template>
+                {{ t('Common.RemoveAccount') }}
+              </n-button>
+            </n-flex>
           </n-flex>
         </template>
       </n-popselect>
     </template>
   </n-flex>
+
+  <RemoveAccountConfirm
+    :show-modal="showModal"
+    :on-confirm="handleRemoveAccount"
+    :on-cancel="() => (showModal = false)"
+  />
 </template>
 
 <script setup lang="ts">
 import mittBus from '@renderer/eventBus';
 
-import {
-  Earth,
-  LogOut,
-  Palette,
-  ChevronUp,
-  ShieldAlert,
-  ChevronLeft,
-  UserRoundPlus
-} from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { NAvatar, NText, NFlex } from 'naive-ui';
 import { computed, watch, ref, inject, onMounted } from 'vue';
+import { Earth, LogOut, Palette, ChevronUp, ChevronLeft } from 'lucide-vue-next';
 
 import { Moon, Sun } from '@vicons/tabler';
 import { useDebounceFn } from '@vueuse/core';
@@ -207,9 +188,10 @@ import { ArrowSync20Regular } from '@vicons/fluent';
 import { useUserStore } from '@renderer/store/module/userStore';
 import { useElectronConfig } from '@renderer/hooks/useElectronConfig';
 
-import { menuOptions, getAccountOptionsRender } from './config';
+import { menuOptions, getAccountOptionsRender, RemoveAccountConfirm } from './config';
 import AccountList from '../AccountList/index.vue';
 
+import type { SelectOption } from 'naive-ui';
 import type { IUserInfo } from '@renderer/store/interface';
 
 withDefaults(defineProps<{ collapsed: boolean }>(), {
@@ -219,13 +201,18 @@ withDefaults(defineProps<{ collapsed: boolean }>(), {
 const options = menuOptions();
 const userStore = useUserStore();
 
-const value = ref('Drive My Car');
-
 const { t, locale } = useI18n();
 const { getDefaultSetting } = useElectronConfig();
 const { currentUser: storeCurrentUser } = storeToRefs(userStore);
 
-const currentUser = computed(() => storeCurrentUser?.value);
+const currentUser = computed(() => {
+  return {
+    label: storeCurrentUser?.value?.username,
+    value: storeCurrentUser?.value?.token,
+    avatar_url: storeCurrentUser?.value?.avatar_url,
+    currentSite: storeCurrentUser?.value?.currentSite
+  };
+});
 
 const userOptions = computed(() => {
   return (
@@ -242,10 +229,11 @@ const userOptions = computed(() => {
 });
 
 const active = ref(false);
-const showPopconfirm = ref(false);
+const showModal = ref(false);
 const indicatorArrow = ref(false);
 const currentLang = ref('');
 const selectedKey = ref('linux-page');
+const currentAccount = ref(userStore.currentUser?.token);
 
 const setNewAccount = inject<() => void>('setNewAccount');
 const removeAccount = inject<() => void>('removeAccount');
@@ -253,10 +241,12 @@ const switchAccount = inject<(token: string) => void>('switchAccount');
 
 const handlePopSelectShow = (show: boolean) => {
   indicatorArrow.value = show;
+};
 
-  if (!show) {
-    showPopconfirm.value = false;
-  }
+const renderLabel = (option: SelectOption) => {
+  return getAccountOptionsRender(option, () => {
+    showModal.value = true;
+  });
 };
 
 /**
@@ -271,7 +261,7 @@ const handleAddAccount = () => {
  */
 const handleRemoveAccount = () => {
   removeAccount ? removeAccount() : null;
-  showPopconfirm.value = false;
+  showModal.value = false;
 };
 
 const debouncedSearch = useDebounceFn(() => {
@@ -312,6 +302,14 @@ const handleChangeLang = async () => {
   }
 
   currentLang.value = language === 'zh' ? 'English' : '中文';
+};
+
+/**
+ * @description 切换账号
+ * @param token
+ */
+const handleUpdateCurrentAccount = (token: string) => {
+  switchAccount ? switchAccount(token) : null;
 };
 
 watch(

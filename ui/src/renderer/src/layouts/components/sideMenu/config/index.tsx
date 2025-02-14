@@ -1,10 +1,11 @@
 import { renderIcon } from '@renderer/layouts/components/HeaderSection/helper';
 import { useI18n } from 'vue-i18n';
 import { h } from 'vue';
+import { defineComponent, PropType } from 'vue';
 
 import { BrandWindows, Database, Terminal2, Star, History } from '@vicons/tabler';
-import { Trash2, CircleCheck } from 'lucide-vue-next';
-import { NFlex, NAvatar, NText } from 'naive-ui';
+import { NFlex, NAvatar, NText, NButton, NModal } from 'naive-ui';
+import { Trash2 } from 'lucide-vue-next';
 import { Devices } from '@vicons/carbon';
 import { RouterLink } from 'vue-router';
 
@@ -106,18 +107,19 @@ export const menuOptions = () => {
  * @param option
  * @returns
  */
-export const getAccountOptionsRender = (option: SelectOption) => {
+export const getAccountOptionsRender = (option: SelectOption, callback?: () => void) => {
   return h(
     NFlex,
     {
-      class: 'w-full',
+      class: 'w-full !gap-x-0',
       align: 'center',
       justify: 'start'
     },
     {
       default: () => [
         h(NAvatar, {
-          size: 20,
+          round: true,
+          size: 'small',
           src: option.avatar_url as string,
           class: 'mr-2'
         }),
@@ -127,22 +129,36 @@ export const getAccountOptionsRender = (option: SelectOption) => {
             depth: 1,
             class: 'font-medium text-sm'
           },
-          { default: () => option.display_name }
+          { default: () => option.label }
         ),
         h(
           NFlex,
           {
-            class: 'ml-auto'
+            class: 'ml-auto',
+            align: 'center'
           },
           {
             default: () => [
-              h(Trash2, {
-                size: 16,
-                class: 'mr-2'
-              }),
-              h(CircleCheck, {
-                size: 16
-              })
+              h(
+                NButton,
+                {
+                  size: 'tiny',
+                  type: 'error',
+                  round: true,
+                  quaternary: true,
+                  onClick: e => {
+                    e.stopPropagation();
+                    callback?.();
+                  }
+                },
+                {
+                  icon: () => {
+                    return h(Trash2, {
+                      size: 16
+                    });
+                  }
+                }
+              )
             ]
           }
         )
@@ -150,3 +166,41 @@ export const getAccountOptionsRender = (option: SelectOption) => {
     }
   );
 };
+
+export const RemoveAccountConfirm = defineComponent({
+  name: 'RemoveAccountConfirm',
+  props: {
+    showModal: {
+      type: Boolean,
+      required: true
+    },
+    onConfirm: {
+      type: Function as PropType<() => void>,
+      default: undefined
+    },
+    onCancel: {
+      type: Function as PropType<() => void>,
+      default: undefined
+    }
+  },
+  setup(props) {
+    const { t } = useI18n();
+
+    return () => (
+      <NModal
+        preset="dialog"
+        title={t('Message.RemoveAccount')}
+        content={t('Message.RemoveAccountConfirm')}
+        positiveText={t('Common.Confirm')}
+        negativeText={t('Common.Cancel')}
+        class="rounded-lg"
+        showIcon={false}
+        show={props.showModal}
+        onPositiveClick={props.onConfirm}
+        onNegativeClick={props.onCancel}
+        positiveButtonProps={{ type: 'error', round: true }}
+        negativeButtonProps={{ round: true }}
+      />
+    );
+  }
+});
