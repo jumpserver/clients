@@ -16,12 +16,28 @@ import {
   createDiscreteApi
 } from 'naive-ui';
 import { useI18n } from 'vue-i18n';
-import { ref, computed } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import { useElectronConfig } from './useElectronConfig';
+import { useAccountModal } from '@renderer/components/MainSection/helper';
 import { useAssetStore } from '@renderer/store/module/assetStore';
 import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
+import { useHistoryStore } from '@renderer/store/module/historyStore';
 
 import { Link, Eye, FileText, UsersRound, UserRoundCheck, Check } from 'lucide-vue-next';
+
+export interface IConnectionData {
+  asset: string;
+  account: string;
+  protocol: string;
+  input_username: string;
+  input_secret: string;
+}
+
+export interface IAssetDetailMessageReturn {
+  id: string;
+  detailMessage: Ref<Partial<IItemDetail>>;
+  connectionData: Ref<Partial<IConnectionData>>;
+}
 
 export const useContextMenu = () => {
   const { t } = useI18n();
@@ -29,18 +45,21 @@ export const useContextMenu = () => {
 
   const loadingBar = useLoadingBar();
   const assetStore = useAssetStore();
+  const historyStore = useHistoryStore();
 
   const selectedAccount = ref('');
   const selectedProtocol = ref('');
 
   const defaultTheme = ref('');
+
+  const connectionData: Ref<Partial<IConnectionData>> = ref({});
   const detailMessage: Ref<Partial<IItemDetail>> = ref({});
   const rightOptions: Ref<DropdownOption[]> = ref([
-    {
-      label: t('Common.QuickConnect'),
-      key: 'connect-direction',
-      icon: () => <Link size={16} />
-    },
+    // {
+    //   label: t('Common.QuickConnect'),
+    //   key: 'connect-direction',
+    //   icon: () => <Link size={16} />
+    // },
     {
       label: t('Common.AssetDetails'),
       icon: () => <Eye size={16} />,
@@ -77,10 +96,6 @@ export const useContextMenu = () => {
   const { modal } = createDiscreteApi(['modal'], {
     configProviderProps: configProviderPropsRef
   });
-
-  const preCheck = async (): Promise<boolean> => {
-    return Promise.resolve(true);
-  };
 
   const createModal = () => {
     modal.create({
@@ -134,16 +149,132 @@ export const useContextMenu = () => {
     });
   };
 
+  const handleConnection = async () => {
+    let method: string;
+    switch (connectionData.value.protocol) {
+      case 'ssh':
+      case 'telnet':
+        method = 'ssh_client';
+        break;
+      case 'rdp':
+        method = 'mstsc';
+        break;
+      case 'sftp':
+        method = 'sftp_client';
+        break;
+      case 'vnc':
+        method = 'vnc_client';
+        break;
+      default:
+        method = 'db_client';
+    }
+
+    const token = await createConnectToken(connectionData.value, method);
+
+    if (token) {
+      mittBus.emit('checkMatch', connectionData.value.protocol as string);
+      historyStore.setHistorySession({ ...detailMessage.value });
+      getLocalClientUrl(token).then(res => {
+        if (res) {
+          window.electron.ipcRenderer.send('open-client', res.url);
+        }
+      });
+    }
+  };
+
+  const handleManualSelect = (account: Permed_accounts | '', protocol: Permed_protocols | '') => {
+    if (account) {
+      selectedAccount.value = account.id;
+    }
+
+    if (protocol) {
+      selectedProtocol.value = protocol.name;
+    }
+
+    nextTick(() => {
+      const originalMessage = assetStore.getAssetMap(detailMessage.value.id!);
+
+      if (account && account.alias === '@USER') {
+        connectionData.value.account = '@USER';
+        connectionData.value.input_username = originalMessage?.account?.username as string;
+
+        if (!originalMessage?.account?.has_secret) {
+          const { inputPassword, confirmed } = useAccountModal('@USER', t);
+
+          watch(confirmed, async newValue => {
+            if (newValue && inputPassword.value) {
+              connectionData.value = {
+                asset: detailMessage.value.id,
+                account: '@USER',
+                protocol: assetStore.getAssetMap(detailMessage.value.id!)?.protocol?.key as string,
+                input_username: '',
+                input_secret: inputPassword.value
+              };
+
+              await handleConnection();
+            }
+          });
+        }
+      }
+
+      if (account && account.alias === '@INPUT') {
+        connectionData.value.account = '@INPUT';
+
+        const { inputPassword, inputUsername, confirmed } = useAccountModal('@INPUT', t);
+
+        watch(confirmed, async newValue => {
+          if (newValue && inputUsername.value && inputPassword.value) {
+            connectionData.value = {
+              asset: detailMessage.value.id,
+              account: '@INPUT',
+              protocol: assetStore.getAssetMap(detailMessage.value.id!)?.protocol?.key as string,
+              input_username: inputUsername.value,
+              input_secret: inputPassword.value
+            };
+
+            await handleConnection();
+          }
+        });
+      }
+
+      const newAssetMap = {
+        account: {
+          type: 'render',
+          has_secret: account ? account?.has_secret : originalMessage?.account?.has_secret,
+          alias: account ? account?.alias : originalMessage?.account?.alias,
+          label: account ? account.name : originalMessage?.account?.label,
+          key: account ? account?.id : originalMessage?.account?.key
+
+          // id: account ? account?.id : originalMessage?.account?.id,
+          // name: account ? account?.name : originalMessage?.account?.name,
+          // username: account ? account?.username : originalMessage?.account?.username,
+          // secret_type: account ? account?.secret_type : originalMessage?.account?.secret_type,
+        },
+        protocol: {
+          type: 'render',
+          key: protocol ? protocol.name : originalMessage?.protocol?.key,
+          label: protocol ? protocol.name : originalMessage?.protocol?.label
+
+          // name: protocol ? protocol.name : originalMessage?.protocol?.name,
+          // port: protocol ? protocol.port : originalMessage?.protocol?.port,
+          // public: protocol ? protocol.public : originalMessage?.protocol?.public,
+        }
+      };
+
+      assetStore.setAssetMap(detailMessage.value.id!, newAssetMap);
+    });
+  };
+
   const getAssetDetailMessage = async (
     item: IListItem,
-    event: MouseEvent
-  ): Promise<boolean | string> => {
+    event: MouseEvent,
+    isQuickConnect: boolean = false
+  ): Promise<boolean | IAssetDetailMessageReturn> => {
     loadingBar.start();
     event.stopPropagation();
 
     try {
       const assetDetail: IItemDetail = await getAssetDetail(item.id);
-
       detailMessage.value = assetDetail;
 
       if (assetDetail) {
@@ -164,13 +295,14 @@ export const useContextMenu = () => {
                 <NFlex
                   justify="space-between"
                   align="center"
-                  class={`w-full px-4 py-1 cursor-pointer ${
+                  class={`w-full px-4 py-1 cursor-pointer !flex-nowrap ${
                     defaultTheme.value === 'light'
                       ? 'hover:bg-[#F3F3F5]'
                       : 'hover:bg-[rgba(255,255,255,0.09)]'
                   }`}
+                  onClick={() => handleManualSelect('', protocol)}
                 >
-                  <NText>{protocol.name}</NText>
+                  <NText class="min-w-20">{protocol.name}</NText>
                   {selectedProtocol.value === protocol.name && (
                     <Check
                       size={14}
@@ -193,13 +325,14 @@ export const useContextMenu = () => {
                 <NFlex
                   justify="space-between"
                   align="center"
-                  class={`w-full px-4 py-1 cursor-pointer ${
+                  class={`w-full px-4 py-1 cursor-pointer !flex-nowrap ${
                     defaultTheme.value === 'light'
                       ? 'hover:bg-[#F3F3F5]'
                       : 'hover:bg-[rgba(255,255,255,0.09)]'
                   }`}
+                  onClick={() => handleManualSelect(account, '')}
                 >
-                  <NText>
+                  <NText class="min-w-40">
                     {account.name +
                       (account.alias === account.username || account.alias.startsWith('@')
                         ? ''
@@ -214,22 +347,80 @@ export const useContextMenu = () => {
                 </NFlex>
               );
             },
+            has_secret: account.has_secret,
+            alias: account.alias,
             label: account.name,
             key: account.id
           })) as DropdownOption[];
 
-        // 检测之前是否修改过默认的 account 和 protocol。 如果修改过，则返回 false，反之为 true
-        const checked = await preCheck();
+        if (!assetStore.getAssetMap(assetDetail.id!)) {
+          // prettier-ignore
+          const filteredAccount = accountMenuItem.children.filter(child => child.alias !== '@USER' && child.alias !== '@INPUT');
 
-        if (checked) {
           assetStore.setAssetMap(detailMessage.value.id!, {
-            account: accountMenuItem.children[0] as { accountId: string; accountLabel: string },
-            protocol: protocolMenuItem.children[0] as { protocolId: string; protocolLabel: string }
+            account: filteredAccount[0],
+            protocol: protocolMenuItem.children[0]
           });
+
+          connectionData.value = {
+            asset: assetDetail.id,
+            account: assetStore.getAssetMap(assetDetail.id!)?.account?.label as string,
+            protocol: assetStore.getAssetMap(assetDetail.id!)?.protocol?.key as string,
+            input_username: '',
+            input_secret: ''
+          };
+        } else {
+          const originalMessage = assetStore.getAssetMap(detailMessage.value.id!);
+
+          // 只在快速连接时处理特殊账号类型
+          if (isQuickConnect && ['@USER', '@INPUT'].includes(originalMessage.account.alias)) {
+            if (originalMessage.account.alias === '@USER') {
+              const { inputPassword, confirmed } = useAccountModal('@USER', t);
+              watch(confirmed, async newValue => {
+                if (newValue && inputPassword.value) {
+                  connectionData.value = {
+                    asset: detailMessage.value.id,
+                    account: '@USER',
+                    protocol: originalMessage.protocol.key as string,
+                    input_username: '',
+                    input_secret: inputPassword.value
+                  };
+                  await handleConnection();
+                }
+              });
+            } else {
+              const { inputPassword, inputUsername, confirmed } = useAccountModal('@INPUT', t);
+              watch(confirmed, async newValue => {
+                if (newValue && inputUsername.value && inputPassword.value) {
+                  connectionData.value = {
+                    asset: detailMessage.value.id,
+                    account: '@INPUT',
+                    protocol: originalMessage.protocol.key as string,
+                    input_username: inputUsername.value,
+                    input_secret: inputPassword.value
+                  };
+                  await handleConnection();
+                }
+              });
+            }
+          } else {
+            // 使用保存的设置
+            connectionData.value = {
+              asset: assetDetail.id,
+              account: originalMessage.account.label as string,
+              protocol: originalMessage.protocol.key as string,
+              input_username: '',
+              input_secret: ''
+            };
+          }
         }
       }
 
-      return Promise.resolve(detailMessage.value.id!);
+      return Promise.resolve({
+        id: detailMessage.value.id!,
+        detailMessage: detailMessage,
+        connectionData: connectionData
+      } as IAssetDetailMessageReturn);
     } catch (e) {
       return Promise.resolve(false);
     } finally {

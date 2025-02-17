@@ -55,7 +55,10 @@ export default {
     Connectability: '可连接性',
     NoData: '暂无数据',
     Appearance: '外观选择',
-    SwitchLanguage: '切换语言'
+    SwitchLanguage: '切换语言',
+    IsActivated: '是否激活',
+    CurrentAccount: '当前账号',
+    CurrentProtocol: '当前协议'
   },
   Dialog: {
     'Save&Default': '保存且默认',

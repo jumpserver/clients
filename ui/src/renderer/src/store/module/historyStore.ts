@@ -7,7 +7,7 @@ export const useHistoryStore = defineStore('history', {
     history_session: []
   }),
   actions: {
-    setHistorySession(s: ISession) {
+    setHistorySession(s: Partial<ISession>) {
       if (this.history_session!.some((item: ISession) => item.id === s.id)) return;
 
       // @ts-ignore
