@@ -15,11 +15,12 @@ export const useAssetStore = defineStore({
     assetMap: {} as Record<string, IAssetMap>
   }),
   actions: {
-    setAssetMap(token: string, payload: IAssetMap) {
+    setAssetMap(token: string, payload: any) {
       this.assetMap[token] = payload;
     },
     getAssetMap(token: string) {
-      return this.assetMap[token];
+      const result = this.assetMap[token];
+      return result;
     },
     removeAssetMap(token: string) {
       delete this.assetMap[token];

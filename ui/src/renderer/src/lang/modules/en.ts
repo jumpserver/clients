@@ -55,7 +55,10 @@ export default {
     Connectability: 'Connectability',
     NoData: 'No Data',
     Appearance: 'Appearance',
-    SwitchLanguage: 'Switch Language'
+    SwitchLanguage: 'Switch Language',
+    IsActivated: 'Is Activated',
+    CurrentAccount: 'Current Account',
+    CurrentProtocol: 'Current Protocol'
   },
   Dialog: {
     'Save&Default': 'Save And Default',
