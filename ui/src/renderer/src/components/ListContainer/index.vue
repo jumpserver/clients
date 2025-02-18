@@ -165,6 +165,7 @@ const historyStore = useHistoryStore();
 const rightX = ref(0);
 const rightY = ref(0);
 
+const clicked = ref(false);
 const showRightDropdown = ref(false);
 const savedData = ref<Partial<IAssetDetailMessageReturn>>();
 
@@ -300,9 +301,9 @@ const handleConnect = async (item: IListItem, event: MouseEvent) => {
       return;
     }
 
-    // const { id, detailMessage, connectionData } = result;
+    const { id, detailMessage, connectionData } = result;
 
-    // await connectionDispatch(id, detailMessage, connectionData);
+    await connectionDispatch(id, detailMessage, connectionData);
   } catch (error) {
     handleConnectionError(error);
   }

@@ -353,6 +353,8 @@ export const useContextMenu = () => {
             key: account.id
           })) as DropdownOption[];
 
+        console.log(assetStore.getAssetMap(assetDetail.id!));
+
         if (!assetStore.getAssetMap(assetDetail.id!)) {
           // prettier-ignore
           const filteredAccount = accountMenuItem.children.filter(child => child.alias !== '@USER' && child.alias !== '@INPUT');
@@ -372,8 +374,13 @@ export const useContextMenu = () => {
         } else {
           const originalMessage = assetStore.getAssetMap(detailMessage.value.id!);
 
+          console.log(originalMessage);
+
           // 只在快速连接时处理特殊账号类型
-          if (isQuickConnect && ['@USER', '@INPUT'].includes(originalMessage.account.alias)) {
+          if (
+            isQuickConnect &&
+            ['@USER', '@INPUT'].includes(originalMessage.account.alias as string)
+          ) {
             if (originalMessage.account.alias === '@USER') {
               const { inputPassword, confirmed } = useAccountModal('@USER', t);
               watch(confirmed, async newValue => {
@@ -404,7 +411,6 @@ export const useContextMenu = () => {
               });
             }
           } else {
-            // 使用保存的设置
             connectionData.value = {
               asset: assetDetail.id,
               account: originalMessage.account.label as string,
