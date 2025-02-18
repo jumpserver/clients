@@ -8,6 +8,7 @@ import mittBus from '@renderer/eventBus';
 import {
   NFlex,
   NText,
+  NScrollbar,
   useLoadingBar,
   NDescriptions,
   NDescriptionsItem,
@@ -316,44 +317,48 @@ export const useContextMenu = () => {
             label: protocol.name
           })) as DropdownOption[];
 
-        accountMenuItem!.children = assetDetail.permed_accounts
-          .filter((account: Permed_accounts) => account.alias !== '@ANON')
-          .map(account => ({
+        accountMenuItem!.children = [
+          {
             type: 'render',
+            key: 'account-scrollbar',
             render: () => {
               return (
-                <NFlex
-                  justify="space-between"
-                  align="center"
-                  class={`w-full px-4 py-1 cursor-pointer !flex-nowrap ${
-                    defaultTheme.value === 'light'
-                      ? 'hover:bg-[#F3F3F5]'
-                      : 'hover:bg-[rgba(255,255,255,0.09)]'
-                  }`}
-                  onClick={() => handleManualSelect(account, '')}
-                >
-                  <NText class="min-w-40">
-                    {account.name +
-                      (account.alias === account.username || account.alias.startsWith('@')
-                        ? ''
-                        : '(' + account.username + ')')}
-                  </NText>
-                  {selectedAccount.value === account.id && (
-                    <UserRoundCheck
-                      size={14}
-                      color={defaultTheme.value === 'light' ? '#18a058' : '#63e2b7'}
-                    />
-                  )}
-                </NFlex>
+                <NScrollbar style="max-height: 240px">
+                  <NFlex vertical class="!gap-0">
+                    {assetDetail.permed_accounts
+                      .filter((account: Permed_accounts) => account.alias !== '@ANON')
+                      .map(account => (
+                        <NFlex
+                          key={account.id}
+                          justify="space-between"
+                          align="center"
+                          class={`w-full px-4 py-1 cursor-pointer !flex-nowrap ${
+                            defaultTheme.value === 'light'
+                              ? 'hover:bg-[#F3F3F5]'
+                              : 'hover:bg-[rgba(255,255,255,0.09)]'
+                          }`}
+                          onClick={() => handleManualSelect(account, '')}
+                        >
+                          <NText class="min-w-40">
+                            {account.name +
+                              (account.alias === account.username || account.alias.startsWith('@')
+                                ? ''
+                                : '(' + account.username + ')')}
+                          </NText>
+                          {selectedAccount.value === account.id && (
+                            <UserRoundCheck
+                              size={14}
+                              color={defaultTheme.value === 'light' ? '#18a058' : '#63e2b7'}
+                            />
+                          )}
+                        </NFlex>
+                      ))}
+                  </NFlex>
+                </NScrollbar>
               );
-            },
-            has_secret: account.has_secret,
-            alias: account.alias,
-            label: account.name,
-            key: account.id
-          })) as DropdownOption[];
-
-        console.log(assetStore.getAssetMap(assetDetail.id!));
+            }
+          }
+        ] as DropdownOption[];
 
         if (!assetStore.getAssetMap(assetDetail.id!)) {
           // prettier-ignore
@@ -373,8 +378,6 @@ export const useContextMenu = () => {
           };
         } else {
           const originalMessage = assetStore.getAssetMap(detailMessage.value.id!);
-
-          console.log(originalMessage);
 
           // 只在快速连接时处理特殊账号类型
           if (
