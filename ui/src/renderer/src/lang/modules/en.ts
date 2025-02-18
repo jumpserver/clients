@@ -58,7 +58,8 @@ export default {
     SwitchLanguage: 'Switch Language',
     IsActivated: 'Is Activated',
     CurrentAccount: 'Current Account',
-    CurrentProtocol: 'Current Protocol'
+    CurrentProtocol: 'Current Protocol',
+    ConnectionTip: 'Asset information is not directly linked to any account. To view the account list and related information, please right-click to retrieve them first.'
   },
   Dialog: {
     'Save&Default': 'Save And Default',

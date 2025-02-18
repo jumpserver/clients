@@ -1,16 +1,15 @@
-<!-- TODO: 整个页面的逻辑需要进行拆分 -->
 <template>
   <div style="height: calc(100vh - 3.2rem)">
     <n-flex align="center" class="title h-12">
       <n-h3 strong class="flex items-center h-full pl-4 !mb-0"> {{ t('Common.AssetsList') }} </n-h3>
 
-      <n-popover trigger="hover">
+      <n-popover trigger="hover" placement="bottom-end">
         <template #trigger>
           <CircleHelp :size="18" class="icon-hover mt-1" />
         </template>
 
         <n-text depth="2">
-          由于每条资产信息并未直接与账号相关联因此需要先手动右击获取账号列表之后才能获得账号列表以及相关信息
+          {{ t('Common.ConnectionTip') }}
         </n-text>
       </n-popover>
     </n-flex>
@@ -33,31 +32,12 @@
         class="absolute top-0 left-0 h-full w-full items-center justify-center"
       />
     </n-infinite-scroll>
-
-    <!-- 左键点击下拉菜单 -->
-    <!-- <n-dropdown
-      placement="bottom-start"
-      trigger="manual"
-      size="small"
-      :x="xLeft"
-      :y="yLeft"
-      :show-arrow="true"
-      :options="leftOptions"
-      :show="showLeftDropdown"
-      :on-clickoutside="onClickLeftOutside"
-      @select="handleAccountSelect"
-      class="min-w-60 max-h-80 scrollbar-dark overflow-y-auto p-2"
-    /> -->
   </div>
 </template>
 
 <script setup lang="ts">
 import mittBus from '@renderer/eventBus';
 import ListContainer from '@renderer/components/ListContainer/index.vue';
-
-import { Terminal2 } from '@vicons/tabler';
-import { DataBase, Devices } from '@vicons/carbon';
-import { DesktopWindowsFilled } from '@vicons/material';
 
 import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
 import { moveElementToEnd, renderCustomHeader, useAccountModal } from './helper/index';
