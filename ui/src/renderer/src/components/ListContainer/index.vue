@@ -13,66 +13,65 @@
         hoverable
         size="small"
         class="h-36 rounded-lg cursor-pointer"
+        :content-style="{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }"
         @contextmenu="handleContextMenu(item, $event)"
       >
         <template #header>
-          <n-flex align="center" class="w-full !flex-nowrap">
-            <!-- @click="selectItem(item, $event)" @contextmenu="handleContextMenuWrapper(item, $event)" -->
-            <n-icon
-              depth="2"
-              class="mr-1 cursor-pointer"
-              :size="32"
-              :component="renderedIcon(item)"
-            />
+          <n-flex vertical align="start" class="w-full !gap-y-2">
+            <n-text depth="2" class="cursor-pointer font-mono font-normal text-sm">
+              {{ item.name }}
+            </n-text>
 
-            <n-flex vertical align="start" class="w-full !flex-nowrap !gap-y-0">
-              <n-ellipsis style="max-width: 180px">
-                <n-text depth="2" class="cursor-pointer font-mono font-light">
-                  {{ item.name }}
-                </n-text>
-              </n-ellipsis>
-
-              <n-flex justify="start" align="center" class="w-full !gap-x-0 !flex-nowrap">
-                <!-- <n-popover trigger="hover">
+            <n-flex justify="start" align="center" class="w-full">
+              <n-flex class="w-full">
+                <n-popover trigger="hover" placement="top">
                   <template #trigger>
-                    <n-button text type="primary" tag="div">
-                      <template #icon>
-                        <BadgeCheck :size="16" />
-                      </template>
-                    </n-button>
+                    <n-tag round size="small" type="info" :bordered="false" class="cursor-pointer">
+                      <span class="font-normal tracking-wider">
+                        {{ t('Common.CurrentAccount') }}:
+                      </span>
+
+                      <span class="font-normal">
+                        {{ getAssetAccount(item.id) || '-' }}
+                      </span>
+                    </n-tag>
                   </template>
 
-                  <n-text depth="2"> 可连接 </n-text>
-                </n-popover> -->
+                  {{ t('Common.CurrentAccount') }}: {{ getAssetAccount(item.id) || '-' }}
+                </n-popover>
 
-                <n-flex class="w-full !flex-nowrap">
-                  <n-ellipsis style="max-width: 300px" class="w-1/2">
-                    <n-text depth="1" class="font-normal text-xs font-mono">
-                      {{ t('Common.CurrentAccount') }}:
-                    </n-text>
+                <n-popover trigger="hover" placement="top">
+                  <template #trigger>
+                    <n-tag round size="small" type="info" :bordered="false" class="cursor-pointer">
+                      <span class="font-normal tracking-wider">
+                        {{ t('Common.CurrentProtocol') }}:
+                      </span>
+                      <span class="font-normal">
+                        {{ getAssetProtocol(item.id) || '-' }}
+                      </span>
+                    </n-tag>
+                  </template>
 
-                    <n-text depth="2" class="font-normal text-xs font-mono">
-                      {{ getAssetAccount(item.id) || '-' }}
-                    </n-text>
-                  </n-ellipsis>
+                  {{ t('Common.CurrentProtocol') }}: {{ getAssetProtocol(item.id) || '-' }}
+                </n-popover>
 
-                  <n-ellipsis style="max-width: 300px" class="w-1/2">
-                    <n-text depth="1" class="font-normal text-xs font-mono">
-                      {{ t('Common.CurrentProtocol') }}:
-                    </n-text>
-
-                    <n-text depth="2" class="font-normal text-xs font-mono">
-                      {{ getAssetProtocol(item.id) || '-' }}
-                    </n-text>
-                  </n-ellipsis>
-                </n-flex>
+                <n-tag size="small" :bordered="false" type="success" round>
+                  可连接
+                  <template #icon>
+                    <n-icon :component="CheckmarkCircle" />
+                  </template>
+                </n-tag>
               </n-flex>
             </n-flex>
           </n-flex>
         </template>
 
         <template #header-extra>
-          <n-tooltip trigger="hover">
+          <n-popover trigger="hover">
             <template #trigger>
               <Link
                 :size="16"
@@ -84,8 +83,10 @@
             <span>
               {{ t('Common.QuickConnect') }}
             </span>
-          </n-tooltip>
+          </n-popover>
         </template>
+
+        <n-divider class="!m-0" />
 
         <n-grid :cols="1" class="h-full">
           <n-gi>
@@ -135,10 +136,8 @@ import { useAssetStore } from '@renderer/store/module/assetStore';
 import { useHistoryStore } from '@renderer/store/module/historyStore';
 import { useAccountModal } from '@renderer/components/MainSection/helper';
 
-import { Link, BadgeCheck } from 'lucide-vue-next';
-import { Terminal2 } from '@vicons/tabler';
-import { DataBase, Devices } from '@vicons/carbon';
-import { DesktopWindowsFilled } from '@vicons/material';
+import { Link } from 'lucide-vue-next';
+import { CheckmarkCircle } from '@vicons/ionicons5';
 import { createConnectToken, getLocalClientUrl } from '@renderer/api/modals/asset';
 
 import type { IListItem } from '@renderer/components/MainSection/interface';
@@ -165,22 +164,8 @@ const historyStore = useHistoryStore();
 const rightX = ref(0);
 const rightY = ref(0);
 
-const clicked = ref(false);
 const showRightDropdown = ref(false);
 const savedData = ref<Partial<IAssetDetailMessageReturn>>();
-
-const renderedIcon = item => {
-  switch (item.type?.value) {
-    case 'linux':
-      return Terminal2;
-    case 'general':
-      return Devices;
-    case 'windows':
-      return DesktopWindowsFilled;
-    default:
-      return DataBase;
-  }
-};
 
 const onClickRightOutside = () => {
   showRightDropdown.value = false;
@@ -213,11 +198,6 @@ const handleConnectionError = (error: any) => {
   }
 };
 
-/**
- * @description 处理右键菜单
- * @param item
- * @param event
- */
 const handleContextMenu = async (item: IListItem, event: MouseEvent) => {
   const result = await getAssetDetailMessage(item, event, false);
 
@@ -241,7 +221,6 @@ const handleContextMenu = async (item: IListItem, event: MouseEvent) => {
   rightY.value = event.clientY;
 };
 
-//! todo
 const connectionDispatch = async (id, detailMessage, connectionData) => {
   let method: string;
   const neededInput = assetStore.getAssetMap(id)?.account?.has_secret;
@@ -287,11 +266,6 @@ const connectionDispatch = async (id, detailMessage, connectionData) => {
   }
 };
 
-/**
- * @description 处理快速连接
- * @param item
- * @param event
- */
 const handleConnect = async (item: IListItem, event: MouseEvent) => {
   try {
     const result = await getAssetDetailMessage(item, event, true);
@@ -309,5 +283,3 @@ const handleConnect = async (item: IListItem, event: MouseEvent) => {
   }
 };
 </script>
-
-<style scoped></style>
