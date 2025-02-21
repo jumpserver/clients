@@ -9,7 +9,6 @@ type Event = {
   changeLang: any;
   changeLayout: any;
   createDrawer: void;
-  connectAsset: void;
   removeAccount: void;
   checkMatch: any;
   showAssetDetail: { detailMessage: Ref<IItemDetail> };

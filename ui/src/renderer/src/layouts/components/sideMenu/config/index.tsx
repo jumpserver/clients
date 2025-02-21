@@ -84,21 +84,21 @@ export const menuOptions = () => {
         ),
       key: 'favorite-page',
       icon: renderIcon(Star)
-    },
-    {
-      label: () =>
-        h(
-          RouterLink,
-          {
-            to: {
-              name: 'History'
-            }
-          },
-          { default: () => t('Router.History') }
-        ),
-      key: 'history-page',
-      icon: renderIcon(History)
     }
+    // {
+    //   label: () =>
+    //     h(
+    //       RouterLink,
+    //       {
+    //         to: {
+    //           name: 'History'
+    //         }
+    //       },
+    //       { default: () => t('Router.History') }
+    //     ),
+    //   key: 'history-page',
+    //   icon: renderIcon(History)
+    // }
   ] as MenuOption[];
 };
 
