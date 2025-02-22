@@ -1,5 +1,4 @@
 <template>
-  <!-- <RenderList type="databases" /> -->
   <MainSection
     :list-data="listData"
     :class="active ? 'show-drawer' : ''"
@@ -8,7 +7,6 @@
 </template>
 
 <script setup lang="ts">
-// import RenderList from '@renderer/components/RenderList/index.vue';
 import { onBeforeUnmount, onMounted } from 'vue';
 import mittBus from '@renderer/eventBus';
 import MainSection from '@renderer/components/MainSection/index.vue';
@@ -18,7 +16,7 @@ defineProps<{
   active: boolean;
 }>();
 
-const { listData, handleScroll, getAssetsFromServer } = useAssetList('databases');
+const { listData, handleScroll, getAssetsFromServer } = useAssetList('device');
 
 onMounted(() => {
   mittBus.on('search', getAssetsFromServer);
@@ -29,7 +27,7 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 :deep(.n-dropdown-option) {
   height: 40px;
 }

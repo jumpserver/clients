@@ -1,117 +1,224 @@
 <template>
-  <n-flex vertical justify="space-between" class="py-[15px]" style="height: calc(100% - 30px)">
-    <n-flex>
+  <n-flex vertical justify="space-between" class="py-4" style="height: calc(100% - 30px)">
+    <div>
       <n-menu
         :options="options"
+        :collapsed="collapsed"
+        :collapsed-width="64"
+        :collapsed-icon-size="22"
         v-model:value="selectedKey"
         class="w-full flex flex-col items-center"
       />
-      <n-divider class="!my-[10px]" />
+      <n-divider class="!my-3" />
+    </div>
+
+    <!-- 未登录状态 -->
+    <n-flex v-if="userOptions.length === 0" align="center" justify="center">
+      <n-button text strong @click="handleAddAccount"> {{ t('Common.UnLogged') }} </n-button>
     </n-flex>
 
-    <n-flex align="center" justify="center" class="!flex-nowrap">
-      <template v-if="userOptions.length === 0">
-        <n-button text strong class="flex w-full h-8"> {{ t('Common.UnLogged') }} </n-button>
-      </template>
-      <template v-else>
-        <n-avatar
-          v-if="currentUser?.avatar_url"
-          round
-          size="medium"
-          class="cursor-pointer"
-          :src="currentUser?.avatar_url"
-        />
+    <template v-else>
+      <n-popselect
+        size="small"
+        trigger="click"
+        placement="top"
+        class="custom-popselect rounded-xl"
+        :class="{ 'account-popselect': true }"
+        :style="{
+          width: '16rem',
+          marginLeft: '1rem'
+        }"
+        :options="[]"
+        @update:show="handlePopSelectShow"
+      >
+        <!-- trigger  -->
+        <n-flex
+          align="center"
+          :justify="collapsed ? 'center' : 'space-between'"
+          :style="{ padding: collapsed ? '0' : '0 1rem' }"
+          class="w-full !flex-nowrap cursor-pointer transition-all duration-300 ease-in-out"
+        >
+          <n-flex
+            align="center"
+            class="!gap-0 w-full"
+            :style="{ justifyContent: collapsed ? 'center' : '' }"
+          >
+            <n-avatar
+              v-if="currentUser?.avatar_url"
+              round
+              size="medium"
+              class="cursor-pointer w-8 h-8 transition-all duration-300"
+              :src="currentUser?.avatar_url"
+            />
 
-        <div v-if="userOptions.length > 0" class="flex flex-col w-[60%]">
-          <div class="flex w-full">
-            <n-text depth="1" strong class="!inline-flex !items-center justify-between w-full">
-              {{ currentUser?.username }}
+            <n-flex
+              v-if="!collapsed"
+              align="center"
+              justify="space-between"
+              class="ml-3 flex-1 overflow-hidden transition-all duration-500"
+              :style="{
+                maxWidth: collapsed ? '0' : '200px',
+                opacity: collapsed ? '0' : '1',
+                transform: collapsed ? 'translateX(-20px)' : 'translateX(0)',
+                gap: '2px'
+              }"
+            >
+              <n-text depth="1" strong class="whitespace-nowrap text-sm">
+                {{ currentUser?.label }}
+              </n-text>
 
-              <n-popselect
-                trigger="click"
-                placement="right-end"
-                class="w-80 rounded-xl py-1"
-                :content-style="{
-                  width: '100%'
-                }"
-                :options="userOptions"
-                :render-label="renderLabel"
-                v-model:value="currentUser!.token"
-                @update:value="handleAccountChange"
-              >
-                <n-popover>
-                  <template #trigger>
-                    <n-icon
-                      size="14"
-                      :component="ArrowsHorizontal"
-                      class="ml-[10px] cursor-pointer icon-hover"
-                    />
-                  </template>
-                  {{ t('Common.SwitchAccount') }}
-                </n-popover>
-                <template #action>
-                  <n-button text class="w-1/2" @click="handleAddAccount">
-                    {{ t('Common.AddAccount') }}
-                  </n-button>
-                  <n-button text class="w-1/2" @click="handleRemoveAccount">
-                    {{ t('Common.RemoveAccount') }}
-                  </n-button>
+              <ChevronUp v-if="indicatorArrow" :size="16" />
+              <ChevronLeft v-else :size="16" />
+            </n-flex>
+          </n-flex>
+        </n-flex>
+
+        <template #header>
+          <n-text depth="3" strong> {{ t('Common.SwitchAccount') }} </n-text>
+        </template>
+
+        <template #empty>
+          <n-flex vertical justify="start" class="w-full">
+            <AccountList
+              :username="currentUser.label!"
+              :user-token="currentUser.value!"
+              :user-site="currentUser.currentSite!"
+              :user-avator="currentUser.avatar_url!"
+            />
+          </n-flex>
+        </template>
+
+        <template #action>
+          <n-flex vertical align="center" justify="start" class="w-full !gap-y-[5px]">
+            <!-- 切换账号  -->
+            <n-popselect
+              trigger="click"
+              placement="right"
+              :style="{
+                width: '14rem',
+                marginLeft: '1rem'
+              }"
+              :options="userOptions"
+              :class="{ 'account-popselect': false }"
+              :render-label="renderLabel"
+              v-model:value="currentAccount"
+              @update:value="handleUpdateCurrentAccount"
+            >
+              <n-button text class="w-full justify-start">
+                <template #icon>
+                  <n-icon :component="ArrowSync20Regular" :size="20" />
                 </template>
-              </n-popselect>
-            </n-text>
-          </div>
+                {{ t('Common.SwitchAccount') }}
+              </n-button>
 
-          <div style="font-size: 12px">
-            <n-popover>
-              <template #trigger>
-                <!-- 默认只展示第一个 -->
-                <n-text depth="2">
-                  {{ currentUser?.display_name?.[0] ?? '' }}
-                </n-text>
+              <template #action>
+                <n-button text class="w-full" @click="handleAddAccount">
+                  {{ t('Common.AddAccount') }}
+                </n-button>
               </template>
+            </n-popselect>
 
-              <template #default>
-                <span v-for="item of currentUser?.display_name" :key="item">
-                  {{ item }}
-                </span>
-              </template>
-            </n-popover>
-          </div>
-        </div>
-      </template>
-    </n-flex>
+            <!-- 切换语言 -->
+            <n-flex justify="space-between" align="center" class="w-full !flex-nowrap">
+              <n-button text class="flex-1 justify-start w-full" @click="handleChangeLang">
+                <template #icon>
+                  <Earth />
+                </template>
+                {{ t('Common.SwitchLanguage') }}
+              </n-button>
+
+              <n-text class="vertical-middle flex-shrink-0" depth="3"> {{ currentLang }} </n-text>
+            </n-flex>
+
+            <!-- 切换外观 -->
+            <n-flex justify="space-between" align="center" class="w-full !flex-nowrap">
+              <n-button text class="flex-1 justify-start w-full">
+                <template #icon>
+                  <Palette />
+                </template>
+                {{ t('Common.Appearance') }}
+              </n-button>
+
+              <n-switch
+                v-model:value="active"
+                size="medium"
+                class="flex-shrink-0"
+                @update:value="handleChangeTheme"
+              >
+                <template #checked-icon>
+                  <n-icon :component="Sun" />
+                </template>
+                <template #unchecked-icon>
+                  <n-icon :component="Moon" />
+                </template>
+              </n-switch>
+            </n-flex>
+
+            <n-flex justify="space-between" align="center" class="w-full !flex-nowrap">
+              <n-button text class="flex-1 justify-start w-full" @click="showModal = true">
+                <template #icon>
+                  <LogOut />
+                </template>
+                {{ t('Common.RemoveAccount') }}
+              </n-button>
+            </n-flex>
+          </n-flex>
+        </template>
+      </n-popselect>
+    </template>
   </n-flex>
+
+  <RemoveAccountConfirm
+    :show-modal="showModal"
+    :on-confirm="handleRemoveAccount"
+    :on-cancel="() => (showModal = false)"
+  />
 </template>
 
 <script setup lang="ts">
-import { NAvatar, NText, NPopover, NTag, NEllipsis } from 'naive-ui';
-import { ArrowsHorizontal } from '@vicons/carbon';
-import { computed, watch } from 'vue';
-import { useDebounceFn } from '@vueuse/core';
-
 import mittBus from '@renderer/eventBus';
 
-import { useUserStore } from '@renderer/store/module/userStore';
-import { menuOptions } from './config';
-import { h, nextTick, ref } from 'vue';
-import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
+import { NAvatar, NText, NFlex } from 'naive-ui';
+import { computed, watch, ref, inject, onMounted } from 'vue';
+import { Earth, LogOut, Palette, ChevronUp, ChevronLeft } from 'lucide-vue-next';
 
-import type { SelectOption, SelectRenderLabel } from 'naive-ui';
+import { Moon, Sun } from '@vicons/tabler';
+import { useDebounceFn } from '@vueuse/core';
+import { ArrowSync20Regular } from '@vicons/fluent';
+import { useUserStore } from '@renderer/store/module/userStore';
+import { useElectronConfig } from '@renderer/hooks/useElectronConfig';
+
+import { menuOptions, getAccountOptionsRender, RemoveAccountConfirm } from './config';
+import AccountList from '../AccountList/index.vue';
+
+import type { SelectOption } from 'naive-ui';
 import type { IUserInfo } from '@renderer/store/interface';
 
-const { t } = useI18n();
+withDefaults(defineProps<{ collapsed: boolean }>(), {
+  collapsed: false
+});
+
 const options = menuOptions();
 const userStore = useUserStore();
 
+const { t, locale } = useI18n();
+const { getDefaultSetting } = useElectronConfig();
 const { currentUser: storeCurrentUser } = storeToRefs(userStore);
 
-const currentUser = computed(() => storeCurrentUser?.value);
+const currentUser = computed(() => {
+  return {
+    label: storeCurrentUser?.value?.username,
+    value: storeCurrentUser?.value?.token,
+    avatar_url: storeCurrentUser?.value?.avatar_url,
+    currentSite: storeCurrentUser?.value?.currentSite
+  };
+});
 
 const userOptions = computed(() => {
   return (
-    // @ts-ignore
-    userStore?.userInfo.map((item: IUserInfo) => {
+    userStore.userInfo?.map((item: IUserInfo) => {
       return {
         label: item.username,
         value: item.token,
@@ -123,140 +230,105 @@ const userOptions = computed(() => {
   );
 });
 
+const active = ref(false);
+const showModal = ref(false);
+const indicatorArrow = ref(false);
+const currentLang = ref('');
 const selectedKey = ref('linux-page');
+const currentAccount = ref(userStore.currentUser?.token);
 
-/**
- * @description 切换账号的逻辑
- */
-const handleAccountChange = (value: string, _option: SelectOption) => {
-  if (userStore.userInfo) {
-    const user = userStore.userInfo.find((item: IUserInfo) => item.token === value);
+const setNewAccount = inject<() => void>('setNewAccount');
+const removeAccount = inject<() => void>('removeAccount');
+const switchAccount = inject<(token: string) => void>('switchAccount');
 
-    if (user) {
-      userStore.setToken(user.token);
-      userStore.setCurrentUser({ ...user });
-      userStore.setCurrentSit(user.currentSite as string);
-    }
-  }
+const handlePopSelectShow = (show: boolean) => {
+  indicatorArrow.value = show;
 };
 
-/**
- * @description 自定义渲染内容
- * @param option
- */
-const renderLabel: SelectRenderLabel = option => {
-  return h(
-    'div',
-    {
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        width: '100%'
-      }
-    },
-    [
-      h(NAvatar, {
-        src: option.avatar_url as string,
-        round: true,
-        size: 'medium',
-        style: {
-          cursor: 'pointer',
-          flexShrink: 0
-        }
-      }),
-      h(
-        'div',
-        {
-          style: {
-            marginLeft: '12px',
-            padding: '4px 0',
-            flex: 1,
-            minWidth: 0
-          }
-        },
-        [
-          h(
-            'div',
-            {
-              style: {
-                marginBottom: '4px'
-              }
-            },
-            option.label as string
-          ),
-          h(
-            NTag,
-            {
-              bordered: false,
-              size: 'small',
-              type: 'info',
-              style: {
-                maxWidth: '100%',
-                cursor: 'pointer'
-              }
-            },
-            {
-              default: () =>
-                h(
-                  NEllipsis,
-                  {
-                    style: {
-                      maxWidth: '200px'
-                    },
-                    tooltip: {
-                      placement: 'top',
-                      showArrow: true
-                    }
-                  },
-                  {
-                    default: () => `${t('Common.DataSource')}：${option.currentSite}`
-                  }
-                )
-            }
-          )
-        ]
-      )
-    ]
-  );
+const renderLabel = (option: SelectOption) => {
+  return getAccountOptionsRender(option, () => {
+    showModal.value = true;
+  });
 };
 
 /**
  * @description 添加账号
  */
 const handleAddAccount = () => {
-  mittBus.emit('addAccount');
-  selectedKey.value = 'linux-page';
+  setNewAccount ? setNewAccount() : null;
 };
 
 /**
  * @description 移除账号
  */
 const handleRemoveAccount = () => {
-  mittBus.emit('removeAccount');
-  selectedKey.value = 'linux-page';
-
-  nextTick(() => {
-    if (userStore.userInfo && userStore.userInfo.length > 0) {
-      const firstUser = userStore.userInfo[0];
-      userStore.setToken(firstUser.token);
-      userStore.setCurrentUser({ ...firstUser });
-      userStore.setCurrentSit(firstUser.currentSite as string);
-    }
-  });
+  removeAccount ? removeAccount() : null;
+  showModal.value = false;
 };
 
 const debouncedSearch = useDebounceFn(() => {
   mittBus.emit('search', 'reset');
 }, 300);
 
+/**
+ * @description 切换外观
+ * @param value
+ */
+const handleChangeTheme = async (value: boolean) => {
+  try {
+    const { theme } = await getDefaultSetting();
+
+    mittBus.emit('changeTheme', theme as string);
+
+    value ? (active.value = true) : (active.value = false);
+  } catch (e) {}
+};
+
+/**
+ * @description 切换语言
+ */
+const handleChangeLang = async () => {
+  const { language } = await getDefaultSetting();
+
+  mittBus.emit('changeLang', language as string);
+
+  switch (currentLang.value) {
+    case 'zh': {
+      locale.value = 'en';
+      break;
+    }
+    case 'en': {
+      locale.value = 'zh';
+      break;
+    }
+  }
+
+  currentLang.value = language === 'zh' ? 'English' : '中文';
+};
+
+/**
+ * @description 切换账号
+ * @param token
+ */
+const handleUpdateCurrentAccount = (token: string) => {
+  switchAccount ? switchAccount(token) : null;
+};
+
 watch(
   () => userStore.currentUser,
   newUser => {
-    if (newUser) {
+    if (newUser && Reflect.ownKeys(newUser).length > 0) {
       debouncedSearch();
     }
   }
 );
+
+onMounted(async () => {
+  const { theme, language } = await getDefaultSetting();
+
+  active.value = theme === 'light';
+  currentLang.value = language === 'zh' ? '中文' : 'English';
+});
 </script>
 
 <style scoped lang="scss">

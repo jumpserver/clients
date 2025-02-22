@@ -17,7 +17,7 @@ export default {
     UnLogged: '未登录',
     SwitchAccount: '切换账号',
     AddAccount: '新增账号',
-    RemoveAccount: '移除账号',
+    RemoveAccount: '退出账号',
     DataSource: '来源',
     Search: '搜索',
     LoginModalPlaceholder: '请填写完整的域名或者 ip 站点地址',
@@ -47,9 +47,19 @@ export default {
     Username: '用户名',
     Password: '密码',
     Confirm: '确认',
+    Cancel: '取消',
     UsernamePlaceholder: '请输入用户名',
     InputAccountPassword: '手动输入',
-    None: '无'
+    None: '无',
+    Address: '地址',
+    Connectability: '可连接性',
+    NoData: '暂无数据',
+    Appearance: '外观选择',
+    SwitchLanguage: '切换语言',
+    IsActivated: '是否激活',
+    CurrentAccount: '当前账号',
+    CurrentProtocol: '当前协议',
+    ConnectionTip: '由于每条资产信息并未直接与账号相关联因此需要先手动右击获取账号列表之后才能获得账号列表以及相关信息'
   },
   Dialog: {
     'Save&Default': '保存且默认',
@@ -65,7 +75,8 @@ export default {
     Language: '语言设置',
     Back: '返回',
     Favorite: '收藏',
-    History: '历史记录'
+    History: '历史记录',
+    Device: '网络设备'
   },
   Language: {
     ChooseLanguage: '选择语言'
@@ -106,6 +117,12 @@ export default {
     ChangeSuccess: '修改成功',
     EnableOneOption: '请至少启用一个选项!',
     CopyToClipboard: '已复制到剪切板',
-    NotMatched: '未匹配对应协议的客户端!'
+    NotMatched: '未匹配对应协议的客户端!',
+    GetDefaultSettingFailed: '自动启用默认设置',
+    PleaseAuthFirst: '请先进行登录认证!',
+    HistoryRequireAuth: '查看历史记录需要先登录认证',
+    LoginAuthenticationExpired: '登录认证已失效',
+    RemoveAccountConfirm: '确定要删除当前账号吗?',
+    RemoveAccount: '移除账号'
   }
 };

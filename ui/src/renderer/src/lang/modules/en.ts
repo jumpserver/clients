@@ -17,7 +17,7 @@ export default {
     UnLogged: 'Sign in',
     SwitchAccount: 'Switch Account',
     AddAccount: 'Add Account',
-    RemoveAccount: 'Remove Account',
+    RemoveAccount: 'Logout Account',
     DataSource: 'Data Source',
     Search: 'Search',
     LoginModalPlaceholder: 'Please enter the full domain name or IP address of the site.',
@@ -47,9 +47,19 @@ export default {
     Username: 'Username',
     Password: 'Password',
     Confirm: 'Confirm',
+    Cancel: '取消',
     UsernamePlaceholder: 'Please enter the username',
     InputAccountPassword: 'Manual input',
-    None: 'None'
+    None: 'None',
+    Address: 'Address',
+    Connectability: 'Connectability',
+    NoData: 'No Data',
+    Appearance: 'Appearance',
+    SwitchLanguage: 'Switch Language',
+    IsActivated: 'Is Activated',
+    CurrentAccount: 'Current Account',
+    CurrentProtocol: 'Current Protocol',
+    ConnectionTip: 'Asset information is not directly linked to any account. To view the account list and related information, please right-click to retrieve them first.'
   },
   Dialog: {
     'Save&Default': 'Save And Default',
@@ -65,7 +75,8 @@ export default {
     Language: 'Language',
     Back: 'Back',
     Favorite: 'Favorite',
-    History: 'History'
+    History: 'History',
+    Device: 'Device'
   },
   Language: {
     ChooseLanguage: 'Choose Language'
@@ -108,6 +119,11 @@ export default {
     ChangeSuccess: 'Modified successfully',
     EnableOneOption: 'Please enable at least one option!',
     CopyToClipboard: 'Copied to clipboard',
-    NotMatched: 'Client that does not match the corresponding protocol!'
+    NotMatched: 'Client that does not match the corresponding protocol!',
+    PleaseAuthFirst: 'Login authentication is required first',
+    HistoryRequireAuth: 'Authentication required to view history',
+    LoginAuthenticationExpired: 'Login authentication has expired',
+    RemoveAccountConfirm: 'Are you sure you want to delete the current account?',
+    RemoveAccount: 'Remove Account'
   }
 };

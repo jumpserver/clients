@@ -23,6 +23,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@renderer/views/Database/index.vue')
       },
       {
+        path: 'device',
+        name: 'Device',
+        component: () => import('@renderer/views/Device/index.vue')
+      },
+      {
         path: 'history',
         name: 'History',
         component: () => import('@renderer/views/History/index.vue')
@@ -33,11 +38,6 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@renderer/views/Favorite/index.vue')
       }
     ]
-  },
-  {
-    path: '/:pathMatch(.*)*',
-    name: '404',
-    component: () => import('@renderer/views/NotFound/index.vue')
   }
 ];
 

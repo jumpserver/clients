@@ -1,17 +1,13 @@
 import type { SelectOption } from 'naive-ui';
-import {
-  renderCustomBody,
-  renderCustomInput
-} from '@renderer/layouts/components/HeaderSection/helper';
 
-export const layoutOption: Array<SelectOption> = [
+export const layoutOption = [
   {
-    value: 'grid',
-    label: 'Grid'
+    label: 'Grid',
+    value: 'grid'
   },
   {
-    value: 'list',
-    label: 'List'
+    label: 'List',
+    value: 'list'
   }
 ];
 
@@ -42,27 +38,6 @@ export const createOption: Array<SelectOption> = [
   {
     label: 'Import',
     value: 'import'
-  }
-];
-
-export const tagOption: Array<SelectOption> = [
-  {
-    key: 'header',
-    type: 'render',
-    render: () => renderCustomInput([{ id: '1', label: '爱在西元前', isChecked: false }])
-  },
-  {
-    key: 'tags',
-    type: 'render',
-    render: () => renderCustomBody([{ id: '1', label: '爱在西元前', isChecked: false }])
-  },
-  {
-    key: 'header-divider',
-    type: 'divider'
-  },
-  {
-    label: 'Clear selection',
-    type: 'button'
   }
 ];
 

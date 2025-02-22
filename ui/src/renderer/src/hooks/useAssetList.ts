@@ -1,20 +1,41 @@
 import { ref, watch } from 'vue';
-import { useUserStore } from '@renderer/store/module/userStore';
-import { getAssets } from '@renderer/api/modals/asset';
-import { useMessage } from 'naive-ui';
 import { useI18n } from 'vue-i18n';
-import type { IListItem } from '@renderer/components/MainSection/interface';
+import { useLoadingBar, useMessage } from 'naive-ui';
+import { useUserStore } from '@renderer/store/module/userStore';
+import { getAssets, getFavoriteAssets } from '@renderer/api/modals/asset';
+
+import type { Ref } from 'vue';
+import type { IListItem, ITypeObject } from '@renderer/components/MainSection/interface';
 
 export function useAssetList(type: string) {
   const { t } = useI18n();
   const message = useMessage();
   const userStore = useUserStore();
+  const loadingBar = useLoadingBar();
 
   const hasMore = ref(true);
   const loadingStatus = ref(true);
-  const listData = ref<IListItem[]>([]);
+
+  const listData: Ref<IListItem[]> = ref([]);
+  const typeObject: Ref<ITypeObject> = ref({});
+
+  switch (type) {
+    case 'linux':
+      typeObject.value = { type: 'linux' };
+      break;
+    case 'windows':
+      typeObject.value = { type: 'windows' };
+      break;
+    case 'databases':
+      typeObject.value = { category: 'database' };
+      break;
+    case 'device':
+      typeObject.value = { category: 'device' };
+      break;
+  }
+
   const params = ref({
-    type,
+    ...typeObject.value,
     offset: 0,
     limit: 20,
     search: '',
@@ -35,11 +56,12 @@ export function useAssetList(type: string) {
   };
 
   const getAssetsFromServer = async (searchInput?: string) => {
+    loadingBar.start();
+
     if (searchInput !== undefined) {
       params.value.offset = 0;
       params.value.search = searchInput;
       params.value.order = userStore.sort;
-      listData.value = [];
       hasMore.value = true;
     }
 
@@ -54,7 +76,9 @@ export function useAssetList(type: string) {
     loadingStatus.value = true;
 
     try {
-      const res = await getAssets(params.value);
+      const func = type === 'favorite' ? getFavoriteAssets : getAssets;
+
+      const res = await func(params.value);
 
       if (res) {
         const { results, count: total } = res;
@@ -69,9 +93,12 @@ export function useAssetList(type: string) {
         loadingStatus.value = false;
       }
     } catch (e) {
-      loadingStatus.value = false;
       hasMore.value = false;
-      message.error(`${t('Message.FailedRetrieveAssetDataList')}`, { closable: true });
+      loadingStatus.value = false;
+
+      message.error(`${t('Message.FailedRetrieveAssetDataList')}`, { closable: true, duration: 5000 });
+    } finally {
+      loadingBar.finish();
     }
   };
 
@@ -98,7 +125,7 @@ export function useAssetList(type: string) {
         listData.value = [];
         userStore.setToken('');
       } else {
-        getAssetsFromServer();
+        getAssetsFromServer('reset');
       }
     },
     { immediate: true }

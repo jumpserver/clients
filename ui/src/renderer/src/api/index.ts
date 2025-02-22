@@ -1,16 +1,34 @@
-import type { ResultData, CustomAxiosRequestConfig } from './interface/index';
-import type { AxiosResponse, AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
-import { useUserStore } from '@renderer/store/module/userStore';
-import { createDiscreteApi } from 'naive-ui';
-import { router } from '@renderer/router';
 import axios from 'axios';
+import { computed, ref } from 'vue';
+import { useUserStore } from '@renderer/store/module/userStore';
+import { createDiscreteApi, lightTheme, darkTheme } from 'naive-ui';
+import { useElectronConfig } from '@renderer/hooks/useElectronConfig';
 
-const { message } = createDiscreteApi(['message']);
+import type { ConfigProviderProps } from 'naive-ui';
+import type { CustomAxiosRequestConfig, ResultData } from './interface/index';
+import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 const config = {
   timeout: 5000,
   withCredentials: true
 };
+
+const defaultTheme = ref('');
+
+try {
+  const { getDefaultSetting } = useElectronConfig();
+  const { theme } = await getDefaultSetting();
+
+  defaultTheme.value = theme;
+} catch (e) {}
+
+const configProviderPropsRef = computed<ConfigProviderProps>(() => ({
+  theme: defaultTheme.value === 'light' ? lightTheme : darkTheme
+}));
+
+const { message } = createDiscreteApi(['message'], {
+  configProviderProps: configProviderPropsRef
+});
 
 class RequestHttp {
   public service: AxiosInstance;
@@ -35,8 +53,8 @@ class RequestHttp {
         userStore.setLoading(config.loading);
 
         if (config.headers && typeof config.headers.set === 'function') {
+          config.headers['X-JMS-ORG'] = userStore.currentOrginization;
           config.headers['Authorization'] = `Bearer ${userStore.token}`;
-          config.headers['X-JMS-ORG'] = '00000000-0000-0000-0000-000000000000';
           config.headers['X-TZ'] = Intl.DateTimeFormat().resolvedOptions().timeZone;
         }
 
@@ -54,26 +72,27 @@ class RequestHttp {
      */
     this.service.interceptors.response.use(
       (response: AxiosResponse & { config: CustomAxiosRequestConfig }) => {
-        const { data, status, config } = response;
+        const { data, config } = response;
 
         const userStore = useUserStore();
 
         config.loading && userStore.setLoading(false);
-
-        // 登录失效
-        if (status == 401) {
-          userStore.setToken('');
-          message.error('登录认证已失效');
-          return Promise.reject(data);
-        }
 
         return data;
       },
       (error: AxiosError) => {
         if (error.message.indexOf('timeout') !== -1) message.error('请求超时！请您稍后重试');
         if (error.message.indexOf('Network Error') !== -1) message.error('网络错误！请您稍后重试');
+        if (error.message.indexOf('401') !== -1) {
+          const userStore = useUserStore();
 
-        if (!window.navigator.onLine) router.replace({ name: '404' });
+          userStore.removeCurrentUser();
+
+          message.error('Login authentication has expired. Please log in again.', {
+            closable: true,
+            duration: 5000
+          });
+        }
 
         return Promise.reject(error);
       }
@@ -83,12 +102,15 @@ class RequestHttp {
   get(url: string, params?: object, _object = {}): Promise<any> {
     return this.service.get(url, { params, ..._object });
   }
+
   post<T>(url: string, params?: object | string, _object = {}): Promise<ResultData<T>> {
     return this.service.post(url, params, _object);
   }
+
   put<T>(url: string, params?: object, _object = {}): Promise<ResultData<T>> {
     return this.service.put(url, params, _object);
   }
+
   delete<T>(url: string, params?: any, _object = {}): Promise<ResultData<T>> {
     return this.service.delete(url, { params, ..._object });
   }

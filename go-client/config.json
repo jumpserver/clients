@@ -4,7 +4,11 @@
   "defaultSetting": {
     "layout": "list",
     "language": "en",
-    "theme": "light"
+    "theme": "light",
+    "windowBounds": {
+      "width": 1024,
+      "height": 768
+    }
   },
   "windows": {
     "terminal": [

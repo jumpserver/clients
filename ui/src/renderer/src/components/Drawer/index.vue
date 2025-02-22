@@ -300,7 +300,14 @@ const initPlatformData = async () => {
 };
 
 const checkMatch = async (protocol: string) => {
-  const enabledOptions = currentOption.value?.filter(
+  const platformData = await conf.get(platform.value);
+  const clients = [
+    ...platformData.terminal,
+    ...platformData.filetransfer,
+    ...platformData.remotedesktop,
+    ...platformData.databases
+  ];
+  const enabledOptions = clients.filter(
     option => option.is_set && option.match_first.includes(protocol)
   );
   if (enabledOptions && enabledOptions.length === 0) {
