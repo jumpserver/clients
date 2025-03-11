@@ -4,17 +4,20 @@ import { useRouter } from 'vue-router';
 import { useElectronConfig } from './useElectronConfig';
 import { getAvatarImage } from '@renderer/utils/common';
 import { useUserStore } from '@renderer/store/module/userStore';
+import { useSettingStore } from '@renderer/store/module/settingStore';
 import { getProfile, getOrginization } from '@renderer/api/modals/user';
+import { getSystemSetting } from "@renderer/api/modals/setting";
 import { createDiscreteApi, lightTheme, darkTheme } from 'naive-ui';
 
 import type { ConfigProviderProps } from 'naive-ui';
 import type { IUserInfo, IOrginization } from '@renderer/store/interface';
 
+
 export const useUserAccount = () => {
   const { t } = useI18n();
   const router = useRouter();
   const userStore = useUserStore();
-
+  const settingStore = useSettingStore();
   const defaultTheme = ref('');
   const showLoginModal = ref(false);
 
@@ -57,7 +60,7 @@ export const useUserAccount = () => {
   /**
    * @description 切换账号
    */
-  const switchAccount = (token: string) => {
+  const switchAccount = async (token: string) => {
     if (token === userStore.token) {
       return;
     }
@@ -69,6 +72,14 @@ export const useUserAccount = () => {
         userStore.setToken(user.token);
         userStore.setCurrentUser({ ...user });
         userStore.setCurrentSit(user.currentSite as string);
+      }
+      const setting = await getSystemSetting();
+
+      if (setting) {
+        settingStore.setRdpClientOption(setting.graphics.rdp_client_option);
+        settingStore.setKeyboardLayout(setting.graphics.keyboard_layout);
+        settingStore.setRdpSmartSize(setting.graphics.rdp_smart_size);
+        settingStore.setRdpColorQuality(setting.graphics.rdp_color_quality);
       }
     }
   };
@@ -119,6 +130,15 @@ export const useUserAccount = () => {
         res.audit_orgs.forEach((org: IOrginization) => {
           userStore.setOrginization(org);
         });
+
+        const setting = await getSystemSetting();
+
+        if (setting) {
+          settingStore.setRdpClientOption(setting.graphics.rdp_client_option);
+          settingStore.setKeyboardLayout(setting.graphics.keyboard_layout);
+          settingStore.setRdpSmartSize(setting.graphics.rdp_smart_size);
+          settingStore.setRdpColorQuality(setting.graphics.rdp_color_quality);
+        }
 
         showLoginModal.value = false;
 
