@@ -22,9 +22,13 @@ let defaults = {
     language: 'en'
   }
 };
+
 let mainWindow: BrowserWindow | null = null;
 
-const platform = process.platform === 'win32' ? 'windows' : process.platform === 'darwin' ? 'macos' : 'linux';
+let openMainWindow: boolean = true;
+
+const platform =
+  process.platform === 'win32' ? 'windows' : process.platform === 'darwin' ? 'macos' : 'linux';
 const configFilePath = path.join(app.getPath('userData'), 'config.json');
 
 if (!existsSync(configFilePath)) {
@@ -60,8 +64,10 @@ const handleUrl = (url: string) => {
     try {
       const decodedToken = JSON.parse(decodedTokenJson);
       if ('bearer_token' in decodedToken) {
+        openMainWindow = true;
         mainWindow?.webContents.send('set-token', decodedToken.bearer_token);
       } else {
+        openMainWindow = false;
         handleClientPullUp(url);
       }
     } catch (error) {
@@ -70,7 +76,7 @@ const handleUrl = (url: string) => {
   }
 };
 
-const handleArgv = (argv: any) => {
+const handleArgv = (argv: string[]) => {
   const offset = app.isPackaged ? 1 : 2;
   const url = argv.find((arg, i) => i >= offset && arg.startsWith('jms'));
   if (url) handleUrl(url);
@@ -97,7 +103,7 @@ const handleClientPullUp = (url: string) => {
     } else {
       subPath += '/windows';
     }
-    let exeFilePath = path.join(subPath, 'JumpServerClient');
+    const exeFilePath = path.join(subPath, 'JumpServerClient');
     execFile(exeFilePath, [url], error => {
       if (error) {
         console.log(error);
@@ -107,7 +113,8 @@ const handleClientPullUp = (url: string) => {
 };
 
 const createWindow = async (): Promise<void> => {
-  const windowBounds = (conf.get('windowBounds') as { width: number; height: number }) || defaults.windowBounds;
+  const windowBounds =
+    (conf.get('windowBounds') as { width: number; height: number }) || defaults.windowBounds;
 
   mainWindow = new BrowserWindow({
     width: windowBounds.width,
@@ -200,7 +207,6 @@ app.whenReady().then(async () => {
   conf.registerRendererListener();
   useConf();
 
-  await createWindow();
   setDefaultProtocol();
 
   setTitleBar(conf.get('defaultSetting.theme') as string);
@@ -209,8 +215,14 @@ app.whenReady().then(async () => {
     handleArgv(process.argv);
   }
 
+  if (openMainWindow) {
+    await createWindow();
+  } else {
+    app.quit();
+  }
+
   app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (BrowserWindow.getAllWindows().length === 0 && openMainWindow) createWindow();
   });
 
   if (is.dev) {
@@ -231,23 +243,20 @@ app.whenReady().then(async () => {
 // 除外 macOS 外，关闭所有窗口时退出 app
 app.on('window-all-closed', () => {
   // mainWindow 可能已经被销毁，所以不要再尝试访问它
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  app.quit();
 });
 
 // @ts-ignore
-app.on('second-instance', (_event: Event, argv: string) => {
+app.on('second-instance', (_event: Event, argv: string[]) => {
   if (process.platform === 'win32') {
     handleArgv(argv);
   }
-  if (mainWindow) {
+  if (mainWindow && openMainWindow) {
     if (mainWindow.isMinimized()) mainWindow.restore();
     mainWindow.focus();
   }
 });
 
-// 从 web 唤起 Client
 // @ts-ignore
 app.on('open-url', (_event: Event, url: string) => {
   handleUrl(url);
