@@ -6,7 +6,7 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     name: 'homePage',
     component: () => import('../layouts/index.vue'),
-    redirect: 'linux',
+    redirect: '',
     children: [
       {
         path: 'linux',

@@ -1,6 +1,6 @@
 import path, { join, resolve } from 'path';
 import { Conf, useConf } from 'electron-conf/main';
-
+import log from 'electron-log';
 import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
 
 import { execFile } from 'child_process';
@@ -60,7 +60,6 @@ const handleUrl = (url: string) => {
 
   if (token) {
     const decodedTokenJson = Buffer.from(token, 'base64').toString('utf-8');
-
     try {
       const decodedToken = JSON.parse(decodedTokenJson);
       if ('bearer_token' in decodedToken) {
@@ -70,8 +69,9 @@ const handleUrl = (url: string) => {
         openMainWindow = false;
         handleClientPullUp(url);
       }
+      log.info('handleUrl:', openMainWindow);
     } catch (error) {
-      console.error('Failed to parse decoded token:', error);
+      log.error('Failed to parse decoded token:', error);
     }
   }
 };
@@ -186,6 +186,24 @@ const createWindow = async (): Promise<void> => {
   }
 };
 
+// @ts-ignore
+app.on('second-instance', (_event: Event, argv: string[]) => {
+  log.info('second-instance');
+  if (process.platform === 'win32' || process.platform === 'linux') {
+    handleArgv(argv);
+  }
+  if (mainWindow && openMainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  }
+});
+
+// @ts-ignore
+app.on('open-url', (_event: Event, url: string) => {
+  log.info('open-url');
+  handleUrl(url);
+});
+
 !app.requestSingleInstanceLock() ? app.quit() : '';
 
 app.whenReady().then(async () => {
@@ -209,14 +227,13 @@ app.whenReady().then(async () => {
 
   setDefaultProtocol();
 
-  setTitleBar(conf.get('defaultSetting.theme') as string);
-
-  if (process.platform === 'win32') {
+  if (process.platform === 'win32' || process.platform === 'linux') {
     handleArgv(process.argv);
   }
-
+  log.info('whenReady: ', openMainWindow);
   if (openMainWindow) {
     await createWindow();
+    setTitleBar(conf.get('defaultSetting.theme') as string);
   } else {
     app.quit();
   }
@@ -226,7 +243,7 @@ app.whenReady().then(async () => {
   });
 
   if (is.dev) {
-    if (process.platform === 'win32') {
+    if (process.platform === 'win32' || process.platform === 'linux') {
       process.on('message', data => {
         if (data === 'graceful-exit') {
           app.quit();
@@ -244,22 +261,6 @@ app.whenReady().then(async () => {
 app.on('window-all-closed', () => {
   // mainWindow 可能已经被销毁，所以不要再尝试访问它
   app.quit();
-});
-
-// @ts-ignore
-app.on('second-instance', (_event: Event, argv: string[]) => {
-  if (process.platform === 'win32') {
-    handleArgv(argv);
-  }
-  if (mainWindow && openMainWindow) {
-    if (mainWindow.isMinimized()) mainWindow.restore();
-    mainWindow.focus();
-  }
-});
-
-// @ts-ignore
-app.on('open-url', (_event: Event, url: string) => {
-  handleUrl(url);
 });
 
 const setTitleBar = (theme: string) => {
