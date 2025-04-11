@@ -108,7 +108,7 @@
           "en": "Microsoft Remote Desktop is a powerful Microsoft remote connection tool that can connect to remote PCs and your work resources from almost anywhere."
         },
         "download_url": "",
-        "type": "windows",
+        "type": "remotedesktop",
         "path": "mstsc.exe",
         "arg_format": "{file}",
         "match_first": [
@@ -484,7 +484,7 @@
           "en": "Microsoft Remote Desktop is a powerful Microsoft remote connection tool that can connect to remote PCs and your work resources from almost anywhere.\n\n!!!Manually download and install, click Save to activate!!!"
         },
         "download_url": "",
-        "type": "windows",
+        "type": "remotedesktop",
         "path": "/Applications/Microsoft Remote Desktop.app",
         "arg_format": "{file}",
         "match_first": [
@@ -651,7 +651,7 @@
           "en": "Remmina is a remote desktop client developed using GTK+, providing support for remote connection protocols such as RDP, VNC, XDMCP, and SSH."
         },
         "download_url": "https://remmina.org/how-to-install-remmina/",
-        "type": "windows",
+        "type": "remotedesktop",
         "path": "remmina",
         "arg_format": "{file}",
         "match_first": [],
@@ -670,7 +670,7 @@
           "en": "FreeRDP is a free implementation of the Remote Desktop Protocol (RDP), released under the Apache License.\nInstallation command\nsudo apt-get install freerdp\nsudo yum install freerdp"
         },
         "download_url": "https://github.com/FreeRDP/FreeRDP",
-        "type": "windows",
+        "type": "remotedesktop",
         "path": "xfreerdp",
         "arg_format": "{file} /cert-ignore /d: /p:",
         "match_first": [],

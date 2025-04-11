@@ -1,6 +1,6 @@
 import path, { join, resolve } from 'path';
 import { Conf, useConf } from 'electron-conf/main';
-
+import log from 'electron-log';
 import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
 
 import { execFile } from 'child_process';
@@ -22,9 +22,13 @@ let defaults = {
     language: 'en'
   }
 };
+
 let mainWindow: BrowserWindow | null = null;
 
-const platform = process.platform === 'win32' ? 'windows' : process.platform === 'darwin' ? 'macos' : 'linux';
+let openMainWindow: boolean = true;
+
+const platform =
+  process.platform === 'win32' ? 'windows' : process.platform === 'darwin' ? 'macos' : 'linux';
 const configFilePath = path.join(app.getPath('userData'), 'config.json');
 
 if (!existsSync(configFilePath)) {
@@ -56,21 +60,23 @@ const handleUrl = (url: string) => {
 
   if (token) {
     const decodedTokenJson = Buffer.from(token, 'base64').toString('utf-8');
-
     try {
       const decodedToken = JSON.parse(decodedTokenJson);
       if ('bearer_token' in decodedToken) {
+        openMainWindow = true;
         mainWindow?.webContents.send('set-token', decodedToken.bearer_token);
       } else {
+        openMainWindow = false;
         handleClientPullUp(url);
       }
+      log.info('handleUrl:', openMainWindow);
     } catch (error) {
-      console.error('Failed to parse decoded token:', error);
+      log.error('Failed to parse decoded token:', error);
     }
   }
 };
 
-const handleArgv = (argv: any) => {
+const handleArgv = (argv: string[]) => {
   const offset = app.isPackaged ? 1 : 2;
   const url = argv.find((arg, i) => i >= offset && arg.startsWith('jms'));
   if (url) handleUrl(url);
@@ -97,7 +103,7 @@ const handleClientPullUp = (url: string) => {
     } else {
       subPath += '/windows';
     }
-    let exeFilePath = path.join(subPath, 'JumpServerClient');
+    const exeFilePath = path.join(subPath, 'JumpServerClient');
     execFile(exeFilePath, [url], error => {
       if (error) {
         console.log(error);
@@ -107,7 +113,8 @@ const handleClientPullUp = (url: string) => {
 };
 
 const createWindow = async (): Promise<void> => {
-  const windowBounds = (conf.get('windowBounds') as { width: number; height: number }) || defaults.windowBounds;
+  const windowBounds =
+    (conf.get('windowBounds') as { width: number; height: number }) || defaults.windowBounds;
 
   mainWindow = new BrowserWindow({
     width: windowBounds.width,
@@ -132,7 +139,11 @@ const createWindow = async (): Promise<void> => {
   });
 
   mainWindow.webContents.setWindowOpenHandler(details => {
-    shell.openExternal(details.url);
+    try {
+      shell.openExternal(details.url);
+    } catch (err) {
+      log.error('Failed to open external URL:', err);
+    }
     return { action: 'deny' };
   });
 
@@ -179,6 +190,24 @@ const createWindow = async (): Promise<void> => {
   }
 };
 
+// @ts-ignore
+app.on('second-instance', (_event: Event, argv: string[]) => {
+  log.info('second-instance');
+  if (process.platform === 'win32' || process.platform === 'linux') {
+    handleArgv(argv);
+  }
+  if (mainWindow && openMainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  }
+});
+
+// @ts-ignore
+app.on('open-url', (_event: Event, url: string) => {
+  log.info('open-url');
+  handleUrl(url);
+});
+
 !app.requestSingleInstanceLock() ? app.quit() : '';
 
 app.whenReady().then(async () => {
@@ -200,21 +229,25 @@ app.whenReady().then(async () => {
   conf.registerRendererListener();
   useConf();
 
-  await createWindow();
   setDefaultProtocol();
 
-  setTitleBar(conf.get('defaultSetting.theme') as string);
-
-  if (process.platform === 'win32') {
+  if (process.platform === 'win32' || process.platform === 'linux') {
     handleArgv(process.argv);
+  }
+  log.info('whenReady: ', openMainWindow);
+  if (openMainWindow) {
+    await createWindow();
+    setTitleBar(conf.get('defaultSetting.theme') as string);
+  } else {
+    app.quit();
   }
 
   app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (BrowserWindow.getAllWindows().length === 0 && openMainWindow) createWindow();
   });
 
   if (is.dev) {
-    if (process.platform === 'win32') {
+    if (process.platform === 'win32' || process.platform === 'linux') {
       process.on('message', data => {
         if (data === 'graceful-exit') {
           app.quit();
@@ -231,26 +264,7 @@ app.whenReady().then(async () => {
 // 除外 macOS 外，关闭所有窗口时退出 app
 app.on('window-all-closed', () => {
   // mainWindow 可能已经被销毁，所以不要再尝试访问它
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
-});
-
-// @ts-ignore
-app.on('second-instance', (_event: Event, argv: string) => {
-  if (process.platform === 'win32') {
-    handleArgv(argv);
-  }
-  if (mainWindow) {
-    if (mainWindow.isMinimized()) mainWindow.restore();
-    mainWindow.focus();
-  }
-});
-
-// 从 web 唤起 Client
-// @ts-ignore
-app.on('open-url', (_event: Event, url: string) => {
-  handleUrl(url);
+  app.quit();
 });
 
 const setTitleBar = (theme: string) => {

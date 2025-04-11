@@ -32,7 +32,7 @@ import { useElectronConfig } from './hooks/useElectronConfig';
 import { getIconImage, getAvatarImage } from './utils/common';
 
 import type { ConfigProviderProps } from 'naive-ui';
-
+import { useRouter } from 'vue-router';
 import mittBus from './eventBus';
 import LoginModal from './components/LoginModal/index.vue';
 
@@ -48,6 +48,7 @@ const {
 } = useUserAccount();
 
 const userStore = useUserStore();
+const router = useRouter();
 
 const defaultLang = ref('');
 const defaultTheme = ref('');
@@ -134,6 +135,9 @@ onMounted(async () => {
   // 检查是否需要显示登录框
   if (!userStore.token || (userStore.userInfo && userStore.userInfo.length <= 0)) {
     handleModalOpacity();
+  }
+  if (userStore.userInfo.length > 0) {
+    router.push({ name: 'Linux' });
   }
 
   window.electron.ipcRenderer.on('set-token', (_e, token: string) => handleTokenReceived(token));
