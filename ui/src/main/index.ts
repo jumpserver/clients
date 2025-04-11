@@ -139,7 +139,11 @@ const createWindow = async (): Promise<void> => {
   });
 
   mainWindow.webContents.setWindowOpenHandler(details => {
-    shell.openExternal(details.url);
+    try {
+      shell.openExternal(details.url);
+    } catch (err) {
+      log.error('Failed to open external URL:', err);
+    }
     return { action: 'deny' };
   });
 

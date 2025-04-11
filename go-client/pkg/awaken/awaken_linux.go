@@ -70,17 +70,29 @@ func awakenSSHCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		currentPath := filepath.Dir(os.Args[0])
 		commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
 		clientPath := filepath.Join(currentPath, "client")
-		out, _ := exec.Command("bash", "-c", "echo $XDG_CURRENT_DESKTOP").CombinedOutput()
-		currentDesktop := strings.ToLower(strings.Trim(string(out), "\n"))
+		out, err := exec.Command("bash", "-c", "echo $XDG_CURRENT_DESKTOP").CombinedOutput()
+		if err != nil {
+			global.LOG.Error(fmt.Sprintf("Failed to detect desktop environment: %v", err))
+			return nil
+		}
+
+		currentDesktop := strings.ToLower(strings.TrimSpace(string(out)))
 
 		switch currentDesktop {
-		case "gnome", "ubuntu:gnome", "ukui":
-			cmd = exec.Command(
-				"gnome-terminal", "--", "bash", "-c",
+		case "gnome", "ubuntu:gnome", "ukui", "cinnamon":
+			cmd = exec.Command("gnome-terminal", "--", "bash", "-c",
 				fmt.Sprintf("%s %s; exec bash -i", clientPath, commands),
 			)
+		case "unity":
+			cmd = exec.Command("x-terminal-emulator", "-e", fmt.Sprintf("%s %s", clientPath, commands))
 		case "deepin":
 			cmd = exec.Command("deepin-terminal", "--keep-open", "-C", fmt.Sprintf("%s %s", clientPath, commands))
+		case "kde":
+			cmd = exec.Command("konsole", "--noclose", "-e", "bash", "-c", fmt.Sprintf("%s %s", clientPath, commands))
+		case "xfce":
+			cmd = exec.Command("xfce4-terminal", "--hold", "-e", fmt.Sprintf("%s %s", clientPath, commands))
+		case "lxde":
+			cmd = exec.Command("lxterminal", "-e", fmt.Sprintf("%s %s", clientPath, commands))
 		default:
 			msg := fmt.Sprintf("Not yet supported %s desktop system", currentDesktop)
 			global.LOG.Info(msg)
