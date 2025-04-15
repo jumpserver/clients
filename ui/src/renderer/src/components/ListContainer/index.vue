@@ -172,8 +172,6 @@ const onClickRightOutside = () => {
 };
 
 const getAssetAccount = (assetId: string) => {
-  console.log('getAssetAccount', assetId);
-  console.log('assetStore', assetStore.assetMap);
   const assetInfo = assetStore.getAssetMap(assetId);
   return assetInfo?.account?.label;
 };
