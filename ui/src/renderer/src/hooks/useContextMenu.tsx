@@ -24,7 +24,7 @@ import { useAssetStore } from '@renderer/store/module/assetStore';
 import { createConnectToken, getAssetDetail, getLocalClientUrl } from '@renderer/api/modals/asset';
 import { useHistoryStore } from '@renderer/store/module/historyStore';
 
-import { Link, Eye, FileText, UsersRound, UserRoundCheck, Check } from 'lucide-vue-next';
+import { Eye, FileText, UsersRound, UserRoundCheck, Check } from 'lucide-vue-next';
 
 export interface IConnectionData {
   asset: string;
@@ -244,12 +244,11 @@ export const useContextMenu = () => {
           has_secret: account ? account?.has_secret : originalMessage?.account?.has_secret,
           alias: account ? account?.alias : originalMessage?.account?.alias,
           label: account ? account.name : originalMessage?.account?.label,
-          key: account ? account?.id : originalMessage?.account?.key
-
-          // id: account ? account?.id : originalMessage?.account?.id,
-          // name: account ? account?.name : originalMessage?.account?.name,
-          // username: account ? account?.username : originalMessage?.account?.username,
-          // secret_type: account ? account?.secret_type : originalMessage?.account?.secret_type,
+          key: account ? account?.id : originalMessage?.account?.key,
+          id: account ? account?.id : originalMessage?.account?.id,
+          name: account ? account?.name : originalMessage?.account?.name,
+          username: account ? account?.username : originalMessage?.account?.username,
+          secret_type: account ? account?.secret_type : originalMessage?.account?.secret_type
         },
         protocol: {
           type: 'render',
@@ -361,24 +360,55 @@ export const useContextMenu = () => {
         ] as DropdownOption[];
 
         if (!assetStore.getAssetMap(assetDetail.id!)) {
-          // prettier-ignore
-          const filteredAccount = accountMenuItem.children.filter(child => child.alias !== '@USER' && child.alias !== '@INPUT');
+          // 获取第一个非特殊账号
+          // 直接从 assetDetail.permed_accounts 中获取第一个符合条件的账号
+          const firstNormalAccount = assetDetail.permed_accounts.find(
+            (account: Permed_accounts) =>
+              account.alias !== '@USER' && account.alias !== '@INPUT' && account.alias !== '@ANON'
+          );
 
-          assetStore.setAssetMap(detailMessage.value.id!, {
-            account: filteredAccount[0],
-            protocol: protocolMenuItem.children[0]
-          });
+          // 获取第一个协议
+          const firstProtocol = assetDetail.permed_protocols.find(
+            (protocol: Permed_protocols) => protocol.public
+          );
 
-          connectionData.value = {
-            asset: assetDetail.id,
-            account: assetStore.getAssetMap(assetDetail.id!)?.account?.label as string,
-            protocol: assetStore.getAssetMap(assetDetail.id!)?.protocol?.key as string,
-            input_username: '',
-            input_secret: ''
-          };
+          if (firstNormalAccount && firstProtocol) {
+            const accountObject = {
+              type: 'render',
+              has_secret: firstNormalAccount.has_secret,
+              alias: firstNormalAccount.alias,
+              label: firstNormalAccount.name,
+              key: firstNormalAccount.id,
+              id: firstNormalAccount.id,
+              name: firstNormalAccount.name,
+              username: firstNormalAccount.username,
+              secret_type: firstNormalAccount.secret_type
+            };
+
+            const protocolObject = {
+              type: 'render',
+              key: firstProtocol.name,
+              label: firstProtocol.name
+            };
+
+            assetStore.setAssetMap(detailMessage.value.id!, {
+              account: accountObject,
+              protocol: protocolObject
+            });
+
+            // 更新连接数据
+            connectionData.value = {
+              asset: assetDetail.id,
+              account: firstNormalAccount.id,
+              protocol: firstProtocol.name,
+              input_username: firstNormalAccount.username || '',
+              input_secret: ''
+            };
+          } else {
+            console.error('No suitable account or protocol found');
+          }
         } else {
           const originalMessage = assetStore.getAssetMap(detailMessage.value.id!);
-
           // 只在快速连接时处理特殊账号类型
           if (
             isQuickConnect &&
@@ -416,9 +446,9 @@ export const useContextMenu = () => {
           } else {
             connectionData.value = {
               asset: assetDetail.id,
-              account: originalMessage.account.label as string,
+              account: originalMessage.account.id as string,
               protocol: originalMessage.protocol.key as string,
-              input_username: '',
+              input_username: originalMessage.account.username as string,
               input_secret: ''
             };
           }
