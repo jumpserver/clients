@@ -133,6 +133,9 @@ func awakenDBCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		"port":     strconv.Itoa(r.Port),
 		"dbname":   r.DBName,
 	}
+	if r.Protocol == "oracle" {
+		connectMap["dbname"] = r.getUserName()
+	}
 	if appItem.IsInternal {
 		var argFormat string
 		switch r.Protocol {
