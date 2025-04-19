@@ -129,6 +129,9 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		"dbname":   r.DBName,
 	}
 
+	if r.Protocol == "oracle" {
+		connectMap["dbname"] = r.getUserName()
+	}
 	if r.Protocol == "sqlserver" && appItem.Name == "dbeaver" {
 		connectMap["protocol"] = "mssql_jdbc_ms_new"
 	}

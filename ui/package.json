@@ -1,7 +1,7 @@
 {
   "name": "jumpserver-client",
   "author": "Fit2Cloud Technology Co., Ltd.; <support@fit2cloud.com>",
-  "version": "v3.0.2",
+  "version": "v3.0.3",
   "homepage": "https://jumpserver.org",
   "main": "./out/main/index.js",
   "scripts": {
@@ -27,6 +27,7 @@
     "axios": "^1.7.7",
     "clipboard-polyfill": "^4.1.0",
     "electron-conf": "^1.2.1",
+    "electron-log": "^5.3.3",
     "electron-store": "^10.0.0",
     "electron-updater": "^6.1.7",
     "lucide-vue-next": "^0.468.0",
