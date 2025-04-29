@@ -6,15 +6,15 @@
     :class="active ? 'show-drawer' : ''"
   >
     <n-grid-item :span="2">
-      <n-input-group>
+      <n-input-group size="small">
         <n-input
-          round
+          v-model:value="searchInput"
+          size="small"
           clearable
           placeholder="Search for assets"
-          v-model:value="searchInput"
-          @keypress.native.enter="onKeyEnter"
+          @keypress.enter="onKeyEnter"
         />
-        <n-button type="primary" secondary round @click="handleSearch">
+        <n-button secondary type="primary" size="small" @click="handleSearch">
           <template #icon>
             <Search :size="16" />
           </template>
@@ -26,10 +26,11 @@
     <n-grid-item :span="1">
       <n-flex class="h-full !flex-nowrap" justify="space-around" align="center">
         <n-select
-          class="w-1/2 !rounded-4xl"
-          :options="orginizationList"
-          v-model:value="userStore.currentOrginization"
-          @update:value="handleChangeOrginization"
+          v-model:value="userStore.currentOrganization"
+          size="small"
+          class="w-1/2 !rounded-md"
+          :options="organizationList"
+          @update:value="handleChangeOrganization"
         />
 
         <RightIconZone />
@@ -56,15 +57,15 @@ const userStore = useUserStore();
 
 const searchInput = ref('');
 
-const orginizationList = computed(() => {
-  return userStore.orginization?.map(item => ({
+const organizationList = computed(() => {
+  return userStore.organization?.map(item => ({
     label: item.name,
     value: item.id
   }));
 });
 
-const handleChangeOrginization = (value: string) => {
-  userStore.setCurrentOrginization(value);
+const handleChangeOrganization = (value: string) => {
+  userStore.setCurrentOrganization(value);
 
   nextTick(() => {
     mittBus.emit('search', '');
@@ -88,10 +89,6 @@ const onKeyEnter = (event: KeyboardEvent) => {
 
 <style scoped lang="scss">
 @use './index.scss';
-
-::v-deep(.n-base-selection) {
-  border-radius: 2.125rem;
-}
 
 ::v-deep(.n-popselect-menu .n-base-select-option) {
   padding: 0 1rem !important;

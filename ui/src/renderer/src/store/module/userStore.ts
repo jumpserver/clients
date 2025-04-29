@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { IUserInfo } from '@renderer/store/interface';
 import { piniaPersistConfig } from '@renderer/store/helper';
 
-import type { IUser, IOrginization } from '@renderer/store/interface';
+import type { IUser, IOrganization } from '@renderer/store/interface';
 
 export const useUserStore = defineStore({
   id: 'client-user',
@@ -12,10 +12,10 @@ export const useUserStore = defineStore({
     sort: 'name',
     token: '',
     currentSite: '',
-    currentOrginization: '',
+    currentOrganization: '',
 
     userInfo: [],
-    orginization: [],
+    organization: [],
     currentUser: {}
   }),
   actions: {
@@ -44,8 +44,8 @@ export const useUserStore = defineStore({
     setCurrentListSort(type) {
       this.sort = type;
     },
-    setOrginization(orgInfo: IOrginization) {
-      this.orginization?.push({
+    setOrganization(orgInfo: IOrganization) {
+      this.organization?.push({
         id: orgInfo.id,
         is_default: orgInfo.is_default,
         is_root: orgInfo.is_root,
@@ -53,8 +53,8 @@ export const useUserStore = defineStore({
         name: orgInfo.name
       });
     },
-    setCurrentOrginization(orgId: string) {
-      this.currentOrginization = orgId;
+    setCurrentOrganization(orgId: string) {
+      this.currentOrganization = orgId;
     },
     reset() {
       this.token = '';
@@ -62,12 +62,12 @@ export const useUserStore = defineStore({
       this.userInfo = [];
       this.currentSite = '';
       this.currentUser = {};
-      this.currentOrginization = '';
-      this.orginization = [];
+      this.currentOrganization = '';
+      this.organization = [];
     },
-    resetOrginization() {
-      this.currentOrginization = '';
-      this.orginization = [];
+    resetOrganization() {
+      this.currentOrganization = '';
+      this.organization = [];
     }
   },
   persist: piniaPersistConfig('client-user')

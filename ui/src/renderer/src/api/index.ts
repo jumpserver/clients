@@ -20,7 +20,9 @@ try {
   const { theme } = await getDefaultSetting();
 
   defaultTheme.value = theme;
-} catch (e) {}
+} catch (e) {
+  console.log(e);
+}
 
 const configProviderPropsRef = computed<ConfigProviderProps>(() => ({
   theme: defaultTheme.value === 'light' ? lightTheme : darkTheme
@@ -53,7 +55,7 @@ class RequestHttp {
         userStore.setLoading(config.loading);
 
         if (config.headers && typeof config.headers.set === 'function') {
-          config.headers['X-JMS-ORG'] = userStore.currentOrginization;
+          config.headers['X-JMS-ORG'] = userStore.currentOrganization;
           config.headers['Authorization'] = `Bearer ${userStore.token}`;
           config.headers['X-TZ'] = Intl.DateTimeFormat().resolvedOptions().timeZone;
         }

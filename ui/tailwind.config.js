@@ -21,7 +21,7 @@ module.exports = {
         }
       },
       fontFamily: {
-        'custom': ['YourFontName', 'sans-serif'],
+        custom: ['YourFontName', 'sans-serif']
       }
     }
   },

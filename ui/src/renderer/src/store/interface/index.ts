@@ -23,16 +23,16 @@ export interface IUser {
 
   currentSite: string;
 
-  currentOrginization: string;
+  currentOrganization: string;
 
   userInfo: IUserInfo[];
 
   currentUser: Partial<IUserInfo>;
 
-  orginization: Array<IOrginization>;
+  organization: Array<IOrganization>;
 }
 
-export interface IOrginization {
+export interface IOrganization {
   id: string;
   is_default: boolean;
   is_root: boolean;
