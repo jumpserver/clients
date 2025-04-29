@@ -2,11 +2,11 @@
   <n-flex vertical justify="space-between" class="py-4" style="height: calc(100% - 30px)">
     <div>
       <n-menu
+        v-model:value="selectedKey"
         :options="options"
         :collapsed="collapsed"
         :collapsed-width="64"
         :collapsed-icon-size="22"
-        v-model:value="selectedKey"
         class="w-full flex flex-col items-center"
       />
       <n-divider class="!my-3" />
@@ -92,6 +92,7 @@
           <n-flex vertical align="center" justify="start" class="w-full !gap-y-[5px]">
             <!-- 切换账号  -->
             <n-popselect
+              v-model:value="currentAccount"
               trigger="click"
               placement="right"
               :style="{
@@ -101,7 +102,6 @@
               :options="userOptions"
               :class="{ 'account-popselect': false }"
               :render-label="renderLabel"
-              v-model:value="currentAccount"
               @update:value="handleUpdateCurrentAccount"
             >
               <n-button text class="w-full justify-start">

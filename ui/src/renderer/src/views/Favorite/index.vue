@@ -3,8 +3,8 @@
   <MainSection
     :list-data="listData"
     :class="active ? 'show-drawer' : ''"
-    @loadMore="handleScroll"
-    />
+    @load-more="handleScroll"
+  />
 </template>
 
 <script setup lang="ts">

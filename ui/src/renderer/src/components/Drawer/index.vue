@@ -30,8 +30,8 @@
           <n-flex class="mx-[15px]">
             <n-card
               v-for="item of currentOption"
-              :bordered="false"
               :key="item"
+              :bordered="false"
               size="small"
               header-style="font-size: 13px;"
               class="rounded-[10px] !bg-secondary"
@@ -40,8 +40,8 @@
                 <n-collapse-item :name="item.display_name" :title="item.display_name">
                   <template #header-extra>
                     <n-switch
-                      size="small"
                       v-model:value="item.is_set"
+                      size="small"
                       @update:value="handleChangeSwitchValue(item)"
                     >
                       <template #checked>{{ t('Setting.Enabled') }}</template>
@@ -60,9 +60,9 @@
                           :disabled="item.is_internal || platform === 'macos'"
                         />
                         <input
+                          :id="item.name"
                           type="file"
                           name="filename"
-                          :id="item.name"
                           style="display: none"
                           @change="changeFile(item)"
                         />
@@ -70,8 +70,8 @@
                           type="primary"
                           ghost
                           size="small"
-                          @click="openFile(item)"
                           :disabled="item.is_internal || platform === 'macos'"
+                          @click="openFile(item)"
                         >
                           <n-icon :component="Folder28Regular" size="14" />
                         </n-button>
@@ -81,10 +81,10 @@
                       <n-select
                         v-model:value="item.match_first"
                         multiple
-                        @update:value="handleItemChange(item)"
                         :options="
                           item.protocol.map((value: any) => ({ label: value, value: value }))
                         "
+                        @update:value="handleItemChange(item)"
                       />
                     </n-form-item>
                     <n-form-item

@@ -5,13 +5,12 @@ import { useElectronConfig } from './useElectronConfig';
 import { getAvatarImage } from '@renderer/utils/common';
 import { useUserStore } from '@renderer/store/module/userStore';
 import { useSettingStore } from '@renderer/store/module/settingStore';
-import { getProfile, getOrginization } from '@renderer/api/modals/user';
-import { getSystemSetting } from "@renderer/api/modals/setting";
+import { getProfile, getOrganization } from '@renderer/api/modals/user';
+import { getSystemSetting } from '@renderer/api/modals/setting';
 import { createDiscreteApi, lightTheme, darkTheme } from 'naive-ui';
 
 import type { ConfigProviderProps } from 'naive-ui';
-import type { IUserInfo, IOrginization } from '@renderer/store/interface';
-
+import type { IUserInfo, IOrganization } from '@renderer/store/interface';
 
 export const useUserAccount = () => {
   const { t } = useI18n();
@@ -99,7 +98,7 @@ export const useUserAccount = () => {
     }
 
     userStore.setToken(token);
-    userStore.resetOrginization();
+    userStore.resetOrganization();
 
     try {
       const res = await getProfile();
@@ -127,8 +126,8 @@ export const useUserAccount = () => {
           currentSite: userStore.currentSite
         });
 
-        res.audit_orgs.forEach((org: IOrginization) => {
-          userStore.setOrginization(org);
+        res.audit_orgs.forEach((org: IOrganization) => {
+          userStore.setOrganization(org);
         });
 
         const setting = await getSystemSetting();
@@ -149,13 +148,13 @@ export const useUserAccount = () => {
     }
 
     try {
-      const orgRes = await getOrginization();
+      const orgRes = await getOrganization();
 
       if (orgRes) {
-        userStore.setCurrentOrginization(orgRes?.id);
+        userStore.setCurrentOrganization(orgRes?.id);
       }
-    } catch(e) {
-      useMessage.error(t('Message.GetOrginizationFailed'));
+    } catch (e) {
+      useMessage.error(t('Message.GetOrganizationFailed'));
     }
   };
 

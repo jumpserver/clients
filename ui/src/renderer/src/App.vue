@@ -3,13 +3,13 @@
     :locale="defaultLang === 'zh' ? zhCN : enUS"
     :theme="defaultTheme === 'dark' ? darkTheme : lightTheme"
     :class="defaultTheme === 'dark' ? 'theme-dark' : 'theme-light'"
-    :themeOverrides="defaultTheme === 'dark' ? darkThemeOverrides : lightThemeOverrides"
+    :theme-overrides="defaultTheme === 'dark' ? darkThemeOverrides : lightThemeOverrides"
   >
     <n-modal-provider>
       <n-message-provider>
         <div class="custom-header ele_drag bg-primary border-b-primary border-b">
           <div class="logo">
-            <img :src="<string>iconImage" alt="" />
+            <img :src="iconImage" alt="" />
             <span class="title text-primary">JumpServer Client</span>
           </div>
         </div>
@@ -52,7 +52,7 @@ const router = useRouter();
 
 const defaultLang = ref('');
 const defaultTheme = ref('');
-const iconImage = ref<string | null>(null);
+const iconImage = ref<string>('');
 const avatarImage = ref<string | null>(null);
 
 const configProviderPropsRef = computed<ConfigProviderProps>(() => ({
@@ -117,7 +117,10 @@ const handleThemeChange = async (theme: string) => {
 
 onMounted(async () => {
   try {
-    iconImage.value = await getIconImage();
+    const res = await getIconImage();
+    if (res) {
+      iconImage.value = res;
+    }
     avatarImage.value = await getAvatarImage();
 
     const { theme, language } = await getDefaultSetting();
@@ -136,7 +139,7 @@ onMounted(async () => {
   if (!userStore.token || (userStore.userInfo && userStore.userInfo.length <= 0)) {
     handleModalOpacity();
   }
-  if (userStore.userInfo.length > 0) {
+  if (userStore.userInfo && userStore.userInfo.length > 0) {
     router.push({ name: 'Linux' });
   }
 

@@ -7,9 +7,9 @@
       :width="240"
       :collapsed="collapsed"
       :collapsed-width="64"
+      class="h-full"
       @collapse="collapsed = true"
       @expand="collapsed = false"
-      class="h-full"
     >
       <SideMenu :collapsed="collapsed" />
     </n-layout-sider>
