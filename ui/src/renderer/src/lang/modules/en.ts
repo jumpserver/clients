@@ -1,5 +1,6 @@
 export default {
   Common: {
+    Version: 'Version',
     JumpServerClient: 'JumpServerClient',
     AppDesc: 'Introduction',
     DownloadUrl: 'Download Link',

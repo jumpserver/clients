@@ -227,6 +227,7 @@ app.whenReady().then(async () => {
   });
 
   conf.registerRendererListener();
+
   useConf();
 
   setDefaultProtocol();
@@ -234,7 +235,9 @@ app.whenReady().then(async () => {
   if (process.platform === 'win32' || process.platform === 'linux') {
     handleArgv(process.argv);
   }
+
   log.info('whenReady: ', openMainWindow);
+
   if (openMainWindow) {
     await createWindow();
     setTitleBar(conf.get('defaultSetting.theme') as string);
@@ -284,12 +287,13 @@ const setTitleBar = (theme: string) => {
 ipcMain.on('update-titlebar-overlay', (_, theme) => {
   setTitleBar(theme);
 });
-
 ipcMain.on('open-client', (_, url) => {
   handleClientPullUp(url);
 });
-
-//增改本地文件
 ipcMain.on('get-platform', function (event) {
   event.sender.send('platform-response', platform);
+});
+ipcMain.on('get-app-version', function (event) {
+  console.log('version', app.getVersion());
+  event.sender.send('app-version-response', app.getVersion());
 });
