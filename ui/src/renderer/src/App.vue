@@ -21,20 +21,20 @@
 </template>
 
 <script setup lang="ts">
+import mittBus from './eventBus';
+import LoginModal from './components/LoginModal/index.vue';
+
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import { useUserStore } from './store/module/userStore';
+import { useUserAccount } from './hooks/useUserAccount';
+import { useElectronConfig } from './hooks/useElectronConfig';
+import { getIconImage, getAvatarImage } from './utils/common';
 import { darkThemeOverrides, lightThemeOverrides } from './overrides';
 import { computed, watch, onBeforeUnmount, onMounted, ref, provide } from 'vue';
 import { darkTheme, enUS, zhCN, lightTheme, createDiscreteApi } from 'naive-ui';
 
-import { useUserAccount } from './hooks/useUserAccount';
-import { useElectronConfig } from './hooks/useElectronConfig';
-import { getIconImage, getAvatarImage } from './utils/common';
-
 import type { ConfigProviderProps } from 'naive-ui';
-import { useRouter } from 'vue-router';
-import mittBus from './eventBus';
-import LoginModal from './components/LoginModal/index.vue';
 
 const { t, locale } = useI18n();
 const { getDefaultSetting, setDefaultSetting } = useElectronConfig();
@@ -47,8 +47,8 @@ const {
   handleTokenReceived
 } = useUserAccount();
 
-const userStore = useUserStore();
 const router = useRouter();
+const userStore = useUserStore();
 
 const defaultLang = ref('');
 const defaultTheme = ref('');
@@ -118,9 +118,11 @@ const handleThemeChange = async (theme: string) => {
 onMounted(async () => {
   try {
     const res = await getIconImage();
+
     if (res) {
       iconImage.value = res;
     }
+
     avatarImage.value = await getAvatarImage();
 
     const { theme, language } = await getDefaultSetting();

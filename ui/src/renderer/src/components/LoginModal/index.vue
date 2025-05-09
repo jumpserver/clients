@@ -19,7 +19,6 @@
       <n-flex vertical justify="space-evenly" align="flex-start" class="w-full h-20">
         <n-input
           v-model:value="siteLocation"
-          round
           clearable
           size="medium"
           class="w-20"
