@@ -1,5 +1,6 @@
 .DS_Store
 .idea/
+.vscode
 go-client/test.go
 go-client/build
 interface/node_modules
@@ -14,4 +15,4 @@ new-Client/out
 new-Client/dist
 
 ui/node_modules
-ui/dist/
+ui/dist/r

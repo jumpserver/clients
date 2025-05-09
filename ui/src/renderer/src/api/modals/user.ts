@@ -5,5 +5,9 @@ export const getProfile = () => {
 };
 
 export const getOrganization = () => {
-  return request.get('/api/v1/orgs/orgs/current/');
+  return request.get('/api/v1/users/profile/permissions/');
 };
+
+export const getCurrent = () => {
+  return request.get('/api/v1/orgs/orgs/current/');
+}
