@@ -1,5 +1,6 @@
 export default {
   Common: {
+    Version: '版本信息',
     JumpServerClient: 'JumpServer客户端',
     AppDesc: '应用说明',
     DownloadUrl: '下载地址',
