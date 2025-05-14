@@ -1,5 +1,6 @@
 export default {
   Common: {
+    Version: '版本信息',
     JumpServerClient: 'JumpServer客户端',
     AppDesc: '应用说明',
     DownloadUrl: '下载地址',
@@ -59,7 +60,8 @@ export default {
     IsActivated: '是否激活',
     CurrentAccount: '当前账号',
     CurrentProtocol: '当前协议',
-    ConnectionTip: '由于每条资产信息并未直接与账号相关联因此需要先手动右击获取账号列表之后才能获得账号列表以及相关信息'
+    ConnectionTip:
+      '由于每条资产信息并未直接与账号相关联因此需要先手动右击获取账号列表之后才能获得账号列表以及相关信息'
   },
   Dialog: {
     'Save&Default': '保存且默认',

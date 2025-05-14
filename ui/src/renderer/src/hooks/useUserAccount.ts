@@ -1,17 +1,17 @@
 import { useI18n } from 'vue-i18n';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useDebounceFn } from '@vueuse/core';
 import { useElectronConfig } from './useElectronConfig';
 import { getAvatarImage } from '@renderer/utils/common';
 import { useUserStore } from '@renderer/store/module/userStore';
-import { useSettingStore } from '@renderer/store/module/settingStore';
-import { getProfile, getOrginization } from '@renderer/api/modals/user';
-import { getSystemSetting } from "@renderer/api/modals/setting";
+import { getSystemSetting } from '@renderer/api/modals/setting';
 import { createDiscreteApi, lightTheme, darkTheme } from 'naive-ui';
+import { useSettingStore } from '@renderer/store/module/settingStore';
+import { getProfile, getOrganization, getCurrent } from '@renderer/api/modals/user';
 
 import type { ConfigProviderProps } from 'naive-ui';
-import type { IUserInfo, IOrginization } from '@renderer/store/interface';
-
+import type { IUserInfo, IOrganization } from '@renderer/store/interface';
 
 export const useUserAccount = () => {
   const { t } = useI18n();
@@ -92,17 +92,18 @@ export const useUserAccount = () => {
   /**
    * @description 处理 token 接收
    */
-  const handleTokenReceived = async (token: string) => {
+  const _handleTokenReceived = async (token: string) => {
     if (!token) {
       useMessage.error('Token is required');
       return;
     }
 
     userStore.setToken(token);
-    userStore.resetOrginization();
+    userStore.resetOrganization();
 
     try {
       const res = await getProfile();
+      const orgRes = await getOrganization();
 
       if (res) {
         notification.create({
@@ -127,11 +128,11 @@ export const useUserAccount = () => {
           currentSite: userStore.currentSite
         });
 
-        res.audit_orgs.forEach((org: IOrginization) => {
-          userStore.setOrginization(org);
-        });
-
         const setting = await getSystemSetting();
+
+        orgRes.audit_orgs.forEach((org: IOrganization) => {
+          userStore.setOrganization(org);
+        });
 
         if (setting) {
           settingStore.setRdpClientOption(setting.graphics.rdp_client_option);
@@ -149,15 +150,17 @@ export const useUserAccount = () => {
     }
 
     try {
-      const orgRes = await getOrginization();
+      const currentRes = await getCurrent();
 
-      if (orgRes) {
-        userStore.setCurrentOrginization(orgRes?.id);
+      if (currentRes) {
+        userStore.setCurrentOrganization(currentRes?.id);
       }
-    } catch(e) {
-      useMessage.error(t('Message.GetOrginizationFailed'));
+    } catch (e) {
+      useMessage.error(t('Message.GetOrganizationFailed'));
     }
   };
+
+  const handleTokenReceived = useDebounceFn(_handleTokenReceived, 1000);
 
   const handleModalOpacity = () => {
     showLoginModal.value = !showLoginModal.value;

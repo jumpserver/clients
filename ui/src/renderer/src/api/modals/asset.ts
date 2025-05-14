@@ -40,7 +40,7 @@ export const getLocalClientUrl = token => {
     `/api/v1/authentication/connection-token/${token.id}/client-url/`,
     userStore.currentSite ?? 'https://jumpserver.local'
   );
-  let params = cleanRDPParams(settingStore);
+  const params = cleanRDPParams(settingStore);
   if (params) {
     for (const [k, v] of Object.entries(params)) {
       url.searchParams.append(k, v);

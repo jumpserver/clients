@@ -12,7 +12,7 @@
       <n-card
         hoverable
         size="small"
-        class="h-36 rounded-lg cursor-pointer"
+        class="h-20rounded-md cursor-pointer"
         :content-style="{
           display: 'flex',
           flexDirection: 'column',
@@ -28,9 +28,9 @@
 
             <n-flex justify="start" align="center" class="w-full">
               <n-flex class="w-full">
-                <n-popover trigger="hover" placement="top">
+                <n-popover trigger="hover" size="small" placement="top">
                   <template #trigger>
-                    <n-tag round size="small" type="info" :bordered="false" class="cursor-pointer">
+                    <n-tag size="small" type="info" :bordered="false" class="cursor-pointer">
                       <span class="font-normal tracking-wider">
                         {{ t('Common.CurrentAccount') }}:
                       </span>
@@ -44,9 +44,9 @@
                   {{ t('Common.CurrentAccount') }}: {{ getAssetAccount(item.id) || '-' }}
                 </n-popover>
 
-                <n-popover trigger="hover" placement="top">
+                <n-popover trigger="hover" size="small" placement="top">
                   <template #trigger>
-                    <n-tag round size="small" type="info" :bordered="false" class="cursor-pointer">
+                    <n-tag size="small" type="info" :bordered="false" class="cursor-pointer">
                       <span class="font-normal tracking-wider">
                         {{ t('Common.CurrentProtocol') }}:
                       </span>
@@ -59,10 +59,18 @@
                   {{ t('Common.CurrentProtocol') }}: {{ getAssetProtocol(item.id) || '-' }}
                 </n-popover>
 
-                <n-tag size="small" :bordered="false" type="success" round>
+                <n-tag size="small" :bordered="false" type="success">
                   可连接
                   <template #icon>
                     <n-icon :component="CheckmarkCircle" />
+                  </template>
+                </n-tag>
+
+                <n-tag size="small" :bordered="false" :type="item.is_active ? 'success' : 'error'">
+                  {{ item.is_active ? '已激活' : '未激活' }}
+                  <template #icon>
+                    <n-icon v-if="item.is_active" :component="CheckmarkCircle" />
+                    <n-icon v-else :component="CloseCircle" />
                   </template>
                 </n-tag>
               </n-flex>
@@ -73,11 +81,12 @@
         <template #header-extra>
           <n-popover trigger="hover">
             <template #trigger>
-              <Link
+              <n-icon
+                :component="Desktop"
                 :size="16"
                 class="outline-none icon-hover"
                 @click="handleConnect(item, $event)"
-              />
+              ></n-icon>
             </template>
 
             <span>
@@ -86,29 +95,17 @@
           </n-popover>
         </template>
 
-        <n-divider class="!m-0" />
+        <n-divider class="!m-0" dashed />
 
-        <n-grid :cols="1" class="h-full">
-          <n-gi>
-            <n-flex align="center" justify="start" class="h-full w-full">
-              <n-text depth="1" class="font-normal">{{ t('Common.Address') }}: </n-text>
+        <n-card :bordered="false" :content-style="{ padding: '0' }" class="h-full">
+          <n-flex align="center" class="h-full mt-2">
+            <n-text depth="1" class="font-normal">{{ t('Common.Address') }}: </n-text>
 
-              <n-ellipsis style="max-width: 240px">
-                <n-text depth="2"> {{ item.address }} </n-text>
-              </n-ellipsis>
-            </n-flex>
-          </n-gi>
-
-          <n-gi>
-            <n-flex align="center" justify="start" class="h-full w">
-              <n-text depth="1" class="font-normal"> {{ t('Common.IsActivated') }}: </n-text>
-
-              <n-text depth="2">
-                {{ item.is_active }}
-              </n-text>
-            </n-flex>
-          </n-gi>
-        </n-grid>
+            <n-ellipsis style="max-width: 240px">
+              <n-text depth="2"> {{ item.address }} </n-text>
+            </n-ellipsis>
+          </n-flex>
+        </n-card>
       </n-card>
     </n-gi>
   </n-grid>
@@ -136,8 +133,8 @@ import { useAssetStore } from '@renderer/store/module/assetStore';
 import { useHistoryStore } from '@renderer/store/module/historyStore';
 import { useAccountModal } from '@renderer/components/MainSection/helper';
 
-import { Link } from 'lucide-vue-next';
-import { CheckmarkCircle } from '@vicons/ionicons5';
+import { Desktop } from '@vicons/fa';
+import { CheckmarkCircle, CloseCircle } from '@vicons/ionicons5';
 import { createConnectToken, getLocalClientUrl } from '@renderer/api/modals/asset';
 
 import type { IListItem, IItemDetail } from '@renderer/components/MainSection/interface';

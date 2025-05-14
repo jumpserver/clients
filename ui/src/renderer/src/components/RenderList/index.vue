@@ -23,7 +23,7 @@ import { getColumns } from './config';
 import { useAssetList } from '@renderer/hooks/useAssetList';
 import { getDynamicHeight } from './helper';
 
-import mittBus from "@renderer/eventBus";
+import mittBus from '@renderer/eventBus';
 
 const props = withDefaults(
   defineProps<{

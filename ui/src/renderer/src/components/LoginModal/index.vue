@@ -18,13 +18,12 @@
     <template #default>
       <n-flex vertical justify="space-evenly" align="flex-start" class="w-full h-20">
         <n-input
-          round
+          v-model:value="siteLocation"
           clearable
           size="medium"
           class="w-20"
           :status="inputStatus"
           :placeholder="t('Common.LoginModalPlaceholder')"
-          v-model:value="siteLocation"
         >
           <template #prefix>
             <n-icon :component="Location" />

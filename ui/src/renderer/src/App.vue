@@ -3,13 +3,13 @@
     :locale="defaultLang === 'zh' ? zhCN : enUS"
     :theme="defaultTheme === 'dark' ? darkTheme : lightTheme"
     :class="defaultTheme === 'dark' ? 'theme-dark' : 'theme-light'"
-    :themeOverrides="defaultTheme === 'dark' ? darkThemeOverrides : lightThemeOverrides"
+    :theme-overrides="defaultTheme === 'dark' ? darkThemeOverrides : lightThemeOverrides"
   >
     <n-modal-provider>
       <n-message-provider>
         <div class="custom-header ele_drag bg-primary border-b-primary border-b">
           <div class="logo">
-            <img :src="<string>iconImage" alt="" />
+            <img :src="iconImage" alt="" />
             <span class="title text-primary">JumpServer Client</span>
           </div>
         </div>
@@ -21,20 +21,20 @@
 </template>
 
 <script setup lang="ts">
+import mittBus from './eventBus';
+import LoginModal from './components/LoginModal/index.vue';
+
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import { useUserStore } from './store/module/userStore';
+import { useUserAccount } from './hooks/useUserAccount';
+import { useElectronConfig } from './hooks/useElectronConfig';
+import { getIconImage, getAvatarImage } from './utils/common';
 import { darkThemeOverrides, lightThemeOverrides } from './overrides';
 import { computed, watch, onBeforeUnmount, onMounted, ref, provide } from 'vue';
 import { darkTheme, enUS, zhCN, lightTheme, createDiscreteApi } from 'naive-ui';
 
-import { useUserAccount } from './hooks/useUserAccount';
-import { useElectronConfig } from './hooks/useElectronConfig';
-import { getIconImage, getAvatarImage } from './utils/common';
-
 import type { ConfigProviderProps } from 'naive-ui';
-import { useRouter } from 'vue-router';
-import mittBus from './eventBus';
-import LoginModal from './components/LoginModal/index.vue';
 
 const { t, locale } = useI18n();
 const { getDefaultSetting, setDefaultSetting } = useElectronConfig();
@@ -47,12 +47,12 @@ const {
   handleTokenReceived
 } = useUserAccount();
 
-const userStore = useUserStore();
 const router = useRouter();
+const userStore = useUserStore();
 
 const defaultLang = ref('');
 const defaultTheme = ref('');
-const iconImage = ref<string | null>(null);
+const iconImage = ref<string>('');
 const avatarImage = ref<string | null>(null);
 
 const configProviderPropsRef = computed<ConfigProviderProps>(() => ({
@@ -117,7 +117,12 @@ const handleThemeChange = async (theme: string) => {
 
 onMounted(async () => {
   try {
-    iconImage.value = await getIconImage();
+    const res = await getIconImage();
+
+    if (res) {
+      iconImage.value = res;
+    }
+
     avatarImage.value = await getAvatarImage();
 
     const { theme, language } = await getDefaultSetting();
@@ -136,7 +141,7 @@ onMounted(async () => {
   if (!userStore.token || (userStore.userInfo && userStore.userInfo.length <= 0)) {
     handleModalOpacity();
   }
-  if (userStore.userInfo.length > 0) {
+  if (userStore.userInfo && userStore.userInfo.length > 0) {
     router.push({ name: 'Linux' });
   }
 
