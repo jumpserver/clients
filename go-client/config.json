@@ -215,11 +215,6 @@
           },
           {
             "cmd": "ControlClick",
-            "type": "135,8",
-            "element": "[CLASS:TButton; INSTANCE:5]"
-          },
-          {
-            "cmd": "ControlClick",
             "type": "35,15",
             "element": "[CLASS:TButton; INSTANCE:2]"
           },

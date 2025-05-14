@@ -26,8 +26,14 @@ func EnsureDirExist(path string) {
 }
 
 func getNavicatURL(connectInfo map[string]string) string {
+	re := regexp.MustCompile(`@(.+)$`)
+	matches := re.FindStringSubmatch(connectInfo["name"])
+	name := connectInfo["username"]
+	if len(matches) > 1 {
+		name = matches[1]
+	}
 	url := fmt.Sprintf("navicat://conn.%s?Conn.Host=%s&Conn.Name=%s&Conn.Port=%s&Conn.Username=%s",
-		connectInfo["protocol"], connectInfo["host"], connectInfo["name"], connectInfo["port"], connectInfo["username"])
+		connectInfo["protocol"], connectInfo["host"], name, connectInfo["port"], connectInfo["username"])
 	switch connectInfo["protocol"] {
 	case "oracle":
 		url = strings.Replace(url, "conn.oracle", "conn.ora", 1)
@@ -189,20 +195,45 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 				maxRetry := 0
 				for {
 					ret := autoit.WinWaitActive(winTitle, "", sleepTime)
-					if ret != 0 || maxRetry > 3 {
+					time.Sleep(time.Duration(sleepTime) * 100 * time.Millisecond)
+					if ret != 0 || maxRetry > 30 {
 						break
 					}
 					maxRetry++
 				}
 			case "ControlSend":
-				autoit.ControlSend("", "", item.Element, getCommandFromArgs(connectMap, item.Type))
+				maxRetry := 0
+				for {
+					ret := autoit.ControlSend("", "", item.Element, getCommandFromArgs(connectMap, item.Type))
+					time.Sleep(300 * time.Millisecond)
+					if ret != 0 || maxRetry > 10 {
+						break
+					}
+					maxRetry++
+				}
 			case "ControlSetText":
-				autoit.ControlSetText("", "", item.Element, getCommandFromArgs(connectMap, item.Type))
+				maxRetry := 0
+				for {
+					ret := autoit.ControlSetText("", "", item.Element, getCommandFromArgs(connectMap, item.Type))
+					time.Sleep(300 * time.Millisecond)
+					if ret != 0 || maxRetry > 10 {
+						break
+					}
+					maxRetry++
+				}
 			case "ControlClick":
 				pos := strings.Split(item.Type, ",")
 				x, _ := strconv.Atoi(pos[0])
 				y, _ := strconv.Atoi(pos[1])
-				autoit.ControlClick("", "", item.Element, "left", 1, x, y)
+				maxRetry := 0
+				for {
+					ret := autoit.ControlClick("", "", item.Element, "left", 1, x, y)
+					time.Sleep(300 * time.Millisecond)
+					if ret != 0 || maxRetry > 10 {
+						break
+					}
+					maxRetry++
+				}
 			case "SendKey":
 				autoit.Send(item.Element)
 			}
