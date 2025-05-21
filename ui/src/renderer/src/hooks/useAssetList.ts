@@ -126,7 +126,7 @@ export function useAssetList(type: string) {
     userInfo => {
       if (userInfo && userInfo.length === 0) {
         listData.value = [];
-        userStore.setToken('');
+        userStore.setSession('');
       } else {
         getAssetsFromServer('reset');
       }

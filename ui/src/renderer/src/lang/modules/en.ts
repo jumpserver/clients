@@ -60,6 +60,10 @@ export default {
     IsActivated: 'Is Activated',
     CurrentAccount: 'Current Account',
     CurrentProtocol: 'Current Protocol',
+    Active: 'Active',
+    Inactive: 'Inactive',
+    Connectable: 'Connectable',
+    UnConnectable: 'UnConnectable',
     ConnectionTip:
       'Asset information is not directly linked to any account. To view the account list and related information, please right-click to retrieve them first.'
   },

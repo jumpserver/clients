@@ -51,7 +51,7 @@ export const useUserAccount = () => {
     if (userStore.userInfo && userStore.userInfo.length > 0) {
       const firstUser = userStore.userInfo[0];
 
-      userStore.setToken(firstUser.token);
+      userStore.setSession(firstUser.session);
       userStore.setCurrentUser({ ...firstUser });
       userStore.setCurrentSit(firstUser.currentSite as string);
     }
@@ -60,16 +60,16 @@ export const useUserAccount = () => {
   /**
    * @description 切换账号
    */
-  const switchAccount = async (token: string) => {
-    if (token === userStore.token) {
+  const switchAccount = async (session: string) => {
+    if (session === userStore.session) {
       return;
     }
 
     if (userStore.userInfo) {
-      const user = userStore.userInfo.find((item: IUserInfo) => item.token === token);
+      const user = userStore.userInfo.find((item: IUserInfo) => item.session === session);
 
       if (user) {
-        userStore.setToken(user.token);
+        userStore.setSession(user.session);
         userStore.setCurrentUser({ ...user });
         userStore.setCurrentSit(user.currentSite as string);
       }
@@ -90,15 +90,17 @@ export const useUserAccount = () => {
   const getAccountInfo = () => {};
 
   /**
-   * @description 处理 token 接收
+   * @description 处理 session 接收
    */
-  const _handleTokenReceived = async (token: string) => {
-    if (!token) {
+  const _handleTokenReceived = async (session: string) => {
+    console.log('session', session);
+
+    if (!session) {
       useMessage.error('Token is required');
       return;
     }
 
-    userStore.setToken(token);
+    userStore.setSession(session);
     userStore.resetOrganization();
 
     try {
@@ -113,7 +115,7 @@ export const useUserAccount = () => {
         });
 
         userStore.setUserInfo({
-          token,
+          session,
           username: res?.username,
           display_name: res?.system_roles.map((item: any) => item.display_name),
           avatar_url: await getAvatarImage(),
@@ -121,7 +123,7 @@ export const useUserAccount = () => {
         });
 
         userStore.setCurrentUser({
-          token,
+          session,
           username: res?.username,
           display_name: res?.system_roles.map((item: any) => item.display_name),
           avatar_url: await getAvatarImage(),

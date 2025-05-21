@@ -45,7 +45,7 @@ class RequestHttp {
       (config: CustomAxiosRequestConfig) => {
         const userStore = useUserStore();
 
-        if (!userStore.token) {
+        if (!userStore.session) {
           return Promise.reject();
         }
 
@@ -56,7 +56,7 @@ class RequestHttp {
 
         if (config.headers && typeof config.headers.set === 'function') {
           config.headers['X-JMS-ORG'] = userStore.currentOrganization;
-          config.headers['Authorization'] = `Bearer ${userStore.token}`;
+          config.headers['Cookie'] = `${userStore.session}`;
           config.headers['X-TZ'] = Intl.DateTimeFormat().resolvedOptions().timeZone;
         }
 

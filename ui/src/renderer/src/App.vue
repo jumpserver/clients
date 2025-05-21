@@ -138,14 +138,14 @@ onMounted(async () => {
   }
 
   // 检查是否需要显示登录框
-  if (!userStore.token || (userStore.userInfo && userStore.userInfo.length <= 0)) {
+  if (!userStore.session || (userStore.userInfo && userStore.userInfo.length <= 0)) {
     handleModalOpacity();
   }
   if (userStore.userInfo && userStore.userInfo.length > 0) {
     router.push({ name: 'Linux' });
   }
 
-  window.electron.ipcRenderer.on('set-token', (_e, token: string) => handleTokenReceived(token));
+  window.electron.ipcRenderer.on('set-login-session', (_e, session: string) => handleTokenReceived(session));
 
   mittBus.on('changeLang', handleLangChange);
   mittBus.on('changeTheme', handleThemeChange);

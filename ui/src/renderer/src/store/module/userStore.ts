@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia';
+import { defineStore } from 'pinia'
 import { IUserInfo } from '@renderer/store/interface';
 import { piniaPersistConfig } from '@renderer/store/helper';
 
@@ -10,7 +10,7 @@ export const useUserStore = defineStore({
     loading: false,
 
     sort: 'name',
-    token: '',
+    session: '',
     currentSite: '',
     currentOrganization: '',
 
@@ -19,14 +19,14 @@ export const useUserStore = defineStore({
     currentUser: {}
   }),
   actions: {
-    setToken(token: string) {
-      this.token = token;
+    setSession(session: string) {
+      this.session = session;
     },
     setCurrentSit(site: string) {
       this.currentSite = site;
     },
     setUserInfo(userInfo: IUserInfo) {
-      if (this.userInfo!.some((item: IUserInfo) => item.token === userInfo.token)) return;
+      if (this.userInfo!.some((item: IUserInfo) => item.session === userInfo.session)) return;
 
       this.userInfo!.push(userInfo);
     },
@@ -38,7 +38,7 @@ export const useUserStore = defineStore({
     },
     removeCurrentUser() {
       this.userInfo = this.userInfo!.filter(
-        (item: IUserInfo) => item.token !== this.currentUser!.token
+        (item: IUserInfo) => item.session !== this.currentUser!.session
       );
     },
     setCurrentListSort(type) {
@@ -57,7 +57,7 @@ export const useUserStore = defineStore({
       this.currentOrganization = orgId;
     },
     reset() {
-      this.token = '';
+      this.session = '';
       this.loading = false;
       this.userInfo = [];
       this.currentSite = '';
