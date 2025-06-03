@@ -145,13 +145,18 @@ onMounted(async () => {
     router.push({ name: 'Linux' });
   }
 
-  window.electron.ipcRenderer.on('set-token', (_e, token: string) => handleTokenReceived(token));
+  // 确保只注册一次事件监听器
+  window.electron.ipcRenderer.removeAllListeners('set-token');
+  window.electron.ipcRenderer.on('set-token', (_e, token: string) => {
+    handleTokenReceived(token);
+  });
 
   mittBus.on('changeLang', handleLangChange);
   mittBus.on('changeTheme', handleThemeChange);
 });
 
 onBeforeUnmount(() => {
+  window.electron.ipcRenderer.removeAllListeners('set-token');
   mittBus.off('changeLang', handleLangChange);
   mittBus.off('changeTheme', handleThemeChange);
 });

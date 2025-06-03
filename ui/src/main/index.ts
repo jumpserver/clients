@@ -25,7 +25,9 @@ let defaults = {
 
 let mainWindow: BrowserWindow | null = null;
 
-let openMainWindow: boolean = true;
+let openMainWindow = false;
+let lastSentToken = '';
+let lastSentTime = 0;
 
 const platform =
   process.platform === 'win32' ? 'windows' : process.platform === 'darwin' ? 'macos' : 'linux';
@@ -63,8 +65,20 @@ const handleUrl = (url: string) => {
     try {
       const decodedToken = JSON.parse(decodedTokenJson);
       if ('bearer_token' in decodedToken) {
+        const currentTime = Date.now();
+        const bearerToken = decodedToken.bearer_token;
+
+        // 防止重复发送相同token（5秒内）
+        if (lastSentToken === bearerToken && currentTime - lastSentTime < 5000) {
+          log.info('Token already sent recently, skipping...');
+          return;
+        }
+
         openMainWindow = true;
-        mainWindow?.webContents.send('set-token', decodedToken.bearer_token);
+        mainWindow?.webContents.send('set-token', bearerToken);
+
+        lastSentToken = bearerToken;
+        lastSentTime = currentTime;
       } else {
         openMainWindow = false;
         handleClientPullUp(url);

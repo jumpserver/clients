@@ -8,7 +8,7 @@ import { useUserStore } from '@renderer/store/module/userStore';
 import { getSystemSetting } from '@renderer/api/modals/setting';
 import { createDiscreteApi, lightTheme, darkTheme } from 'naive-ui';
 import { useSettingStore } from '@renderer/store/module/settingStore';
-import { getProfile, getOrganization, getCurrent } from '@renderer/api/modals/user';
+import { getProfile, getOrganization } from '@renderer/api/modals/user';
 
 import type { ConfigProviderProps } from 'naive-ui';
 import type { IUserInfo, IOrganization } from '@renderer/store/interface';
@@ -98,11 +98,18 @@ export const useUserAccount = () => {
       return;
     }
 
+    // 防止重复调用 - 检查是否已经在处理相同的token
+    if (userStore.token === token) {
+      console.log('Token already processed, skipping...');
+      return;
+    }
+
     userStore.setToken(token);
     userStore.resetOrganization();
 
     try {
       const res = await getProfile();
+
       const orgRes = await getOrganization();
 
       if (res) {
@@ -130,9 +137,27 @@ export const useUserAccount = () => {
 
         const setting = await getSystemSetting();
 
-        orgRes.audit_orgs.forEach((org: IOrganization) => {
-          userStore.setOrganization(org);
-        });
+        // 普通用户
+        if (res.system_roles[0]?.id === '00000000-0000-0000-0000-000000000003') {
+          userStore.setCurrentOrganization(orgRes.workbench_orgs[0]?.id);
+          orgRes.workbench_orgs.forEach((org: IOrganization) => {
+            userStore.setOrganization(org);
+          });
+        }
+
+        if (res.system_roles[0]?.id === '00000000-0000-0000-0000-000000000002') {
+          userStore.setCurrentOrganization(orgRes.audit_orgs[0]?.id);
+          orgRes.audit_orgs.forEach((org: IOrganization) => {
+            userStore.setOrganization(org);
+          });
+        }
+
+        if (res.system_roles[0]?.id === '00000000-0000-0000-0000-000000000001') {
+          userStore.setCurrentOrganization(orgRes.console_orgs[0]?.id);
+          orgRes.console_orgs.forEach((org: IOrganization) => {
+            userStore.setOrganization(org);
+          });
+        }
 
         if (setting) {
           settingStore.setRdpClientOption(setting.graphics.rdp_client_option);
@@ -149,18 +174,18 @@ export const useUserAccount = () => {
       showLoginModal.value = false;
     }
 
-    try {
-      const currentRes = await getCurrent();
+    // try {
+    //   const currentRes = await getCurrent();
 
-      if (currentRes) {
-        userStore.setCurrentOrganization(currentRes?.id);
-      }
-    } catch (e) {
-      useMessage.error(t('Message.GetOrganizationFailed'));
-    }
+    //   if (currentRes) {
+    //     userStore.setCurrentOrganization(currentRes?.id);
+    //   }
+    // } catch (e) {
+    //   useMessage.error(t('Message.GetOrganizationFailed'));
+    // }
   };
 
-  const handleTokenReceived = useDebounceFn(_handleTokenReceived, 1000);
+  const handleTokenReceived = useDebounceFn(_handleTokenReceived, 2000);
 
   const handleModalOpacity = () => {
     showLoginModal.value = !showLoginModal.value;
