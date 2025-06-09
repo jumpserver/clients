@@ -1,13 +1,12 @@
-import path, { join, resolve } from 'path';
-import { Conf, useConf } from 'electron-conf/main';
+import path from 'path';
 import log from 'electron-log';
-import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
+import icon from '../../resources/JumpServer.ico?asset';
 
 import { execFile } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
-
-import icon from '../../resources/JumpServer.ico?asset';
+import { Conf, useConf } from 'electron-conf/main';
 import { electronApp, is, optimizer } from '@electron-toolkit/utils';
+import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
 
 process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 
@@ -29,8 +28,8 @@ let openMainWindow = false;
 let lastSentToken = '';
 let lastSentTime = 0;
 
-const platform =
-  process.platform === 'win32' ? 'windows' : process.platform === 'darwin' ? 'macos' : 'linux';
+// prettier-ignore
+const platform = process.platform === 'win32' ? 'windows' : process.platform === 'darwin' ? 'macos' : 'linux';
 const configFilePath = path.join(app.getPath('userData'), 'config.json');
 
 if (!existsSync(configFilePath)) {
@@ -49,7 +48,7 @@ const conf = new Conf({ defaults: defaults! });
 const setDefaultProtocol = () => {
   if (process.defaultApp) {
     if (process.argv.length >= 2) {
-      app.setAsDefaultProtocolClient('jms', process.execPath, [resolve(process.argv[1])]);
+      app.setAsDefaultProtocolClient('jms', process.execPath, [path.resolve(process.argv[1])]);
     }
   } else {
     app.setAsDefaultProtocolClient('jms');
@@ -58,34 +57,25 @@ const setDefaultProtocol = () => {
 
 const handleUrl = (url: string) => {
   const match = url.match(/^jms:\/\/(.+)$/);
-  const token = match ? match[1] : null;
+  const session = match ? match[1] : null;
 
-  if (token) {
-    const decodedTokenJson = Buffer.from(token, 'base64').toString('utf-8');
+  if (session) {
+    const decodedSessionJson = Buffer.from(session, 'base64').toString('utf-8');
+
     try {
-      const decodedToken = JSON.parse(decodedTokenJson);
-      if ('bearer_token' in decodedToken) {
-        const currentTime = Date.now();
-        const bearerToken = decodedToken.bearer_token;
+      const decodedSession = JSON.parse(decodedSessionJson);
 
-        // 防止重复发送相同token（5秒内）
-        if (lastSentToken === bearerToken && currentTime - lastSentTime < 5000) {
-          log.info('Token already sent recently, skipping...');
-          return;
-        }
-
+      if ('type' in decodedSession) {
         openMainWindow = true;
-        mainWindow?.webContents.send('set-token', bearerToken);
-
-        lastSentToken = bearerToken;
-        lastSentTime = currentTime;
+        mainWindow?.webContents.send('set-login-session', decodedSession.type);
       } else {
         openMainWindow = false;
         handleClientPullUp(url);
       }
+
       log.info('handleUrl:', openMainWindow);
     } catch (error) {
-      log.error('Failed to parse decoded token:', error);
+      log.error('Failed to parse decoded session:', error);
     }
   }
 };
@@ -142,7 +132,7 @@ const createWindow = async (): Promise<void> => {
     ...(process.platform === 'linux' ? { icon } : { icon }),
     ...(process.platform !== 'darwin' ? { titleBarOverlay: true } : {}),
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
+      preload: path.join(__dirname, '../preload/index.js'),
       sandbox: false,
       webSecurity: false
     }
@@ -200,7 +190,7 @@ const createWindow = async (): Promise<void> => {
 
     await mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
   } else {
-    await mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
+    await mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
   }
 };
 
@@ -284,6 +274,19 @@ app.on('window-all-closed', () => {
   app.quit();
 });
 
+ipcMain.on('update-titlebar-overlay', (_, theme) => {
+  setTitleBar(theme);
+});
+ipcMain.on('open-client', (_, url) => {
+  handleClientPullUp(url);
+});
+ipcMain.on('get-platform', function (event) {
+  event.sender.send('platform-response', platform);
+});
+ipcMain.on('get-app-version', function (event) {
+  event.sender.send('app-version-response', app.getVersion());
+});
+
 const setTitleBar = (theme: string) => {
   if (mainWindow && process.platform !== 'darwin') {
     theme === 'dark'
@@ -297,17 +300,3 @@ const setTitleBar = (theme: string) => {
         });
   }
 };
-
-ipcMain.on('update-titlebar-overlay', (_, theme) => {
-  setTitleBar(theme);
-});
-ipcMain.on('open-client', (_, url) => {
-  handleClientPullUp(url);
-});
-ipcMain.on('get-platform', function (event) {
-  event.sender.send('platform-response', platform);
-});
-ipcMain.on('get-app-version', function (event) {
-  console.log('version', app.getVersion());
-  event.sender.send('app-version-response', app.getVersion());
-});

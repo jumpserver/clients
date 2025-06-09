@@ -223,7 +223,7 @@ const { currentUser: storeCurrentUser } = storeToRefs(userStore);
 const currentUser = computed(() => {
   return {
     label: storeCurrentUser?.value?.username,
-    value: storeCurrentUser?.value?.token,
+    value: storeCurrentUser?.value?.session,
     avatar_url: storeCurrentUser?.value?.avatar_url,
     currentSite: storeCurrentUser?.value?.currentSite
   };
@@ -234,7 +234,7 @@ const userOptions = computed(() => {
     userStore.userInfo?.map((item: IUserInfo) => {
       return {
         label: item.username,
-        value: item.token,
+        value: item.session,
         avatar_url: item.avatar_url,
         display_name: item.display_name,
         currentSite: item.currentSite
@@ -249,11 +249,11 @@ const indicatorArrow = ref(false);
 const currentLang = ref('');
 const versionMessage = ref('');
 const selectedKey = ref('linux-page');
-const currentAccount = ref(userStore.currentUser?.token);
+const currentAccount = ref(userStore.currentUser?.session);
 
 const setNewAccount = inject<() => void>('setNewAccount');
 const removeAccount = inject<() => void>('removeAccount');
-const switchAccount = inject<(token: string) => void>('switchAccount');
+const switchAccount = inject<(session: string) => void>('switchAccount');
 
 const handlePopSelectShow = (show: boolean) => {
   indicatorArrow.value = show;
