@@ -24,7 +24,9 @@ let defaults = {
 
 let mainWindow: BrowserWindow | null = null;
 
-let openMainWindow: boolean = true;
+let openMainWindow = false;
+let lastSentToken = '';
+let lastSentTime = 0;
 
 // prettier-ignore
 const platform = process.platform === 'win32' ? 'windows' : process.platform === 'darwin' ? 'macos' : 'linux';

@@ -145,13 +145,16 @@ onMounted(async () => {
     router.push({ name: 'Linux' });
   }
 
+
   window.electron.ipcRenderer.on('set-login-session', (_e, session: string) => handleTokenReceived(session));
+
 
   mittBus.on('changeLang', handleLangChange);
   mittBus.on('changeTheme', handleThemeChange);
 });
 
 onBeforeUnmount(() => {
+  window.electron.ipcRenderer.removeAllListeners('set-token');
   mittBus.off('changeLang', handleLangChange);
   mittBus.off('changeTheme', handleThemeChange);
 });
