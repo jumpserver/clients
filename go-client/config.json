@@ -1,14 +1,14 @@
 {
   "filename": "Jumpserve Clients Config",
   "version": 2,
+  "windowBounds": {
+    "width": 1280,
+    "height": 800
+  },
   "defaultSetting": {
-    "layout": "list",
-    "language": "en",
     "theme": "light",
-    "windowBounds": {
-      "width": 1024,
-      "height": 768
-    }
+    "layout": "list",
+    "language": "en"
   },
   "windows": {
     "terminal": [
