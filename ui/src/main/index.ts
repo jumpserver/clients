@@ -1,16 +1,17 @@
-import path from 'path';
 import log from 'electron-log';
 import icon from '../../resources/JumpServer.ico?asset';
 
+import * as path from 'path';
+import * as fs from 'fs';
+
 import { execFile } from 'child_process';
-import { existsSync, readFileSync } from 'fs';
 import { Conf, useConf } from 'electron-conf/main';
 import { electronApp, is, optimizer } from '@electron-toolkit/utils';
 import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
 
 process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 
-let defaults = {
+const defaults = {
   windowBounds: {
     width: 1280,
     height: 800
@@ -24,24 +25,10 @@ let defaults = {
 
 let mainWindow: BrowserWindow | null = null;
 
-let openMainWindow = false;
-let lastSentToken = '';
-let lastSentTime = 0;
+let openMainWindow = true;
 
 // prettier-ignore
 const platform = process.platform === 'win32' ? 'windows' : process.platform === 'darwin' ? 'macos' : 'linux';
-const configFilePath = path.join(app.getPath('userData'), 'config.json');
-
-if (!existsSync(configFilePath)) {
-  let subPath = path.join(process.resourcesPath);
-
-  if (is.dev) {
-    subPath = 'bin';
-  }
-
-  const data = readFileSync(path.join(subPath, 'config.json'), 'utf8');
-  defaults = JSON.parse(data);
-}
 
 const conf = new Conf({ defaults: defaults! });
 
@@ -115,6 +102,68 @@ const handleClientPullUp = (url: string) => {
     });
   }
 };
+
+function updateUserConfigIfNeeded() {
+  const userConfigPath = path.join(app.getPath('userData'), 'config.json');
+
+  let subPath = path.join(process.resourcesPath);
+
+  if (is.dev) {
+    subPath = 'bin';
+  }
+
+  const defaultConfigPath = path.join(subPath, 'config.json');
+
+  let userConfig: Record<string, any> = {};
+  let defaultConfig: Record<string, any> = {};
+
+  try {
+    defaultConfig = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf8'));
+  } catch (err) {
+    console.error('无法读取默认配置:', err);
+    return;
+  }
+
+  if (!fs.existsSync(userConfigPath)) {
+    // 初次运行，直接复制
+    fs.copyFileSync(defaultConfigPath, userConfigPath);
+    console.log('首次生成用户配置文件');
+    return;
+  }
+
+  try {
+    userConfig = JSON.parse(fs.readFileSync(userConfigPath, 'utf8'));
+  } catch (err) {
+    console.warn('用户配置读取失败，覆盖为默认配置');
+    fs.copyFileSync(defaultConfigPath, userConfigPath);
+    return;
+  }
+
+  const defaultVersion = defaultConfig.version || 1;
+  const userVersion = userConfig.version || 1;
+
+  if (defaultVersion > userVersion) {
+    console.log(`配置文件版本更新：${userVersion} → ${defaultVersion}`);
+
+    // 合并配置，保留用户其他字段，但强制覆盖关键字段
+    const mergedConfig = {
+      ...userConfig,
+      ...defaultConfig,
+      version: defaultVersion,
+      protocol: defaultConfig.protocol,
+      type: defaultConfig.type,
+      arg_format: defaultConfig.arg_format,
+      autoit: defaultConfig.autoit
+    };
+
+    try {
+      fs.writeFileSync(userConfigPath, JSON.stringify(mergedConfig, null, 2), 'utf8');
+      console.log('用户配置已更新');
+    } catch (err) {
+      console.error('写入用户配置失败:', err);
+    }
+  }
+}
 
 const createWindow = async (): Promise<void> => {
   const windowBounds =
@@ -214,6 +263,11 @@ app.on('open-url', (_event: Event, url: string) => {
 
 !app.requestSingleInstanceLock() ? app.quit() : '';
 
+// 🧠 在 app 准备前更新配置（需要先监听 'ready'，确保 app.getPath 可用）
+app.once('ready', () => {
+  updateUserConfigIfNeeded();
+});
+
 app.whenReady().then(async () => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.jumpserver');
@@ -240,7 +294,7 @@ app.whenReady().then(async () => {
     handleArgv(process.argv);
   }
 
-  log.info('whenReady: ', openMainWindow);
+  log.info('whenReady openMainWindow: ', openMainWindow);
 
   if (openMainWindow) {
     await createWindow();

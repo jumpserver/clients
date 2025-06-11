@@ -1,11 +1,10 @@
-import { defineStore } from 'pinia'
+import { defineStore } from 'pinia';
 import { IUserInfo } from '@renderer/store/interface';
 import { piniaPersistConfig } from '@renderer/store/helper';
 
 import type { IUser, IOrganization } from '@renderer/store/interface';
 
-export const useUserStore = defineStore({
-  id: 'client-user',
+export const useUserStore = defineStore('client-user', {
   state: (): Partial<IUser> => ({
     loading: false,
 

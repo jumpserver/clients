@@ -75,10 +75,19 @@ const handleMaskClick = (): void => {
   emits('close-mask');
 };
 
+function sanitizeUrl(url: string): string {
+  return url
+    .trim()
+    .replace(/\/+$/, '')
+    .replace(/\u3000/g, ''); // 去空格 + 去全角空格 + 去末尾/
+}
+
 /**
  * @description 登录按钮的回调
  */
 const jumpToLogin = () => {
+  siteLocation.value = sanitizeUrl(siteLocation.value);
+
   const hasProtocol = /^https?:\/\//i.test(siteLocation.value);
 
   if (!hasProtocol) {
@@ -113,9 +122,10 @@ const jumpToLogin = () => {
  */
 const handleContextMenu = async () => {
   try {
-    const text = await readText();
+    let text = await readText();
 
     if (text) {
+      text = sanitizeUrl(text);
       const hasProtocol = /^https?:\/\//i.test(text);
 
       if (!hasProtocol) {
