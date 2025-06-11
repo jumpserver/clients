@@ -25,7 +25,7 @@ const defaults = {
 
 let mainWindow: BrowserWindow | null = null;
 
-let openMainWindow = false;
+let openMainWindow = true;
 
 // prettier-ignore
 const platform = process.platform === 'win32' ? 'windows' : process.platform === 'darwin' ? 'macos' : 'linux';
@@ -152,7 +152,8 @@ function updateUserConfigIfNeeded() {
       version: defaultVersion,
       protocol: defaultConfig.protocol,
       type: defaultConfig.type,
-      arg_format: defaultConfig.arg_format
+      arg_format: defaultConfig.arg_format,
+      autoit: defaultConfig.autoit
     };
 
     try {
@@ -293,7 +294,7 @@ app.whenReady().then(async () => {
     handleArgv(process.argv);
   }
 
-  log.info('whenReady: ', openMainWindow);
+  log.info('whenReady openMainWindow: ', openMainWindow);
 
   if (openMainWindow) {
     await createWindow();
