@@ -409,6 +409,38 @@ ipcMain.on('get-current-site', (_, site) => {
   }
 });
 
+// 恢复保存的 cookie
+ipcMain.on('restore-cookies', (_, { site, sessionId, csrfToken }) => {
+  if (sessionId && csrfToken && site) {
+    // 更新全局变量
+    jms_sessionid = sessionId;
+    jms_csrftoken = csrfToken;
+
+    // 设置 cookie
+    session.defaultSession.cookies.set({
+      url: site,
+      name: 'jms_sessionid',
+      value: sessionId,
+      path: '/',
+      httpOnly: false,
+      secure: site.startsWith('https'),
+      sameSite: 'no_restriction'
+    });
+    session.defaultSession.cookies.set({
+      url: site,
+      name: 'jms_csrftoken',
+      value: csrfToken,
+      path: '/',
+      httpOnly: false,
+      secure: site.startsWith('https'),
+      sameSite: 'no_restriction'
+    });
+    console.log('Cookie 恢复完成');
+  } else {
+    console.log('警告：恢复 cookie 参数不完整');
+  }
+});
+
 const setTitleBar = (theme: string) => {
   if (mainWindow && process.platform !== 'darwin') {
     theme === 'dark'
