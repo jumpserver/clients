@@ -46,7 +46,8 @@ const {
   handleModalOpacity,
   handleTokenReceived,
   handleCsrfTokenReceived,
-  setupCookiesForSite
+  setupCookiesForSite,
+  restoreSavedCookies
 } = useUserAccount();
 
 const router = useRouter();
@@ -138,6 +139,9 @@ onMounted(async () => {
       duration: 2000
     });
   }
+
+  // 恢复保存的 cookie（在检查登录状态之前）
+  restoreSavedCookies();
 
   // 检查是否需要显示登录框
   if (!userStore.session || (userStore.userInfo && userStore.userInfo.length <= 0)) {

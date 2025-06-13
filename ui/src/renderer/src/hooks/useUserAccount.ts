@@ -72,6 +72,15 @@ export const useUserAccount = () => {
         userStore.setSession(user.session);
         userStore.setCurrentUser({ ...user });
         userStore.setCurrentSit(user.currentSite as string);
+
+        // 切换账号时恢复对应的 cookie
+        if (user.currentSite) {
+          window.electron.ipcRenderer.send('restore-cookies', {
+            site: user.currentSite,
+            sessionId: user.session,
+            csrfToken: userStore.csrfToken
+          });
+        }
       }
       const setting = await getSystemSetting();
 
@@ -207,6 +216,24 @@ export const useUserAccount = () => {
     }
   };
 
+  // 新增：恢复保存的 cookie
+  const restoreSavedCookies = () => {
+    if (userStore.session && userStore.csrfToken && userStore.currentSite) {
+      console.log('恢复保存的 cookie');
+      console.log('Site:', userStore.currentSite);
+      console.log('Session:', userStore.session);
+      console.log('CSRF Token:', userStore.csrfToken);
+
+      window.electron.ipcRenderer.send('restore-cookies', {
+        site: userStore.currentSite,
+        sessionId: userStore.session,
+        csrfToken: userStore.csrfToken
+      });
+    } else {
+      console.log('没有找到保存的认证信息，无法恢复 cookie');
+    }
+  };
+
   return {
     showLoginModal: showLoginModal,
     setNewAccount,
@@ -216,6 +243,7 @@ export const useUserAccount = () => {
     handleModalOpacity,
     handleTokenReceived,
     handleCsrfTokenReceived,
-    setupCookiesForSite
+    setupCookiesForSite,
+    restoreSavedCookies
   };
 };
