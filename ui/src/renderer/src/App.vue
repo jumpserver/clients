@@ -44,7 +44,9 @@ const {
   removeAccount,
   switchAccount,
   handleModalOpacity,
-  handleTokenReceived
+  handleTokenReceived,
+  handleCsrfTokenReceived,
+  setupCookiesForSite
 } = useUserAccount();
 
 const router = useRouter();
@@ -145,9 +147,13 @@ onMounted(async () => {
     router.push({ name: 'Linux' });
   }
 
-
-  window.electron.ipcRenderer.on('set-login-session', (_e, session: string) => handleTokenReceived(session));
-
+  window.electron.ipcRenderer.on('set-login-session', (_e, session: string) =>
+    handleTokenReceived(session)
+  );
+  window.electron.ipcRenderer.on('set-login-csrfToken', (_e, csrfToken: string) =>
+    handleCsrfTokenReceived(csrfToken)
+  );
+  window.electron.ipcRenderer.on('setup-cookies-for-site', () => setupCookiesForSite());
 
   mittBus.on('changeLang', handleLangChange);
   mittBus.on('changeTheme', handleThemeChange);

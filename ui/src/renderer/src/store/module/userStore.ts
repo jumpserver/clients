@@ -10,6 +10,7 @@ export const useUserStore = defineStore('client-user', {
 
     sort: 'name',
     session: '',
+    csrfToken: '',
     currentSite: '',
     currentOrganization: '',
 
@@ -20,6 +21,9 @@ export const useUserStore = defineStore('client-user', {
   actions: {
     setSession(session: string) {
       this.session = session;
+    },
+    setCsrfToken(csrfToken: string) {
+      this.csrfToken = csrfToken;
     },
     setCurrentSit(site: string) {
       this.currentSite = site;

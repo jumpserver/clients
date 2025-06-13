@@ -1,8 +1,8 @@
 import log from 'electron-log';
 import icon from '../../resources/JumpServer.ico?asset';
 
-import * as path from 'path';
 import * as fs from 'fs';
+import * as path from 'path';
 
 import { execFile } from 'child_process';
 import { Conf, useConf } from 'electron-conf/main';
@@ -24,6 +24,8 @@ const defaults = {
 };
 
 let mainWindow: BrowserWindow | null = null;
+let jms_sessionid = '';
+let jms_csrftoken = '';
 
 let openMainWindow = true;
 
@@ -44,17 +46,51 @@ const setDefaultProtocol = () => {
 
 const handleUrl = (url: string) => {
   const match = url.match(/^jms:\/\/(.+)$/);
-  const session = match ? match[1] : null;
+  const sessionUrl = match ? match[1] : null;
 
-  if (session) {
-    const decodedSessionJson = Buffer.from(session, 'base64').toString('utf-8');
+  if (sessionUrl) {
+    const decodedSessionJson = Buffer.from(sessionUrl, 'base64').toString('utf-8');
 
     try {
       const decodedSession = JSON.parse(decodedSessionJson);
 
-      if ('type' in decodedSession) {
+      if (decodedSession.type === 'cookie') {
         openMainWindow = true;
-        mainWindow?.webContents.send('set-login-session', decodedSession.type);
+
+        jms_sessionid = decodedSession.cookie.jms_sessionid;
+        jms_csrftoken = decodedSession.cookie.jms_csrftoken;
+
+        // 立即设置 cookie 到当前站点
+        if (mainWindow && mainWindow.webContents.getURL()) {
+          const currentUrl = mainWindow.webContents.getURL();
+          const urlObj = new URL(currentUrl);
+          const siteUrl = `${urlObj.protocol}//${urlObj.host}`;
+
+          session.defaultSession.cookies.set({
+            url: siteUrl,
+            name: 'jms_sessionid',
+            value: jms_sessionid,
+            path: '/',
+            httpOnly: false,
+            secure: siteUrl.startsWith('https'),
+            sameSite: 'no_restriction'
+          });
+          session.defaultSession.cookies.set({
+            url: siteUrl,
+            name: 'jms_csrftoken',
+            value: jms_csrftoken,
+            path: '/',
+            httpOnly: false,
+            secure: siteUrl.startsWith('https'),
+            sameSite: 'no_restriction'
+          });
+        }
+
+        mainWindow?.webContents.send('set-login-session', decodedSession.cookie.jms_sessionid);
+        mainWindow?.webContents.send('set-login-csrfToken', decodedSession.cookie.jms_csrftoken);
+
+        // 通知渲染进程设置 cookie
+        mainWindow?.webContents.send('setup-cookies-for-site');
       } else {
         openMainWindow = false;
         handleClientPullUp(url);
@@ -206,10 +242,17 @@ const createWindow = async (): Promise<void> => {
     // 移除 'Cross-Origin-Opener-Policy' 头
     delete headers?.['Cross-Origin-Opener-Policy'];
 
+    // 添加允许跨域 cookie 的头
+    headers!['Access-Control-Allow-Credentials'] = ['true'];
+
     callback({
       cancel: false,
       responseHeaders: headers
     });
+  });
+
+  session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+    callback({ requestHeaders: details.requestHeaders });
   });
 
   mainWindow.on('close', () => {
@@ -339,6 +382,31 @@ ipcMain.on('get-platform', function (event) {
 });
 ipcMain.on('get-app-version', function (event) {
   event.sender.send('app-version-response', app.getVersion());
+});
+ipcMain.on('get-current-site', (_, site) => {
+  if (jms_sessionid && jms_csrftoken) {
+    session.defaultSession.cookies.set({
+      url: site,
+      name: 'jms_sessionid',
+      value: jms_sessionid,
+      path: '/',
+      httpOnly: false,
+      secure: site.startsWith('https'),
+      sameSite: 'no_restriction'
+    });
+    session.defaultSession.cookies.set({
+      url: site,
+      name: 'jms_csrftoken',
+      value: jms_csrftoken,
+      path: '/',
+      httpOnly: false,
+      secure: site.startsWith('https'),
+      sameSite: 'no_restriction'
+    });
+    console.log('Cookie 设置完成');
+  } else {
+    console.log('警告：jms_sessionid 或 jms_csrftoken 为空，无法设置 cookie');
+  }
 });
 
 const setTitleBar = (theme: string) => {

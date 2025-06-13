@@ -21,6 +21,8 @@ export interface IUser {
 
   session: string;
 
+  csrfToken: string;
+
   currentSite: string;
 
   currentOrganization: string;

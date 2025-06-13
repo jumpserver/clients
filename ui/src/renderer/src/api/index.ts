@@ -54,10 +54,22 @@ class RequestHttp {
 
         userStore.setLoading(config.loading);
 
-        if (config.headers && typeof config.headers.set === 'function') {
+        if (config.headers) {
           config.headers['X-JMS-ORG'] = userStore.currentOrganization;
-          config.headers['Cookie'] = `${userStore.session}`;
           config.headers['X-TZ'] = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+          // 添加 CSRF token 到请求头（Django 应用通常需要这个）
+          if (userStore.csrfToken) {
+            config.headers['X-CSRFToken'] = userStore.csrfToken;
+          }
+
+          // 调试：检查请求配置
+          console.log('发送请求:', {
+            url: config.baseURL + config.url,
+            method: config.method,
+            withCredentials: config.withCredentials,
+            headers: config.headers
+          });
         }
 
         return config;
@@ -102,19 +114,19 @@ class RequestHttp {
   }
 
   get(url: string, params?: object, _object = {}): Promise<any> {
-    return this.service.get(url, { params, ..._object });
+    return this.service.get(url, { params, ..._object, withCredentials: true });
   }
 
   post<T>(url: string, params?: object | string, _object = {}): Promise<ResultData<T>> {
-    return this.service.post(url, params, _object);
+    return this.service.post(url, params, { ..._object, withCredentials: true });
   }
 
   put<T>(url: string, params?: object, _object = {}): Promise<ResultData<T>> {
-    return this.service.put(url, params, _object);
+    return this.service.put(url, params, { ..._object, withCredentials: true });
   }
 
   delete<T>(url: string, params?: any, _object = {}): Promise<ResultData<T>> {
-    return this.service.delete(url, { params, ..._object });
+    return this.service.delete(url, { params, ..._object, withCredentials: true });
   }
 }
 

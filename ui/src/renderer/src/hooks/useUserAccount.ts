@@ -93,13 +93,10 @@ export const useUserAccount = () => {
    * @description 处理 session 接收
    */
   const _handleTokenReceived = async (session: string) => {
-    console.log('session', session);
-
     if (!session) {
       useMessage.error('Token is required');
       return;
     }
-
 
     userStore.setSession(session);
     userStore.resetOrganization();
@@ -182,7 +179,12 @@ export const useUserAccount = () => {
     // }
   };
 
+  const _handleCsrfTokenReceived = async (csrfToken: string) => {
+    userStore.setCsrfToken(csrfToken);
+  };
+
   const handleTokenReceived = useDebounceFn(_handleTokenReceived, 2000);
+  const handleCsrfTokenReceived = useDebounceFn(_handleCsrfTokenReceived, 2000);
 
   const handleModalOpacity = () => {
     showLoginModal.value = !showLoginModal.value;
@@ -198,6 +200,13 @@ export const useUserAccount = () => {
     configProviderProps: configProviderPropsRef
   });
 
+  // 监听主进程的 cookie 设置通知
+  const setupCookiesForSite = () => {
+    if (userStore.currentSite) {
+      window.electron.ipcRenderer.send('get-current-site', userStore.currentSite);
+    }
+  };
+
   return {
     showLoginModal: showLoginModal,
     setNewAccount,
@@ -205,6 +214,8 @@ export const useUserAccount = () => {
     removeAccount,
     getAccountInfo,
     handleModalOpacity,
-    handleTokenReceived
+    handleTokenReceived,
+    handleCsrfTokenReceived,
+    setupCookiesForSite
   };
 };

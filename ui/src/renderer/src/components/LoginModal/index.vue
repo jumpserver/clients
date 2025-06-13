@@ -86,9 +86,9 @@ function sanitizeUrl(url: string): string {
  * @description 登录按钮的回调
  */
 const jumpToLogin = () => {
-  siteLocation.value = sanitizeUrl(siteLocation.value);
+  const sanitizedUrl = sanitizeUrl(siteLocation.value);
 
-  const hasProtocol = /^https?:\/\//i.test(siteLocation.value);
+  const hasProtocol = /^https?:\/\//i.test(sanitizedUrl);
 
   if (!hasProtocol) {
     message.error(t('Message.ProtocolRequired'), { closable: true });
@@ -97,7 +97,7 @@ const jumpToLogin = () => {
   }
 
   const sameSiteUser = userStore.userInfo
-    ? userStore.userInfo.filter(item => item.currentSite === siteLocation.value)
+    ? userStore.userInfo.filter(item => item.currentSite === sanitizedUrl)
     : [];
 
   if (sameSiteUser.length !== 0) {
@@ -106,15 +106,16 @@ const jumpToLogin = () => {
     return;
   }
 
-  if (!URL_REGEXP.test(siteLocation.value)) {
+  if (!URL_REGEXP.test(sanitizedUrl)) {
     message.error(t('Message.EnterTheCorrectSite'), { closable: true });
     inputStatus.value = 'error';
     return;
   }
 
-  userStore.setCurrentSit(siteLocation.value);
+  userStore.setCurrentSit(sanitizedUrl);
+  window.electron.ipcRenderer.send('get-current-site', sanitizedUrl);
   inputStatus.value = 'success';
-  window.open(`${siteLocation.value}/core/auth/login/?next=client`);
+  window.open(`${sanitizedUrl}/core/auth/login/?next=client`);
 };
 
 /**
@@ -141,7 +142,9 @@ const handleContextMenu = async () => {
         message.error(`${text} ${t('Message.ErrorSiteInput')}`, { closable: true });
       }
     }
-  } catch (e) {}
+  } catch (error) {
+    console.error('Failed to read clipboard:', error);
+  }
 };
 
 /**
