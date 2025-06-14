@@ -32,7 +32,7 @@ let openMainWindow = true;
 // prettier-ignore
 const platform = process.platform === 'win32' ? 'windows' : process.platform === 'darwin' ? 'macos' : 'linux';
 
-const conf = new Conf({ defaults: defaults! });
+let conf = new Conf({ defaults: defaults! });
 
 const setDefaultProtocol = () => {
   if (process.defaultApp) {
@@ -198,6 +198,7 @@ function updateUserConfigIfNeeded() {
     } catch (err) {
       console.error('写入用户配置失败:', err);
     }
+    conf = new Conf({ defaults: JSON.parse(fs.readFileSync(userConfigPath, 'utf8')) });
   }
 }
 
@@ -286,6 +287,13 @@ const createWindow = async (): Promise<void> => {
   }
 };
 
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit(); // ✅ 尽早退出，不执行后面的初始化
+  process.exit(0);
+}
+
 // @ts-ignore
 app.on('second-instance', (_event: Event, argv: string[]) => {
   log.info('second-instance');
@@ -303,9 +311,6 @@ app.on('open-url', (_event: Event, url: string) => {
   log.info('open-url');
   handleUrl(url);
 });
-
-!app.requestSingleInstanceLock() ? app.quit() : '';
-
 // 🧠 在 app 准备前更新配置（需要先监听 'ready'，确保 app.getPath 可用）
 app.once('ready', () => {
   updateUserConfigIfNeeded();

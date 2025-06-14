@@ -97,7 +97,7 @@ func (r *Rouse) HandleRDP(appConfig *config.AppConfig) {
 	fileName, _ := url.QueryUnescape(r.File.Name)
 	replacer := strings.NewReplacer(" ", "", ":", "_", "-", "_")
 	dir, _ := os.UserConfigDir()
-	filePath := filepath.Join(dir, "jumpserver-client",  replacer.Replace(fileName)+".rdp")
+	filePath := filepath.Join(dir, "jumpserver-client", replacer.Replace(fileName)+".rdp")
 	err := ioutil.WriteFile(filePath, []byte(r.Content), os.ModePerm)
 	if err != nil {
 		global.LOG.Error(err.Error())
@@ -131,7 +131,7 @@ func (r *Rouse) Run() {
 			r.HandleRDP(&appConfig)
 		case "ssh", "sftp", "telnet":
 			r.HandleSSH(&appConfig)
-		case "mysql", "mariadb", "postgresql", "redis", "oracle", "sqlserver":
+		case "mysql", "mariadb", "postgresql", "redis", "oracle", "sqlserver", "mongodb":
 			r.HandleDB(&appConfig)
 		}
 	} else {
