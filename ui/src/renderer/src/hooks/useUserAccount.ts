@@ -8,7 +8,7 @@ import { useUserStore } from '@renderer/store/module/userStore';
 import { getSystemSetting } from '@renderer/api/modals/setting';
 import { createDiscreteApi, lightTheme, darkTheme } from 'naive-ui';
 import { useSettingStore } from '@renderer/store/module/settingStore';
-import { getProfile, getOrganization, getCurrent } from '@renderer/api/modals/user';
+import { getProfile, getOrganization } from '@renderer/api/modals/user';
 
 import type { ConfigProviderProps } from 'naive-ui';
 import type { IUserInfo, IOrganization } from '@renderer/store/interface';
@@ -51,7 +51,7 @@ export const useUserAccount = () => {
     if (userStore.userInfo && userStore.userInfo.length > 0) {
       const firstUser = userStore.userInfo[0];
 
-      userStore.setToken(firstUser.token);
+      userStore.setSession(firstUser.session);
       userStore.setCurrentUser({ ...firstUser });
       userStore.setCurrentSit(firstUser.currentSite as string);
     }
@@ -60,18 +60,27 @@ export const useUserAccount = () => {
   /**
    * @description 切换账号
    */
-  const switchAccount = async (token: string) => {
-    if (token === userStore.token) {
+  const switchAccount = async (session: string) => {
+    if (session === userStore.session) {
       return;
     }
 
     if (userStore.userInfo) {
-      const user = userStore.userInfo.find((item: IUserInfo) => item.token === token);
+      const user = userStore.userInfo.find((item: IUserInfo) => item.session === session);
 
       if (user) {
-        userStore.setToken(user.token);
+        userStore.setSession(user.session);
         userStore.setCurrentUser({ ...user });
         userStore.setCurrentSit(user.currentSite as string);
+
+        // 切换账号时恢复对应的 cookie
+        if (user.currentSite) {
+          window.electron.ipcRenderer.send('restore-cookies', {
+            site: user.currentSite,
+            sessionId: user.session,
+            csrfToken: userStore.csrfToken
+          });
+        }
       }
       const setting = await getSystemSetting();
 
@@ -90,19 +99,20 @@ export const useUserAccount = () => {
   const getAccountInfo = () => {};
 
   /**
-   * @description 处理 token 接收
+   * @description 处理 session 接收
    */
-  const _handleTokenReceived = async (token: string) => {
-    if (!token) {
+  const _handleTokenReceived = async (session: string) => {
+    if (!session) {
       useMessage.error('Token is required');
       return;
     }
 
-    userStore.setToken(token);
+    userStore.setSession(session);
     userStore.resetOrganization();
 
     try {
       const res = await getProfile();
+
       const orgRes = await getOrganization();
 
       if (res) {
@@ -113,7 +123,7 @@ export const useUserAccount = () => {
         });
 
         userStore.setUserInfo({
-          token,
+          session,
           username: res?.username,
           display_name: res?.system_roles.map((item: any) => item.display_name),
           avatar_url: await getAvatarImage(),
@@ -121,7 +131,7 @@ export const useUserAccount = () => {
         });
 
         userStore.setCurrentUser({
-          token,
+          session,
           username: res?.username,
           display_name: res?.system_roles.map((item: any) => item.display_name),
           avatar_url: await getAvatarImage(),
@@ -130,9 +140,27 @@ export const useUserAccount = () => {
 
         const setting = await getSystemSetting();
 
-        orgRes.audit_orgs.forEach((org: IOrganization) => {
-          userStore.setOrganization(org);
-        });
+        // 普通用户
+        if (res.system_roles[0]?.id === '00000000-0000-0000-0000-000000000003') {
+          userStore.setCurrentOrganization(orgRes.workbench_orgs[0]?.id);
+          orgRes.workbench_orgs.forEach((org: IOrganization) => {
+            userStore.setOrganization(org);
+          });
+        }
+
+        if (res.system_roles[0]?.id === '00000000-0000-0000-0000-000000000002') {
+          userStore.setCurrentOrganization(orgRes.audit_orgs[0]?.id);
+          orgRes.audit_orgs.forEach((org: IOrganization) => {
+            userStore.setOrganization(org);
+          });
+        }
+
+        if (res.system_roles[0]?.id === '00000000-0000-0000-0000-000000000001') {
+          userStore.setCurrentOrganization(orgRes.console_orgs[0]?.id);
+          orgRes.console_orgs.forEach((org: IOrganization) => {
+            userStore.setOrganization(org);
+          });
+        }
 
         if (setting) {
           settingStore.setRdpClientOption(setting.graphics.rdp_client_option);
@@ -149,18 +177,23 @@ export const useUserAccount = () => {
       showLoginModal.value = false;
     }
 
-    try {
-      const currentRes = await getCurrent();
+    // try {
+    //   const currentRes = await getCurrent();
 
-      if (currentRes) {
-        userStore.setCurrentOrganization(currentRes?.id);
-      }
-    } catch (e) {
-      useMessage.error(t('Message.GetOrganizationFailed'));
-    }
+    //   if (currentRes) {
+    //     userStore.setCurrentOrganization(currentRes?.id);
+    //   }
+    // } catch (e) {
+    //   useMessage.error(t('Message.GetOrganizationFailed'));
+    // }
   };
 
-  const handleTokenReceived = useDebounceFn(_handleTokenReceived, 1000);
+  const _handleCsrfTokenReceived = async (csrfToken: string) => {
+    userStore.setCsrfToken(csrfToken);
+  };
+
+  const handleTokenReceived = useDebounceFn(_handleTokenReceived, 2000);
+  const handleCsrfTokenReceived = useDebounceFn(_handleCsrfTokenReceived, 2000);
 
   const handleModalOpacity = () => {
     showLoginModal.value = !showLoginModal.value;
@@ -176,6 +209,31 @@ export const useUserAccount = () => {
     configProviderProps: configProviderPropsRef
   });
 
+  // 监听主进程的 cookie 设置通知
+  const setupCookiesForSite = () => {
+    if (userStore.currentSite) {
+      window.electron.ipcRenderer.send('get-current-site', userStore.currentSite);
+    }
+  };
+
+  // 新增：恢复保存的 cookie
+  const restoreSavedCookies = () => {
+    if (userStore.session && userStore.csrfToken && userStore.currentSite) {
+      console.log('恢复保存的 cookie');
+      console.log('Site:', userStore.currentSite);
+      console.log('Session:', userStore.session);
+      console.log('CSRF Token:', userStore.csrfToken);
+
+      window.electron.ipcRenderer.send('restore-cookies', {
+        site: userStore.currentSite,
+        sessionId: userStore.session,
+        csrfToken: userStore.csrfToken
+      });
+    } else {
+      console.log('没有找到保存的认证信息，无法恢复 cookie');
+    }
+  };
+
   return {
     showLoginModal: showLoginModal,
     setNewAccount,
@@ -183,6 +241,9 @@ export const useUserAccount = () => {
     removeAccount,
     getAccountInfo,
     handleModalOpacity,
-    handleTokenReceived
+    handleTokenReceived,
+    handleCsrfTokenReceived,
+    setupCookiesForSite,
+    restoreSavedCookies
   };
 };

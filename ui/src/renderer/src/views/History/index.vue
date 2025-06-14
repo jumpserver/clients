@@ -23,7 +23,7 @@ const loadingStatus = ref(true);
 
 // 检查登录状态
 const isAuthenticated = computed(() => {
-  return userStore.token && userStore.userInfo && userStore.userInfo.length > 0;
+  return userStore.session && userStore.userInfo && userStore.userInfo.length > 0;
 });
 
 const getHistoriesFromCache = async (searchInput?: string) => {

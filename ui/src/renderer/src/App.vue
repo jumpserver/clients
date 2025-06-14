@@ -44,7 +44,10 @@ const {
   removeAccount,
   switchAccount,
   handleModalOpacity,
-  handleTokenReceived
+  handleTokenReceived,
+  handleCsrfTokenReceived,
+  setupCookiesForSite,
+  restoreSavedCookies
 } = useUserAccount();
 
 const router = useRouter();
@@ -137,21 +140,31 @@ onMounted(async () => {
     });
   }
 
+  // 恢复保存的 cookie（在检查登录状态之前）
+  restoreSavedCookies();
+
   // 检查是否需要显示登录框
-  if (!userStore.token || (userStore.userInfo && userStore.userInfo.length <= 0)) {
+  if (!userStore.session || (userStore.userInfo && userStore.userInfo.length <= 0)) {
     handleModalOpacity();
   }
   if (userStore.userInfo && userStore.userInfo.length > 0) {
     router.push({ name: 'Linux' });
   }
 
-  window.electron.ipcRenderer.on('set-token', (_e, token: string) => handleTokenReceived(token));
+  window.electron.ipcRenderer.on('set-login-session', (_e, session: string) =>
+    handleTokenReceived(session)
+  );
+  window.electron.ipcRenderer.on('set-login-csrfToken', (_e, csrfToken: string) =>
+    handleCsrfTokenReceived(csrfToken)
+  );
+  window.electron.ipcRenderer.on('setup-cookies-for-site', () => setupCookiesForSite());
 
   mittBus.on('changeLang', handleLangChange);
   mittBus.on('changeTheme', handleThemeChange);
 });
 
 onBeforeUnmount(() => {
+  window.electron.ipcRenderer.removeAllListeners('set-token');
   mittBus.off('changeLang', handleLangChange);
   mittBus.off('changeTheme', handleThemeChange);
 });

@@ -9,7 +9,7 @@ export interface IUserInfo {
 
   value?: string;
 
-  token: string;
+  session: string;
 
   currentSite?: string;
 }
@@ -19,7 +19,9 @@ export interface IUser {
 
   sort: string;
 
-  token: string;
+  session: string;
+
+  csrfToken: string;
 
   currentSite: string;
 

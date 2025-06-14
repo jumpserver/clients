@@ -11,12 +11,6 @@
         <n-text depth="3" class="text-xs"> {{ userSite }} </n-text>
       </n-flex>
     </n-flex>
-
-    <!-- <Check
-      :size="18"
-      :color="userToken === userStore.currentUser!.token ? '#63e2b7' : 'gray'"
-      class="cursor-pointer flex-shrink-0"
-    /> -->
   </n-flex>
 </template>
 

@@ -4,13 +4,13 @@ import { piniaPersistConfig } from '@renderer/store/helper';
 
 import type { IUser, IOrganization } from '@renderer/store/interface';
 
-export const useUserStore = defineStore({
-  id: 'client-user',
+export const useUserStore = defineStore('client-user', {
   state: (): Partial<IUser> => ({
     loading: false,
 
     sort: 'name',
-    token: '',
+    session: '',
+    csrfToken: '',
     currentSite: '',
     currentOrganization: '',
 
@@ -19,14 +19,17 @@ export const useUserStore = defineStore({
     currentUser: {}
   }),
   actions: {
-    setToken(token: string) {
-      this.token = token;
+    setSession(session: string) {
+      this.session = session;
+    },
+    setCsrfToken(csrfToken: string) {
+      this.csrfToken = csrfToken;
     },
     setCurrentSit(site: string) {
       this.currentSite = site;
     },
     setUserInfo(userInfo: IUserInfo) {
-      if (this.userInfo!.some((item: IUserInfo) => item.token === userInfo.token)) return;
+      if (this.userInfo!.some((item: IUserInfo) => item.session === userInfo.session)) return;
 
       this.userInfo!.push(userInfo);
     },
@@ -38,7 +41,7 @@ export const useUserStore = defineStore({
     },
     removeCurrentUser() {
       this.userInfo = this.userInfo!.filter(
-        (item: IUserInfo) => item.token !== this.currentUser!.token
+        (item: IUserInfo) => item.session !== this.currentUser!.session
       );
     },
     setCurrentListSort(type) {
@@ -57,7 +60,7 @@ export const useUserStore = defineStore({
       this.currentOrganization = orgId;
     },
     reset() {
-      this.token = '';
+      this.session = '';
       this.loading = false;
       this.userInfo = [];
       this.currentSite = '';
