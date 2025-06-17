@@ -40,7 +40,12 @@ export const useUserAccount = () => {
    * @description 移除账号
    */
   const removeAccount = () => {
-    // 移除之前的用户信息
+    const currentUser = userStore.currentUser as IUserInfo;
+
+    if (currentUser && currentUser.currentSite) {
+      window.electron.ipcRenderer.send('clear-site-cookies', currentUser.currentSite);
+    }
+
     userStore.removeCurrentUser();
 
     if (userStore.userInfo && userStore.userInfo.length === 0) {
@@ -54,6 +59,19 @@ export const useUserAccount = () => {
       userStore.setSession(firstUser.session);
       userStore.setCurrentUser({ ...firstUser });
       userStore.setCurrentSit(firstUser.currentSite as string);
+
+      if (firstUser.csrfToken) {
+        userStore.setCsrfToken(firstUser.csrfToken);
+      }
+
+      // 恢复第一个用户的 cookie
+      if (firstUser.currentSite) {
+        window.electron.ipcRenderer.send('restore-cookies', {
+          site: firstUser.currentSite,
+          sessionId: firstUser.session,
+          csrfToken: firstUser.csrfToken || ''
+        });
+      }
     }
   };
 
@@ -66,19 +84,33 @@ export const useUserAccount = () => {
     }
 
     if (userStore.userInfo) {
+      const currentUser = userStore.currentUser as IUserInfo;
+
       const user = userStore.userInfo.find((item: IUserInfo) => item.session === session);
 
       if (user) {
+        if (
+          currentUser &&
+          currentUser.currentSite &&
+          currentUser.currentSite !== user.currentSite
+        ) {
+          window.electron.ipcRenderer.send('clear-site-cookies', currentUser.currentSite);
+        }
+
         userStore.setSession(user.session);
         userStore.setCurrentUser({ ...user });
         userStore.setCurrentSit(user.currentSite as string);
+
+        if (user.csrfToken) {
+          userStore.setCsrfToken(user.csrfToken);
+        }
 
         // 切换账号时恢复对应的 cookie
         if (user.currentSite) {
           window.electron.ipcRenderer.send('restore-cookies', {
             site: user.currentSite,
             sessionId: user.session,
-            csrfToken: userStore.csrfToken
+            csrfToken: user.csrfToken || ''
           });
         }
       }
@@ -127,7 +159,8 @@ export const useUserAccount = () => {
           username: res?.username,
           display_name: res?.system_roles.map((item: any) => item.display_name),
           avatar_url: await getAvatarImage(),
-          currentSite: userStore.currentSite
+          currentSite: userStore.currentSite,
+          csrfToken: userStore.csrfToken
         });
 
         userStore.setCurrentUser({
@@ -135,7 +168,8 @@ export const useUserAccount = () => {
           username: res?.username,
           display_name: res?.system_roles.map((item: any) => item.display_name),
           avatar_url: await getAvatarImage(),
-          currentSite: userStore.currentSite
+          currentSite: userStore.currentSite,
+          csrfToken: userStore.csrfToken
         });
 
         const setting = await getSystemSetting();
@@ -190,6 +224,10 @@ export const useUserAccount = () => {
 
   const _handleCsrfTokenReceived = async (csrfToken: string) => {
     userStore.setCsrfToken(csrfToken);
+
+    if (userStore.session) {
+      userStore.updateUserInfo(userStore.session, { csrfToken });
+    }
   };
 
   const handleTokenReceived = useDebounceFn(_handleTokenReceived, 2000);
@@ -216,18 +254,14 @@ export const useUserAccount = () => {
     }
   };
 
-  // 新增：恢复保存的 cookie
   const restoreSavedCookies = () => {
-    if (userStore.session && userStore.csrfToken && userStore.currentSite) {
-      console.log('恢复保存的 cookie');
-      console.log('Site:', userStore.currentSite);
-      console.log('Session:', userStore.session);
-      console.log('CSRF Token:', userStore.csrfToken);
+    const currentUser = userStore.currentUser as IUserInfo;
 
+    if (currentUser && currentUser.session && currentUser.csrfToken && currentUser.currentSite) {
       window.electron.ipcRenderer.send('restore-cookies', {
-        site: userStore.currentSite,
-        sessionId: userStore.session,
-        csrfToken: userStore.csrfToken
+        site: currentUser.currentSite,
+        sessionId: currentUser.session,
+        csrfToken: currentUser.csrfToken
       });
     } else {
       console.log('没有找到保存的认证信息，无法恢复 cookie');

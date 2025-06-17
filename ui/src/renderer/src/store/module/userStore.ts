@@ -29,9 +29,22 @@ export const useUserStore = defineStore('client-user', {
       this.currentSite = site;
     },
     setUserInfo(userInfo: IUserInfo) {
-      if (this.userInfo!.some((item: IUserInfo) => item.session === userInfo.session)) return;
+      const existingUserIndex = this.userInfo!.findIndex(
+        (item: IUserInfo) => item.session === userInfo.session
+      );
 
-      this.userInfo!.push(userInfo);
+      if (existingUserIndex !== -1) {
+        this.userInfo![existingUserIndex] = { ...this.userInfo![existingUserIndex], ...userInfo };
+      } else {
+        this.userInfo!.push(userInfo);
+      }
+    },
+    updateUserInfo(session: string, updates: Partial<IUserInfo>) {
+      const userIndex = this.userInfo!.findIndex((item: IUserInfo) => item.session === session);
+
+      if (userIndex !== -1) {
+        this.userInfo![userIndex] = { ...this.userInfo![userIndex], ...updates };
+      }
     },
     setLoading(status: boolean) {
       this.loading = status;
