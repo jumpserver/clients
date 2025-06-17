@@ -11,6 +11,8 @@ export interface IUserInfo {
 
   session: string;
 
+  csrfToken?: string;
+
   currentSite?: string;
 }
 

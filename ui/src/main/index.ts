@@ -388,61 +388,112 @@ ipcMain.on('get-platform', function (event) {
 ipcMain.on('get-app-version', function (event) {
   event.sender.send('app-version-response', app.getVersion());
 });
-ipcMain.on('get-current-site', (_, site) => {
+ipcMain.on('get-current-site', async (_, site) => {
   if (jms_sessionid && jms_csrftoken) {
-    session.defaultSession.cookies.set({
-      url: site,
-      name: 'jms_sessionid',
-      value: jms_sessionid,
-      path: '/',
-      httpOnly: false,
-      secure: site.startsWith('https'),
-      sameSite: 'no_restriction'
-    });
-    session.defaultSession.cookies.set({
-      url: site,
-      name: 'jms_csrftoken',
-      value: jms_csrftoken,
-      path: '/',
-      httpOnly: false,
-      secure: site.startsWith('https'),
-      sameSite: 'no_restriction'
-    });
-    console.log('Cookie 设置完成');
+    try {
+      // 先清理旧的同名 cookie
+      const existingCookies = await session.defaultSession.cookies.get({
+        url: site
+      });
+
+      for (const cookie of existingCookies) {
+        if (cookie.name === 'jms_sessionid' || cookie.name === 'jms_csrftoken') {
+          await session.defaultSession.cookies.remove(site, cookie.name);
+        }
+      }
+
+      // 设置新的 cookie
+      await session.defaultSession.cookies.set({
+        url: site,
+        name: 'jms_sessionid',
+        value: jms_sessionid,
+        path: '/',
+        httpOnly: false,
+        secure: site.startsWith('https'),
+        sameSite: 'no_restriction'
+      });
+      await session.defaultSession.cookies.set({
+        url: site,
+        name: 'jms_csrftoken',
+        value: jms_csrftoken,
+        path: '/',
+        httpOnly: false,
+        secure: site.startsWith('https'),
+        sameSite: 'no_restriction'
+      });
+      console.log('Cookie 设置完成');
+    } catch (error) {
+      console.error('设置 cookie 失败:', error);
+    }
   } else {
     console.log('警告：jms_sessionid 或 jms_csrftoken 为空，无法设置 cookie');
   }
 });
 
 // 恢复保存的 cookie
-ipcMain.on('restore-cookies', (_, { site, sessionId, csrfToken }) => {
+ipcMain.on('restore-cookies', async (_, { site, sessionId, csrfToken }) => {
   if (sessionId && csrfToken && site) {
-    // 更新全局变量
-    jms_sessionid = sessionId;
-    jms_csrftoken = csrfToken;
+    try {
+      // 先清理旧的同名 cookie
+      const existingCookies = await session.defaultSession.cookies.get({
+        url: site
+      });
 
-    // 设置 cookie
-    session.defaultSession.cookies.set({
-      url: site,
-      name: 'jms_sessionid',
-      value: sessionId,
-      path: '/',
-      httpOnly: false,
-      secure: site.startsWith('https'),
-      sameSite: 'no_restriction'
-    });
-    session.defaultSession.cookies.set({
-      url: site,
-      name: 'jms_csrftoken',
-      value: csrfToken,
-      path: '/',
-      httpOnly: false,
-      secure: site.startsWith('https'),
-      sameSite: 'no_restriction'
-    });
-    console.log('Cookie 恢复完成');
+      for (const cookie of existingCookies) {
+        if (cookie.name === 'jms_sessionid' || cookie.name === 'jms_csrftoken') {
+          await session.defaultSession.cookies.remove(site, cookie.name);
+        }
+      }
+
+      // 更新全局变量
+      jms_sessionid = sessionId;
+      jms_csrftoken = csrfToken;
+
+      // 设置新的 cookie
+      await session.defaultSession.cookies.set({
+        url: site,
+        name: 'jms_sessionid',
+        value: sessionId,
+        path: '/',
+        httpOnly: false,
+        secure: site.startsWith('https'),
+        sameSite: 'no_restriction'
+      });
+      await session.defaultSession.cookies.set({
+        url: site,
+        name: 'jms_csrftoken',
+        value: csrfToken,
+        path: '/',
+        httpOnly: false,
+        secure: site.startsWith('https'),
+        sameSite: 'no_restriction'
+      });
+      console.log('Cookie 恢复完成');
+    } catch (error) {
+      console.error('恢复 cookie 失败:', error);
+    }
   } else {
     console.log('警告：恢复 cookie 参数不完整');
+  }
+});
+
+// 清理特定站点的认证 cookie
+ipcMain.on('clear-site-cookies', async (_, site) => {
+  if (site) {
+    try {
+      const existingCookies = await session.defaultSession.cookies.get({
+        url: site
+      });
+
+      for (const cookie of existingCookies) {
+        if (cookie.name === 'jms_sessionid' || cookie.name === 'jms_csrftoken') {
+          await session.defaultSession.cookies.remove(site, cookie.name);
+        }
+      }
+      console.log('站点 Cookie 清理完成:', site);
+    } catch (error) {
+      console.error('清理站点 cookie 失败:', error);
+    }
   }
 });
 
