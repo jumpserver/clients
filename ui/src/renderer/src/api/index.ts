@@ -15,6 +15,8 @@ const config = {
 
 const defaultTheme = ref('');
 
+let hasShown401Message = false; // 放在模块最顶层，作用域全局共享
+
 try {
   const { getDefaultSetting } = useElectronConfig();
   const { theme } = await getDefaultSetting();
@@ -92,20 +94,25 @@ class RequestHttp {
 
         config.loading && userStore.setLoading(false);
 
+        hasShown401Message = false;
+
         return data;
       },
       (error: AxiosError) => {
         if (error.message.indexOf('timeout') !== -1) message.error('请求超时！请您稍后重试');
         if (error.message.indexOf('Network Error') !== -1) message.error('网络错误！请您稍后重试');
         if (error.message.indexOf('401') !== -1) {
-          const userStore = useUserStore();
+          if (!hasShown401Message) {
+            hasShown401Message = true;
+            const userStore = useUserStore();
 
-          userStore.removeCurrentUser();
+            userStore.removeCurrentUser();
 
-          message.error('Login authentication has expired. Please log in again.', {
-            closable: true,
-            duration: 5000
-          });
+            message.error('Login authentication has expired. Please log in again.', {
+              closable: true,
+              duration: 5000
+            });
+          }
         }
 
         return Promise.reject(error);

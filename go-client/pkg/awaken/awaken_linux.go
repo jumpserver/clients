@@ -79,7 +79,7 @@ func awakenSSHCommand(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 		currentDesktop := strings.ToLower(strings.TrimSpace(string(out)))
 
 		switch currentDesktop {
-		case "gnome", "ubuntu:gnome", "ukui", "cinnamon":
+		case "gnome", "ubuntu:gnome", "ukui", "cinnamon", "x-cinnamon":
 			cmd = exec.Command("gnome-terminal", "--", "bash", "-c",
 				fmt.Sprintf("%s %s; exec bash -i", clientPath, commands),
 			)

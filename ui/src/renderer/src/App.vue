@@ -164,7 +164,6 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  window.electron.ipcRenderer.removeAllListeners('set-token');
   mittBus.off('changeLang', handleLangChange);
   mittBus.off('changeTheme', handleThemeChange);
 });
