@@ -65,7 +65,8 @@ export default {
     Connectable: '可连接',
     UnConnectable: '不可连接',
     ConnectionTip:
-      '由于每条资产信息并未直接与账号相关联因此需要先手动右击获取账号列表之后才能获得账号列表以及相关信息'
+      '由于每条资产信息并未直接与账号相关联因此需要先手动右击获取账号列表之后才能获得账号列表以及相关信息',
+    SearchPlaceholder: '搜索资产'
   },
   Dialog: {
     'Save&Default': '保存且默认',
