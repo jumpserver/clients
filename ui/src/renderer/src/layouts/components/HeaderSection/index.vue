@@ -11,7 +11,7 @@
           v-model:value="searchInput"
           size="small"
           clearable
-          placeholder="Search for assets"
+          :placeholder="t('Common.SearchPlaceholder')"
           @keypress.enter="onKeyEnter"
         />
         <n-button secondary type="primary" size="small" @click="handleSearch">

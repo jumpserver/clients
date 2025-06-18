@@ -65,7 +65,8 @@ export default {
     Connectable: 'Connectable',
     UnConnectable: 'UnConnectable',
     ConnectionTip:
-      'Asset information is not directly linked to any account. To view the account list and related information, please right-click to retrieve them first.'
+      'Asset information is not directly linked to any account. To view the account list and related information, please right-click to retrieve them first.',
+    SearchPlaceholder: 'Search assets'
   },
   Dialog: {
     'Save&Default': 'Save And Default',
