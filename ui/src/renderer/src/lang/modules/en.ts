@@ -48,7 +48,7 @@ export default {
     Username: 'Username',
     Password: 'Password',
     Confirm: 'Confirm',
-    Cancel: '取消',
+    Cancel: 'Cancel',
     UsernamePlaceholder: 'Please enter the username',
     InputAccountPassword: 'Manual input',
     None: 'None',
