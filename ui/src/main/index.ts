@@ -54,6 +54,17 @@ const handleUrl = (url: string) => {
     try {
       const decodedSession = JSON.parse(decodedSessionJson);
 
+      // 添加调试：显示解析后的完整会话信息
+      console.log('🔍 解析后的会话信息:', {
+        type: decodedSession.type,
+        site: decodedSession.site,
+        cookie: {
+          jms_sessionid: decodedSession.cookie?.jms_sessionid?.substring(0, 10) + '...',
+          jms_csrftoken: decodedSession.cookie?.jms_csrftoken?.substring(0, 10) + '...'
+        },
+        rawData: decodedSessionJson.substring(0, 200) + '...'
+      });
+
       if (decodedSession.type === 'cookie') {
         openMainWindow = true;
 
@@ -66,28 +77,43 @@ const handleUrl = (url: string) => {
           const urlObj = new URL(currentUrl);
           const siteUrl = `${urlObj.protocol}//${urlObj.host}`;
 
-          session.defaultSession.cookies.set({
-            url: siteUrl,
-            name: 'jms_sessionid',
-            value: jms_sessionid,
+          const isSecure = siteUrl.startsWith('https');
+          const cookieOptions = {
             path: '/',
             httpOnly: false,
-            secure: siteUrl.startsWith('https'),
-            sameSite: 'no_restriction'
-          });
-          session.defaultSession.cookies.set({
-            url: siteUrl,
-            name: 'jms_csrftoken',
-            value: jms_csrftoken,
-            path: '/',
-            httpOnly: false,
-            secure: siteUrl.startsWith('https'),
-            sameSite: 'no_restriction'
-          });
+            secure: isSecure,
+            sameSite: (isSecure ? 'no_restriction' : 'lax') as 'no_restriction' | 'lax'
+          };
+
+          session.defaultSession.cookies
+            .set({
+              url: siteUrl,
+              name: 'jms_sessionid',
+              value: jms_sessionid,
+              ...cookieOptions
+            })
+            .catch(error => {
+              console.error('设置 jms_sessionid cookie 失败:', error);
+            });
+
+          session.defaultSession.cookies
+            .set({
+              url: siteUrl,
+              name: 'jms_csrftoken',
+              value: jms_csrftoken,
+              ...cookieOptions
+            })
+            .catch(error => {
+              console.error('设置 jms_csrftoken cookie 失败:', error);
+            });
         }
 
-        mainWindow?.webContents.send('set-login-session', decodedSession.cookie.jms_sessionid);
-        mainWindow?.webContents.send('set-login-csrfToken', decodedSession.cookie.jms_csrftoken);
+        // 合并发送登录信息，确保 session 和 csrfToken 同时传递
+        mainWindow?.webContents.send('set-login-credentials', {
+          session: decodedSession.cookie.jms_sessionid,
+          csrfToken: decodedSession.cookie.jms_csrftoken,
+          site: decodedSession.site || 'https://jumpserver-test.cmdb.cc'
+        });
 
         // 通知渲染进程设置 cookie
         mainWindow?.webContents.send('setup-cookies-for-site');
@@ -252,8 +278,74 @@ const createWindow = async (): Promise<void> => {
     });
   });
 
-  session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
-    callback({ requestHeaders: details.requestHeaders });
+  session.defaultSession.webRequest.onBeforeSendHeaders(async (details, callback) => {
+    const requestHeaders = { ...details.requestHeaders };
+
+    // 如果是对 JumpServer API 的请求，手动添加 cookie
+    if (details.url.includes('/api/') && (jms_sessionid || jms_csrftoken)) {
+      try {
+        // 获取当前站点的 cookie
+        const cookies = await session.defaultSession.cookies.get({
+          url: details.url
+        });
+
+        const cookieStrings: string[] = [];
+        for (const cookie of cookies) {
+          if (cookie.name === 'jms_sessionid' || cookie.name === 'jms_csrftoken') {
+            cookieStrings.push(`${cookie.name}=${cookie.value}`);
+          }
+        }
+
+        if (cookieStrings.length > 0) {
+          // 只设置我们的认证 cookie，不合并现有的
+          const newCookieValue = cookieStrings.join('; ');
+
+          (requestHeaders as any)['Cookie'] = newCookieValue;
+
+          // 确保 CSRF token 也在请求头中
+          if (jms_csrftoken) {
+            (requestHeaders as any)['X-CSRFToken'] = jms_csrftoken;
+          }
+
+          // 修复跨域问题：设置正确的 Referer 和 Origin
+          const urlObj = new URL(details.url);
+          const origin = `${urlObj.protocol}//${urlObj.host}`;
+          (requestHeaders as any)['Referer'] = origin + '/';
+          (requestHeaders as any)['Origin'] = origin;
+
+          // 对于用户 profile 请求，移除空的 X-JMS-ORG 头
+          if (details.url.includes('/users/profile/') && requestHeaders['X-JMS-ORG'] === '') {
+            delete requestHeaders['X-JMS-ORG'];
+            console.log('🗑️ 移除空的 X-JMS-ORG 头');
+          }
+
+          // 修复 Sec-Fetch-Site 为 same-origin
+          (requestHeaders as any)['Sec-Fetch-Site'] = 'same-origin';
+
+          console.log('🍪 手动添加认证信息到请求头:', {
+            Cookie: newCookieValue,
+            'X-CSRFToken': jms_csrftoken ? jms_csrftoken.substring(0, 10) + '...' : 'none'
+          });
+
+          // 调试：打印完整的请求头信息
+          console.log('🔍 完整请求头信息:', {
+            url: details.url,
+            method: details.method,
+            headers: Object.keys(requestHeaders).reduce((acc, key) => {
+              acc[key] =
+                key.toLowerCase().includes('token') || key.toLowerCase().includes('cookie')
+                  ? requestHeaders[key].substring(0, 20) + '...'
+                  : requestHeaders[key];
+              return acc;
+            }, {} as any)
+          });
+        }
+      } catch (error) {
+        console.error('获取 cookie 失败:', error);
+      }
+    }
+
+    callback({ requestHeaders });
   });
 
   mainWindow.on('close', () => {
@@ -403,23 +495,25 @@ ipcMain.on('get-current-site', async (_, site) => {
       }
 
       // 设置新的 cookie
+      const isSecure = site.startsWith('https');
+      const cookieOptions = {
+        path: '/',
+        httpOnly: false,
+        secure: isSecure,
+        sameSite: (isSecure ? 'no_restriction' : 'lax') as 'no_restriction' | 'lax'
+      };
+
       await session.defaultSession.cookies.set({
         url: site,
         name: 'jms_sessionid',
         value: jms_sessionid,
-        path: '/',
-        httpOnly: false,
-        secure: site.startsWith('https'),
-        sameSite: 'no_restriction'
+        ...cookieOptions
       });
       await session.defaultSession.cookies.set({
         url: site,
         name: 'jms_csrftoken',
         value: jms_csrftoken,
-        path: '/',
-        httpOnly: false,
-        secure: site.startsWith('https'),
-        sameSite: 'no_restriction'
+        ...cookieOptions
       });
       console.log('Cookie 设置完成');
     } catch (error) {
@@ -432,6 +526,25 @@ ipcMain.on('get-current-site', async (_, site) => {
 
 // 恢复保存的 cookie
 ipcMain.on('restore-cookies', async (_, { site, sessionId, csrfToken }) => {
+  console.log('📨 收到 restore-cookies 请求:', {
+    site,
+    sessionId: sessionId?.substring(0, 10) + '...',
+    csrfToken: csrfToken?.substring(0, 10) + '...'
+  });
+
+  // 添加调试：检查 URL 解析
+  try {
+    const urlObj = new URL(site);
+    console.log('🔍 站点 URL 解析:', {
+      origin: urlObj.origin,
+      hostname: urlObj.hostname,
+      protocol: urlObj.protocol,
+      port: urlObj.port
+    });
+  } catch (error) {
+    console.error('❌ URL 解析失败:', error);
+  }
+
   if (sessionId && csrfToken && site) {
     try {
       // 先清理旧的同名 cookie
@@ -442,38 +555,85 @@ ipcMain.on('restore-cookies', async (_, { site, sessionId, csrfToken }) => {
       for (const cookie of existingCookies) {
         if (cookie.name === 'jms_sessionid' || cookie.name === 'jms_csrftoken') {
           await session.defaultSession.cookies.remove(site, cookie.name);
+          console.log('🗑️ 清理旧 cookie:', cookie.name);
         }
       }
 
       // 更新全局变量
       jms_sessionid = sessionId;
       jms_csrftoken = csrfToken;
+      console.log('🔄 更新全局变量完成');
 
       // 设置新的 cookie
+      const isSecure = site.startsWith('https');
+      const cookieOptions = {
+        path: '/',
+        httpOnly: false,
+        secure: isSecure,
+        // 对于 HTTPS 使用 no_restriction，对于 HTTP 使用 lax
+        sameSite: (isSecure ? 'no_restriction' : 'lax') as 'no_restriction' | 'lax'
+      };
+
       await session.defaultSession.cookies.set({
         url: site,
         name: 'jms_sessionid',
         value: sessionId,
-        path: '/',
-        httpOnly: false,
-        secure: site.startsWith('https'),
-        sameSite: 'no_restriction'
+        ...cookieOptions
       });
+      console.log('✅ 设置 jms_sessionid cookie 完成');
+
       await session.defaultSession.cookies.set({
         url: site,
         name: 'jms_csrftoken',
         value: csrfToken,
-        path: '/',
-        httpOnly: false,
-        secure: site.startsWith('https'),
-        sameSite: 'no_restriction'
+        ...cookieOptions
       });
-      console.log('Cookie 恢复完成');
+      console.log('✅ 设置 jms_csrftoken cookie 完成');
+
+      // 验证 cookie 是否设置成功
+      const newCookies = await session.defaultSession.cookies.get({
+        url: site
+      });
+      const sessionCookie = newCookies.find(c => c.name === 'jms_sessionid');
+      const csrfCookie = newCookies.find(c => c.name === 'jms_csrftoken');
+      console.log('🔍 验证 cookie 设置结果:', {
+        sessionCookie: sessionCookie ? '✅ 存在' : '❌ 不存在',
+        csrfCookie: csrfCookie ? '✅ 存在' : '❌ 不存在'
+      });
+
+      console.log('🎉 Cookie 恢复完成');
+
+      // 通知渲染进程 cookie 设置完成
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('cookies-restored', { success: true, site });
+      }
     } catch (error) {
-      console.error('恢复 cookie 失败:', error);
+      console.error('❌ 恢复 cookie 失败:', error);
+
+      // 通知渲染进程 cookie 设置失败
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('cookies-restored', {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+          site
+        });
+      }
     }
   } else {
-    console.log('警告：恢复 cookie 参数不完整');
+    console.log('⚠️ 警告：恢复 cookie 参数不完整:', {
+      site,
+      sessionId: !!sessionId,
+      csrfToken: !!csrfToken
+    });
+
+    // 通知渲染进程参数不完整
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('cookies-restored', {
+        success: false,
+        error: '参数不完整',
+        site
+      });
+    }
   }
 });
 

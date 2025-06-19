@@ -109,6 +109,9 @@ export const useUserAccount = () => {
         if (user.currentSite) {
           window.electron.ipcRenderer.send('restore-cookies', {
             site: user.currentSite,
+            jms_sessionid: user.session,
+            jms_csrftoken: user.csrfToken || '',
+            // 为了兼容性，也保留旧的字段名
             sessionId: user.session,
             csrfToken: user.csrfToken || ''
           });
@@ -131,16 +134,82 @@ export const useUserAccount = () => {
   const getAccountInfo = () => {};
 
   /**
-   * @description 处理 session 接收
+   * @description 处理登录凭据接收（session + csrfToken + site）
    */
-  const _handleTokenReceived = async (session: string) => {
-    if (!session) {
-      useMessage.error('Token is required');
+  const _handleCredentialsReceived = async (credentials: {
+    session: string;
+    csrfToken: string;
+    site: string;
+  }) => {
+    if (!credentials.session || !credentials.csrfToken) {
+      useMessage.error('登录凭据不完整');
       return;
     }
 
-    userStore.setSession(session);
+    console.log('🔐 收到完整登录凭据:', {
+      session: credentials.session.substring(0, 10) + '...',
+      csrfToken: credentials.csrfToken.substring(0, 10) + '...',
+      site: credentials.site
+    });
+
+    // 设置用户状态
+    userStore.setSession(credentials.session);
+    userStore.setCsrfToken(credentials.csrfToken);
     userStore.resetOrganization();
+
+    // 立即设置 cookie 到 Electron session 中
+    console.log('🍪 正在设置 cookie 到 Electron session...');
+
+    // 等待 cookie 设置完成的 Promise
+    const cookieSetupPromise = new Promise((resolve, reject) => {
+      const handleCookiesRestored = (
+        event: any,
+        data: { success: boolean; error?: string; site: string }
+      ) => {
+        if (data.site === credentials.site) {
+          window.electron.ipcRenderer.removeListener('cookies-restored', handleCookiesRestored);
+          if (data.success) {
+            console.log('✅ Cookie 设置成功，可以开始 API 请求');
+            resolve(true);
+          } else {
+            console.error('❌ Cookie 设置失败:', data.error);
+            reject(new Error(data.error || 'Cookie 设置失败'));
+          }
+        }
+      };
+
+      window.electron.ipcRenderer.on('cookies-restored', handleCookiesRestored);
+
+      // 设置超时
+      setTimeout(() => {
+        window.electron.ipcRenderer.removeListener('cookies-restored', handleCookiesRestored);
+        reject(new Error('Cookie 设置超时'));
+      }, 5000);
+    });
+
+    // 发送设置 cookie 的请求 - 使用动态的 cookie 名称
+    const cookieData: any = {
+      site: credentials.site,
+      // 为了兼容性，保留旧的字段名
+      sessionId: credentials.session,
+      csrfToken: credentials.csrfToken
+    };
+
+    // 动态添加 cookie 字段（从 userStore 中获取当前站点的认证信息）
+    // 这里暂时使用默认名称，实际应该从解析的数据中获取
+    cookieData['sessionid'] = credentials.session;
+    cookieData['csrftoken'] = credentials.csrfToken;
+
+    window.electron.ipcRenderer.send('restore-cookies', cookieData);
+
+    // 等待 cookie 设置完成
+    try {
+      await cookieSetupPromise;
+    } catch (error) {
+      console.error('Cookie 设置失败:', error);
+      useMessage.error('Cookie 设置失败，可能影响登录状态');
+      // 继续执行，但可能会失败
+    }
 
     try {
       const res = await getProfile();
@@ -155,7 +224,7 @@ export const useUserAccount = () => {
         });
 
         userStore.setUserInfo({
-          session,
+          session: credentials.session,
           username: res?.username,
           display_name: res?.system_roles.map((item: any) => item.display_name),
           avatar_url: await getAvatarImage(),
@@ -164,7 +233,7 @@ export const useUserAccount = () => {
         });
 
         userStore.setCurrentUser({
-          session,
+          session: credentials.session,
           username: res?.username,
           display_name: res?.system_roles.map((item: any) => item.display_name),
           avatar_url: await getAvatarImage(),
@@ -230,7 +299,7 @@ export const useUserAccount = () => {
     }
   };
 
-  const handleTokenReceived = useDebounceFn(_handleTokenReceived, 2000);
+  const handleCredentialsReceived = useDebounceFn(_handleCredentialsReceived, 2000);
   const handleCsrfTokenReceived = useDebounceFn(_handleCsrfTokenReceived, 2000);
 
   const handleModalOpacity = () => {
@@ -260,6 +329,9 @@ export const useUserAccount = () => {
     if (currentUser && currentUser.session && currentUser.csrfToken && currentUser.currentSite) {
       window.electron.ipcRenderer.send('restore-cookies', {
         site: currentUser.currentSite,
+        jms_sessionid: currentUser.session,
+        jms_csrftoken: currentUser.csrfToken,
+        // 为了兼容性，也保留旧的字段名
         sessionId: currentUser.session,
         csrfToken: currentUser.csrfToken
       });
@@ -275,7 +347,7 @@ export const useUserAccount = () => {
     removeAccount,
     getAccountInfo,
     handleModalOpacity,
-    handleTokenReceived,
+    handleCredentialsReceived,
     handleCsrfTokenReceived,
     setupCookiesForSite,
     restoreSavedCookies

@@ -44,8 +44,7 @@ const {
   removeAccount,
   switchAccount,
   handleModalOpacity,
-  handleTokenReceived,
-  handleCsrfTokenReceived,
+  handleCredentialsReceived,
   setupCookiesForSite,
   restoreSavedCookies
 } = useUserAccount();
@@ -151,11 +150,11 @@ onMounted(async () => {
     router.push({ name: 'Linux' });
   }
 
-  window.electron.ipcRenderer.on('set-login-session', (_e, session: string) =>
-    handleTokenReceived(session)
-  );
-  window.electron.ipcRenderer.on('set-login-csrfToken', (_e, csrfToken: string) =>
-    handleCsrfTokenReceived(csrfToken)
+  // 监听合并后的登录凭据事件
+  window.electron.ipcRenderer.on(
+    'set-login-credentials',
+    (_e, credentials: { session: string; csrfToken: string; site: string }) =>
+      handleCredentialsReceived(credentials)
   );
   window.electron.ipcRenderer.on('setup-cookies-for-site', () => setupCookiesForSite());
 
