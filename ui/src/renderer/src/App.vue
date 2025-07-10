@@ -46,6 +46,7 @@ const {
   handleModalOpacity,
   handleCredentialsReceived,
   setupCookiesForSite,
+  handleCookieReceived,
   restoreSavedCookies
 } = useUserAccount();
 
@@ -156,6 +157,14 @@ onMounted(async () => {
     (_e, credentials: { session: string; csrfToken: string; site: string }) =>
       handleCredentialsReceived(credentials)
   );
+
+  window.electron.ipcRenderer.on(
+    'set-login-cookies',
+    (_e, credentials: { csrfToken: string; site: string; cookies: Electron.Cookie[] }) => {
+      handleCookieReceived(credentials);
+    }
+  );
+
   window.electron.ipcRenderer.on('setup-cookies-for-site', () => setupCookiesForSite());
 
   mittBus.on('changeLang', handleLangChange);

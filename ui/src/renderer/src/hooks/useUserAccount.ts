@@ -299,8 +299,100 @@ export const useUserAccount = () => {
     }
   };
 
+  const _handleCookieReceived = async (credentials: {
+    cookies: Electron.Cookie[];
+    csrfToken: string;
+    site: string;
+  }) => {
+    if (!credentials.cookies || credentials.cookies.length === 0) {
+      useMessage.error('没有收到有效的 cookie 数据');
+      return;
+    }
+
+    console.log('🔐 收到完整的 cookie 数据:', {
+      cookies: credentials.cookies,
+      csrfToken: credentials.csrfToken.substring(0, 10) + '...',
+      site: credentials.site
+    });
+    const sessionIdCookie = credentials.cookies.find(cookie =>
+      cookie.name.includes('sessionid')
+    ).value;
+
+    // 更新 userStore 中的 csrfToken
+    userStore.setCsrfToken(credentials.csrfToken);
+    userStore.setSession(sessionIdCookie);
+
+    try {
+      const res = await getProfile();
+
+      const orgRes = await getOrganization();
+      userStore.setUserInfo({
+        session: sessionIdCookie,
+        username: res?.username,
+        display_name: res?.system_roles.map((item: any) => item.display_name),
+        avatar_url: await getAvatarImage(),
+        currentSite: userStore.currentSite,
+        csrfToken: userStore.csrfToken
+      });
+
+      userStore.setCurrentUser({
+        session: sessionIdCookie,
+        username: res?.username,
+        display_name: res?.system_roles.map((item: any) => item.display_name),
+        avatar_url: await getAvatarImage(),
+        currentSite: userStore.currentSite,
+        csrfToken: userStore.csrfToken
+      });
+
+      if (res) {
+        notification.create({
+          type: 'success',
+          content: t('Message.AuthenticatedSuccess'),
+          duration: 2000
+        });
+
+        const setting = await getSystemSetting();
+
+        // 普通用户
+        if (res.system_roles[0]?.id === '00000000-0000-0000-0000-000000000003') {
+          userStore.setCurrentOrganization(orgRes.workbench_orgs[0]?.id);
+          orgRes.workbench_orgs.forEach((org: IOrganization) => {
+            userStore.setOrganization(org);
+          });
+        }
+
+        if (res.system_roles[0]?.id === '00000000-0000-0000-0000-000000000002') {
+          userStore.setCurrentOrganization(orgRes.audit_orgs[0]?.id);
+          orgRes.audit_orgs.forEach((org: IOrganization) => {
+            userStore.setOrganization(org);
+          });
+        }
+
+        if (res.system_roles[0]?.id === '00000000-0000-0000-0000-000000000001') {
+          userStore.setCurrentOrganization(orgRes.console_orgs[0]?.id);
+          orgRes.console_orgs.forEach((org: IOrganization) => {
+            userStore.setOrganization(org);
+          });
+        }
+
+        if (setting) {
+          settingStore.setRdpClientOption(setting.graphics.rdp_client_option);
+          settingStore.setKeyboardLayout(setting.graphics.keyboard_layout);
+          settingStore.setRdpSmartSize(setting.graphics.rdp_smart_size);
+          settingStore.setRdpColorQuality(setting.graphics.rdp_color_quality);
+        }
+
+        showLoginModal.value = false;
+
+        router.push({ name: 'Linux' });
+      }
+    } catch (e) {
+      showLoginModal.value = false;
+    }
+  };
   const handleCredentialsReceived = useDebounceFn(_handleCredentialsReceived, 2000);
   const handleCsrfTokenReceived = useDebounceFn(_handleCsrfTokenReceived, 2000);
+  const handleCookieReceived = useDebounceFn(_handleCookieReceived, 2000);
 
   const handleModalOpacity = () => {
     showLoginModal.value = !showLoginModal.value;
@@ -350,6 +442,7 @@ export const useUserAccount = () => {
     handleCredentialsReceived,
     handleCsrfTokenReceived,
     setupCookiesForSite,
-    restoreSavedCookies
+    restoreSavedCookies,
+    handleCookieReceived
   };
 };

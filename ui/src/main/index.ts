@@ -481,47 +481,35 @@ ipcMain.on('get-app-version', function (event) {
   event.sender.send('app-version-response', app.getVersion());
 });
 ipcMain.on('get-current-site', async (_, site) => {
-  if (jms_sessionid && jms_csrftoken) {
-    try {
-      // 先清理旧的同名 cookie
-      const existingCookies = await session.defaultSession.cookies.get({
-        url: site
-      });
-
-      for (const cookie of existingCookies) {
-        if (cookie.name === 'jms_sessionid' || cookie.name === 'jms_csrftoken') {
-          await session.defaultSession.cookies.remove(site, cookie.name);
-        }
-      }
-
-      // 设置新的 cookie
-      const isSecure = site.startsWith('https');
-      const cookieOptions = {
-        path: '/',
-        httpOnly: false,
-        secure: isSecure,
-        sameSite: (isSecure ? 'no_restriction' : 'lax') as 'no_restriction' | 'lax'
-      };
-
-      await session.defaultSession.cookies.set({
-        url: site,
-        name: 'jms_sessionid',
-        value: jms_sessionid,
-        ...cookieOptions
-      });
-      await session.defaultSession.cookies.set({
-        url: site,
-        name: 'jms_csrftoken',
-        value: jms_csrftoken,
-        ...cookieOptions
-      });
-      console.log('Cookie 设置完成');
-    } catch (error) {
-      console.error('设置 cookie 失败:', error);
+  const loginWindow = new BrowserWindow({
+    width: 600,
+    height: 800,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true
     }
-  } else {
-    console.log('警告：jms_sessionid 或 jms_csrftoken 为空，无法设置 cookie');
-  }
+  });
+  const loginUrl = `${site}/core/auth/login/?next=%2Fui%2F`;
+  loginWindow.loadURL(loginUrl);
+  loginWindow.webContents.on('will-redirect', (event, url) => {
+    if (url.includes('/ui')) {
+      // 表示登录完成，可以获取 token 或关闭窗口
+      console.log('登录完成，获取 token 或执行其他操作', url);
+      // cookies 中获取 jms_sessionid 和 jms_csrftoken
+      session.defaultSession.cookies.get({}).then(cookies => {
+        const csrfTokenCookie = cookies.find(cookie => cookie.name.includes('csrftoken'));
+        const sessionIdCookie = cookies.find(cookie => cookie.name.includes('sessionid'));
+        jms_csrftoken = csrfTokenCookie?.value || '';
+        jms_sessionid = sessionIdCookie?.value || '';
+        mainWindow?.webContents.send('set-login-cookies', {
+          cookies: cookies,
+          csrfToken: csrfTokenCookie?.value,
+          site: site
+        });
+        loginWindow.close();
+      });
+    }
+  });
 });
 
 // 恢复保存的 cookie

@@ -115,7 +115,7 @@ const jumpToLogin = () => {
   userStore.setCurrentSit(sanitizedUrl);
   window.electron.ipcRenderer.send('get-current-site', sanitizedUrl);
   inputStatus.value = 'success';
-  window.open(`${sanitizedUrl}/core/auth/login/?next=client`);
+  // window.open(`${sanitizedUrl}/core/auth/login/?next=client`);
 };
 
 /**
