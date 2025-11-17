@@ -191,7 +191,6 @@ export const useAssetFetcher = (assetType: string, scrollRef?: Ref<HTMLElement |
   const filterResultsByAssetType = (items: RawAssetData[]) => {
     switch (assetType) {
       case "favorite":
-        console.log(items);
         return items;
       case "linux":
         return items.filter((it) => {
