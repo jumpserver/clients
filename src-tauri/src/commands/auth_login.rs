@@ -36,14 +36,14 @@ pub async fn auth_login(
     site: String,
 ) -> Result<(), String> {
     let fut = async {
-        let client = BasicClient::new(ClientId::new(String::from("client-id")))
+        let client = BasicClient::new(ClientId::new(String::from("FkkXFf0wPelYPIbvf0VElkZtyrw8TWIcyqakDgni")))
             .set_client_secret(ClientSecret::new(String::from("sectret")))
             // 指定授权端点：用户会被重定向到这个 URL 登录/授权
             // 会自动拼上 response_type、client_id、redirect_uri、scope、state、code_challenge 等参数
             .set_auth_uri(AuthUrl::new(format!("{}/core/o/authorize/", site))?)
             // 指定令牌端点：将 code + pkce_verifier 或者 refresh_token
             // 向这个 URL 发 POST 来换取/刷新 access_token、id_token 等
-            .set_token_uri(TokenUrl::new(String::from(""))?)
+            .set_token_uri(TokenUrl::new(format!("{}/core/o/token", site))?)
             .set_redirect_uri(RedirectUrl::new(String::from("jms://oauth2/callback"))?);
 
         // 生成 PKCE + 授权 URL
@@ -79,7 +79,7 @@ pub async fn auth_login(
             .await
             .map_err(|_| anyhow::anyhow!("auth flow cancelled or timed out"))?;
 
-        // 校验 state，防止 CSRF
+        // 防止 CSRF
         if let Some(state) = callback.state.as_ref() {
             if state != callback.csrf.secret() {
                 anyhow::bail!("state mismatch");
