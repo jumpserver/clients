@@ -7,6 +7,7 @@ mod utils;
 use crate::setup::apply_window_effects;
 use crate::setup::setup_tray;
 
+use crate::commands::auth_login;
 use crate::commands::get_asset_detail::get_asset_detail;
 use crate::commands::get_assets::get_assets;
 use crate::commands::get_config::get_config;
@@ -22,7 +23,7 @@ use crate::commands::update_config::update_config_selection;
 use crate::commands::url_watcher::url_watcher;
 use crate::commands::window_controls::{close_window, minimize_window, toggle_maximize_window};
 
-use log::error;
+use log::{error, info};
 use tauri::menu::{Menu, MenuItem};
 use tauri::Manager;
 use tauri_plugin_deep_link::DeepLinkExt;
@@ -47,6 +48,7 @@ pub fn run() {
         )
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_os::init())
@@ -84,6 +86,7 @@ pub fn run() {
 
             let app_handle = app.app_handle().clone();
             app.deep_link().on_open_url(move |event| {
+                info!("deep link event: {:#?}", event);
                 let urls = event.urls();
                 for url in &urls {
                     error!("deep link original URL on_open_url: {}", url.as_str());
@@ -106,6 +109,7 @@ pub fn run() {
             rename,
             pull_up,
             unfavorite,
+            auth_login,
             get_assets,
             get_config,
             url_watcher,

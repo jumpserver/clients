@@ -1,3 +1,4 @@
+pub mod auth_login;
 pub mod get_asset_detail;
 pub mod get_assets;
 pub mod get_config;
