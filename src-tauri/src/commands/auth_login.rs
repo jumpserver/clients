@@ -1,12 +1,18 @@
 use oauth2::{
-    basic::BasicClient, reqwest, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken,
-    PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, Scope, TokenResponse, TokenUrl,
+    basic::BasicClient, reqwest, AuthUrl, AuthorizationCode, ClientId, CsrfToken,
+    PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, RequestTokenError, Scope,
+    StandardErrorResponse, TokenResponse, TokenUrl,
 };
+use serde_json::Value;
 use std::sync::Mutex;
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, Emitter, State};
 use tauri_plugin_opener::OpenerExt;
 use tokio::sync::oneshot;
 use url::Url;
+
+use crate::service::user::UserService;
+use oauth2::basic::BasicErrorResponseType;
+use oauth2::HttpClientError;
 
 /// 记录一次登录发起时的上下文（PKCE/CSRF 和回调通道）。
 pub struct PendingAuth {
@@ -36,15 +42,16 @@ pub async fn auth_login(
     site: String,
 ) -> Result<(), String> {
     let fut = async {
-        let client = BasicClient::new(ClientId::new(String::from("FkkXFf0wPelYPIbvf0VElkZtyrw8TWIcyqakDgni")))
-            .set_client_secret(ClientSecret::new(String::from("sectret")))
-            // 指定授权端点：用户会被重定向到这个 URL 登录/授权
-            // 会自动拼上 response_type、client_id、redirect_uri、scope、state、code_challenge 等参数
-            .set_auth_uri(AuthUrl::new(format!("{}/core/o/authorize/", site))?)
-            // 指定令牌端点：将 code + pkce_verifier 或者 refresh_token
-            // 向这个 URL 发 POST 来换取/刷新 access_token、id_token 等
-            .set_token_uri(TokenUrl::new(format!("{}/core/o/token", site))?)
-            .set_redirect_uri(RedirectUrl::new(String::from("jms://oauth2/callback"))?);
+        let client = BasicClient::new(ClientId::new(String::from(
+            "FkkXFf0wPelYPIbvf0VElkZtyrw8TWIcyqakDgni",
+        )))
+        // 指定授权端点：用户会被重定向到这个 URL 登录/授权
+        // 会自动拼上 response_type、client_id、redirect_uri、scope、state、code_challenge 等参数
+        .set_auth_uri(AuthUrl::new(format!("{}/core/o/authorize/", site))?)
+        // 指定令牌端点：将 code + pkce_verifier 或者 refresh_token
+        // 向这个 URL 发 POST 来换取/刷新 access_token、id_token 等
+        .set_token_uri(TokenUrl::new(format!("{}/core/o/token/", site))?)
+        .set_redirect_uri(RedirectUrl::new(String::from("jms://oauth2/callback"))?);
 
         // 生成 PKCE + 授权 URL
         let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
@@ -92,13 +99,52 @@ pub async fn auth_login(
             .request_async(&http_client)
             .await?;
 
-        // 后续刷新，取 refresh_token
-        if let Some(refresh) = token_result.refresh_token() {
-            let _refreshed = client
-                .exchange_refresh_token(refresh)
-                .request_async(&http_client)
-                .await?;
-        }
+        let access_token = token_result.access_token().secret().to_owned();
+
+        // 发起请求
+        let user_service = UserService::new(site.clone(), access_token.clone());
+        let (profile, permission_orgs, current_org, xpack_message, version_message) = tokio::join!(
+            user_service.get_user_profile(),
+            user_service.get_permission_orgs(),
+            user_service.get_current_org(),
+            user_service.get_xpack_message(),
+            user_service.get_version_message(),
+        );
+
+        let version = if version_message.status == 200 && version_message.success {
+            version_message.data
+        } else if version_message.status == 404 {
+            "incompatible".to_string()
+        } else {
+            "".to_string()
+        };
+
+        let license_valid = if xpack_message.status == 200 && xpack_message.success {
+            serde_json::from_str::<Value>(&xpack_message.data)
+                .ok()
+                .and_then(|value| {
+                    value
+                        .get("XPACK_LICENSE_IS_VALID")
+                        .and_then(|v| v.as_bool())
+                })
+                .unwrap_or(false)
+        } else {
+            false
+        };
+
+        let _ = app.emit(
+            "login-success-detected",
+            serde_json::json!({
+                "status": "success",
+                "version": version,
+                "bearer": access_token,
+                "profile": profile,
+                "resolved_site": site,
+                "current_org": current_org,
+                "xpack_license_valid": license_valid,
+                "permission_orgs": permission_orgs,
+            }),
+        );
 
         Ok::<(), anyhow::Error>(())
     };
@@ -119,6 +165,7 @@ pub fn handle_oauth_callback(flow_state: &State<'_, AuthFlowState>, raw_url: &st
             }
         }
         if let Some(code) = code {
+            log::info!("Deep link received code, state={:?}", state);
             if let Ok(mut guard) = flow_state.pending.lock() {
                 if let Some(pending) = guard.take() {
                     let _ = pending.tx.send(CallbackParams {
