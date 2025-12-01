@@ -1,4 +1,5 @@
 use serde_json::{json, Value};
+use std::io::Write;
 use std::path::PathBuf;
 use tauri::Manager;
 
@@ -208,11 +209,10 @@ impl ConfigService {
 
             let merged_config = Self::merge_configs(user_config, default_config);
 
-            // 写入合并后的配置
+            // 写入合并后的配置（使用原子写入）
             let pretty = serde_json::to_string_pretty(&merged_config)
                 .map_err(|e| format!("Failed to serialize merged config: {}", e))?;
-            std::fs::write(user_config_path, pretty)
-                .map_err(|e| format!("Failed to write merged config: {}", e))?;
+            Self::atomic_write_config(user_config_path, &pretty)?;
 
             log::info!(
                 "Config upgraded successfully to version {}",
@@ -225,6 +225,138 @@ impl ConfigService {
         Ok(())
     }
 
+    /// 检查文件是否存在且可读（比 exists() 更可靠）
+    fn is_valid_config_file(path: &PathBuf) -> bool {
+        match std::fs::metadata(path) {
+            Ok(metadata) => {
+                if !metadata.is_file() {
+                    log::warn!("Config path exists but is not a file: {:?}", path);
+                    return false;
+                }
+                // 尝试读取文件头部验证可访问性
+                match std::fs::File::open(path) {
+                    Ok(mut file) => {
+                        use std::io::Read;
+                        let mut buf = [0u8; 1];
+                        match file.read(&mut buf) {
+                            Ok(_) => true,
+                            Err(e) => {
+                                log::warn!("Config file exists but cannot be read: {:?}, error: {}", path, e);
+                                false
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        log::warn!("Config file exists but cannot be opened: {:?}, error: {}", path, e);
+                        false
+                    }
+                }
+            }
+            Err(e) => {
+                log::info!("Config file does not exist or cannot be accessed: {:?}, error: {}", path, e);
+                false
+            }
+        }
+    }
+
+    /// 验证配置文件内容是否有效
+    fn is_valid_config_content(path: &PathBuf) -> bool {
+        match std::fs::read_to_string(path) {
+            Ok(content) => {
+                match serde_json::from_str::<serde_json::Value>(&content) {
+                    Ok(json) => {
+                        // 检查必要的字段是否存在
+                        if json.get("version").is_none() {
+                            log::warn!("Config file missing 'version' field: {:?}", path);
+                            return false;
+                        }
+                        true
+                    }
+                    Err(e) => {
+                        log::warn!("Config file contains invalid JSON: {:?}, error: {}", path, e);
+                        false
+                    }
+                }
+            }
+            Err(e) => {
+                log::warn!("Failed to read config file: {:?}, error: {}", path, e);
+                false
+            }
+        }
+    }
+
+    /// 备份用户配置文件
+    fn backup_user_config(path: &PathBuf) -> Result<PathBuf, String> {
+        let backup_path = path.with_extension("json.bak");
+        std::fs::copy(path, &backup_path)
+            .map_err(|e| format!("Failed to backup config: {}", e))?;
+        log::info!("Backed up user config to {:?}", backup_path);
+        Ok(backup_path)
+    }
+
+    /// 原子写入配置文件（先写入临时文件，再重命名）
+    fn atomic_write_config(path: &PathBuf, content: &str) -> Result<(), String> {
+        let temp_path = path.with_extension("json.tmp");
+
+        // 写入临时文件
+        {
+            let mut file = std::fs::File::create(&temp_path)
+                .map_err(|e| format!("Failed to create temp config file: {}", e))?;
+            file.write_all(content.as_bytes())
+                .map_err(|e| format!("Failed to write temp config file: {}", e))?;
+            file.sync_all()
+                .map_err(|e| format!("Failed to sync temp config file: {}", e))?;
+        }
+
+        // 验证临时文件内容有效
+        if !Self::is_valid_config_content(&temp_path) {
+            let _ = std::fs::remove_file(&temp_path);
+            return Err("Temp config file validation failed".to_string());
+        }
+
+        // 备份当前配置（如果存在）
+        if path.exists() {
+            if let Err(e) = Self::backup_user_config(path) {
+                log::warn!("Failed to backup before atomic write: {}", e);
+            }
+        }
+
+        // 重命名临时文件为目标文件
+        std::fs::rename(&temp_path, path)
+            .map_err(|e| format!("Failed to rename temp config to target: {}", e))?;
+
+        log::info!("Config written atomically to {:?}", path);
+        Ok(())
+    }
+
+    /// 尝试从备份文件恢复配置
+    fn try_restore_from_backup(config_path: &PathBuf) -> Option<PathBuf> {
+        let backup_path = config_path.with_extension("json.bak");
+
+        if !backup_path.exists() {
+            log::info!("No backup file found at {:?}", backup_path);
+            return None;
+        }
+
+        // 验证备份文件有效性
+        if !Self::is_valid_config_file(&backup_path) || !Self::is_valid_config_content(&backup_path) {
+            log::warn!("Backup file exists but is invalid: {:?}", backup_path);
+            return None;
+        }
+
+        // 复制备份文件到配置文件
+        match std::fs::copy(&backup_path, config_path) {
+            Ok(_) => {
+                log::info!("Successfully restored config from backup: {:?}", backup_path);
+                Some(backup_path)
+            }
+            Err(e) => {
+                log::warn!("Failed to restore from backup: {}", e);
+                None
+            }
+        }
+    }
+
     /// 确保用户配置文件存在，如果不存在则从模板复制
     fn ensure_user_config(app: &tauri::AppHandle) -> Result<PathBuf, String> {
         let user_config_path = Self::get_user_config_path(app)?;
@@ -232,8 +364,27 @@ impl ConfigService {
             .or_else(Self::resolve_dev_path)
             .ok_or_else(|| "config.json template not found (resource/dev)".to_string())?;
 
-        // 如果用户配置文件不存在，从模板复制
-        if !user_config_path.exists() {
+        // 使用更可靠的文件检查方法
+        let config_exists = Self::is_valid_config_file(&user_config_path);
+        let config_valid = config_exists && Self::is_valid_config_content(&user_config_path);
+
+        if !config_exists {
+            // 配置文件不存在，首先尝试从备份恢复
+            log::info!("Config file does not exist at {:?}, trying to restore from backup", user_config_path);
+
+            if Self::try_restore_from_backup(&user_config_path).is_some() {
+                // 从备份恢复成功，验证恢复后的文件
+                if Self::is_valid_config_content(&user_config_path) {
+                    log::info!("Config restored from backup successfully");
+                    // 检查是否需要版本升级
+                    if let Err(e) = Self::update_user_config_if_needed(&user_config_path, &template_path) {
+                        log::warn!("Failed to update restored config: {}", e);
+                    }
+                    return Ok(user_config_path);
+                }
+            }
+
+            // 备份恢复失败或不存在，从模板复制
             log::info!(
                 "Copying config template from {:?} to {:?}",
                 template_path,
@@ -242,10 +393,41 @@ impl ConfigService {
             std::fs::copy(&template_path, &user_config_path)
                 .map_err(|e| format!("Failed to copy config template: {}", e))?;
             log::info!("Initial config created successfully");
+        } else if !config_valid {
+            // 配置文件存在但内容无效
+            log::warn!(
+                "Config file exists but is invalid at {:?}",
+                user_config_path
+            );
+
+            // 尝试备份损坏的配置
+            let corrupted_backup = user_config_path.with_extension("json.corrupted");
+            if let Err(e) = std::fs::copy(&user_config_path, &corrupted_backup) {
+                log::warn!("Failed to backup corrupted config: {}", e);
+            } else {
+                log::info!("Corrupted config backed up to {:?}", corrupted_backup);
+            }
+
+            // 尝试从备份恢复
+            if Self::try_restore_from_backup(&user_config_path).is_some() {
+                if Self::is_valid_config_content(&user_config_path) {
+                    log::info!("Config restored from backup after corruption detected");
+                    if let Err(e) = Self::update_user_config_if_needed(&user_config_path, &template_path) {
+                        log::warn!("Failed to update restored config: {}", e);
+                    }
+                    return Ok(user_config_path);
+                }
+            }
+
+            // 备份恢复失败，从模板重建
+            log::info!("Recreating config from template");
+            std::fs::copy(&template_path, &user_config_path)
+                .map_err(|e| format!("Failed to copy config template: {}", e))?;
+            log::info!("Config recreated from template");
         } else {
-            // 如果用户配置已存在，检查是否需要更新
+            // 配置文件存在且有效，检查是否需要更新
             log::info!(
-                "User config exists at {:?}, checking for updates",
+                "User config exists and is valid at {:?}, checking for updates",
                 user_config_path
             );
             if let Err(e) = Self::update_user_config_if_needed(&user_config_path, &template_path) {
@@ -343,8 +525,7 @@ impl ConfigService {
 
                 let pretty = serde_json::to_string_pretty(&json)
                     .map_err(|e| format!("serialize config.json failed: {}", e))?;
-                std::fs::write(&config_path, pretty)
-                    .map_err(|e| format!("write config.json failed: {}", e))?;
+                Self::atomic_write_config(&config_path, &pretty)?;
 
                 log::info!("Config path updated successfully at: {:?}", config_path);
 
@@ -390,8 +571,7 @@ impl ConfigService {
 
         let pretty = serde_json::to_string_pretty(&json)
             .map_err(|e| format!("serialize config.json failed: {}", e))?;
-        std::fs::write(&config_path, pretty)
-            .map_err(|e| format!("write config.json failed: {}", e))?;
+        Self::atomic_write_config(&config_path, &pretty)?;
 
         log::info!("Config updated successfully at: {:?}", config_path);
 
