@@ -23,6 +23,9 @@ use crate::commands::rename_asset::rename;
 use crate::commands::set_favorite::set_favorite;
 use crate::commands::unfavorite::unfavorite;
 use crate::commands::update_config::update_config_selection;
+use crate::commands::video_player::{
+    delete_video_player_file, read_video_player_text_stream, write_video_player_gzip_file,
+};
 use crate::commands::window_controls::{close_window, minimize_window, toggle_maximize_window};
 use crate::utils::is_auth_callback;
 
@@ -197,6 +200,9 @@ pub fn run() {
             update_config_selection,
             init_http_callback_server,
             get_connect_methods,
+            write_video_player_gzip_file,
+            read_video_player_text_stream,
+            delete_video_player_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

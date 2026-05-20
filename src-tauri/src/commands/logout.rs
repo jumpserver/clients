@@ -16,7 +16,7 @@ pub async fn logout(app: AppHandle, _name: String, site: String) -> Result<(), S
 
 async fn revoke_and_clear_tokens(_app: &AppHandle, site: &str) -> anyhow::Result<()> {
     let token_service = TokenService::new(site.to_string());
-    
+
     if let Some(entry) = token_service.load().await? {
         if let Some(refresh) = entry.refresh_token {
             let client_id = entry

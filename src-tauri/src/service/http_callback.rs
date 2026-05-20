@@ -31,7 +31,7 @@ pub async fn start_http_callback_server(app_handle: AppHandle) {
     #[cfg(debug_assertions)]
     {
         let app_handle = Arc::new(app_handle);
-        
+
         let app_handle_clone = app_handle.clone();
         let app = Router::new()
             .route(

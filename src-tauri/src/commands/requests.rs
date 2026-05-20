@@ -19,7 +19,6 @@ pub trait MaybeJson {
     }
 }
 
-
 #[derive(Debug, Serialize)]
 pub struct ApiResponse {
     pub status: u16,
@@ -41,7 +40,6 @@ where
         rb.query(self).header("X-JMS-ORG", self.org())
     }
 }
-
 
 impl MaybeJson for () {
     fn apply(self, rb: reqwest::RequestBuilder) -> reqwest::RequestBuilder {

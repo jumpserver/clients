@@ -17,4 +17,3 @@ impl VersionService {
         get_with_response(&url, "").await
     }
 }
-

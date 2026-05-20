@@ -15,4 +15,5 @@ pub(crate) mod requests;
 pub mod set_favorite;
 pub mod unfavorite;
 pub mod update_config;
+pub mod video_player;
 pub mod window_controls;
