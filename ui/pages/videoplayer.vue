@@ -177,9 +177,7 @@ async function optimizeWindowForVideoPlayer() {
     const nextHeight = Math.max(currentLogicalHeight, VIDEO_PLAYER_TARGET_HEIGHT);
 
     if (nextWidth !== currentLogicalWidth || nextHeight !== currentLogicalHeight) {
-      await currentWindow.setSize(
-        new useTauriWindowLogicalSize(nextWidth, nextHeight)
-      );
+      await currentWindow.setSize(new useTauriWindowLogicalSize(nextWidth, nextHeight));
     }
   } catch (error) {
     console.debug("optimize video player window failed", error);
@@ -219,32 +217,30 @@ onBeforeUnmount(async () => {
       multiple
       accept=".mp4,.gz,.tar,.json"
       @change="handleInputChange"
-    >
+    />
 
     <div class="mx-auto flex h-full w-full max-w-[1700px] flex-col px-6 py-5 lg:px-8">
       <header data-tauri-drag-region class="mb-5 flex items-center justify-between gap-4">
         <div data-tauri-drag-region>
-          <p class="text-xs uppercase tracking-[0.32em] text-(--ui-text-dimmed)">
-            JumpServer
-          </p>
-          <h1 class="mt-2 text-3xl font-semibold tracking-tight text-(--ui-text-highlighted)">
-            Video Player
-          </h1>
+          <p class="text-xs uppercase tracking-[0.32em] text-(--ui-text-dimmed)">JumpServer</p>
+          <h1 class="mt-2 text-3xl font-semibold tracking-tight text-(--ui-text-highlighted)">Video Player</h1>
         </div>
 
         <div class="flex items-center gap-2">
           <UButton
             color="neutral"
             variant="ghost"
-            :icon="isDarkMode ? 'line-md:moon-filled-to-sunny-filled-loop-transition' : 'line-md:sunny-filled-loop-to-moon-filled-transition'"
+            :icon="
+              isDarkMode
+                ? 'line-md:moon-filled-to-sunny-filled-loop-transition'
+                : 'line-md:sunny-filled-loop-to-moon-filled-transition'
+            "
             @click="toggleThemeMode"
           >
             {{ isDarkMode ? "切换浅色" : "切换暗色" }}
           </UButton>
 
-          <UButton color="neutral" variant="ghost" to="/linux">
-            返回主界面
-          </UButton>
+          <UButton color="neutral" variant="ghost" to="/linux">返回主界面</UButton>
         </div>
       </header>
 
@@ -254,41 +250,41 @@ onBeforeUnmount(async () => {
 
       <div class="grid min-h-0 flex-1 grid-cols-[minmax(0,1.9fr)_minmax(280px,0.78fr)] gap-5">
         <section class="grid min-h-0 min-w-0 grid-rows-[minmax(0,1.85fr)_minmax(120px,0.55fr)] gap-3">
-          <div class="flex min-h-0 overflow-hidden rounded-xl border-0 bg-black shadow-xl shadow-black/10 backdrop-blur">
+          <div
+            class="flex min-h-0 overflow-hidden rounded-xl border-0 bg-black shadow-xl shadow-black/10 backdrop-blur"
+          >
             <div class="h-full min-w-0 flex-1 overflow-hidden bg-black">
-              <component
-                :is="playerComponent"
-                v-if="playerComponent && currentItem"
-                :source="currentItem.source"
-              />
+              <component :is="playerComponent" v-if="playerComponent && currentItem" :source="currentItem.source" />
               <label
                 v-else
                 for="videoplayer-file-input"
                 class="group flex h-full w-full cursor-pointer flex-col items-center justify-center gap-4 px-6 py-6 text-center"
               >
-                <div class="flex h-16 w-16 items-center justify-center rounded-xl bg-white/8 text-3xl text-(--ui-primary)">
+                <div
+                  class="flex h-16 w-16 items-center justify-center rounded-xl bg-white/8 text-3xl text-(--ui-primary)"
+                >
                   <UIcon name="line-md:upload-loop" />
                 </div>
                 <div class="max-w-xl">
-                  <p class="text-xl font-semibold tracking-tight text-(--ui-text-highlighted)">
-                    导入录像文件
-                  </p>
+                  <p class="text-xl font-semibold tracking-tight text-(--ui-text-highlighted)">导入录像文件</p>
                   <p class="mt-2 text-sm leading-6 text-(--ui-text-muted)">
-                    将录像拖入播放区，或点击这里选择 `.mp4`、`.cast.gz`、`.replay.gz`、`.part.gz`、`.tar` 文件。
+                    将录像拖入播放区，或点击这里选择 `.mp4`、`.gz`、`.tar` 文件。
                   </p>
                 </div>
-                <div class="rounded-full border-0 bg-(--ui-bg-muted) px-4 py-2 text-sm text-(--ui-text-toned) transition group-hover:bg-(--ui-bg-accented)">
+                <div
+                  class="rounded-full border-0 bg-(--ui-bg-muted) px-4 py-2 text-sm text-(--ui-text-toned) transition group-hover:bg-(--ui-bg-accented)"
+                >
                   选择文件
                 </div>
               </label>
             </div>
           </div>
 
-          <div class="min-h-0 overflow-hidden rounded-xl border-0 bg-(--ui-bg-elevated)/60 px-3 py-2 shadow-lg shadow-black/5 backdrop-blur">
+          <div
+            class="min-h-0 overflow-hidden rounded-xl border-0 bg-(--ui-bg-elevated)/60 px-3 py-2 shadow-lg shadow-black/5 backdrop-blur"
+          >
             <div class="mb-2 flex items-center gap-2">
-              <p class="text-[11px] uppercase tracking-[0.2em] text-(--ui-text-dimmed)">
-                录像信息
-              </p>
+              <p class="text-[11px] uppercase tracking-[0.2em] text-(--ui-text-dimmed)">录像信息</p>
               <div class="h-px flex-1 bg-(--ui-border)/60" />
             </div>
 
@@ -321,25 +317,23 @@ onBeforeUnmount(async () => {
           <div
             v-else
             class="flex h-full min-h-0 flex-col rounded-2xl border-0 bg-(--ui-bg-elevated)/70 shadow-xl shadow-black/10 backdrop-blur"
-            style="padding: 15px;"
+            style="padding: 15px"
           >
             <div class="mb-4">
-              <p class="text-[11px] uppercase tracking-[0.2em] text-(--ui-text-dimmed)">
-                播放列表
-              </p>
+              <p class="text-[11px] uppercase tracking-[0.2em] text-(--ui-text-dimmed)">播放列表</p>
             </div>
 
-            <div class="flex min-h-0 flex-1 items-center justify-center rounded-xl border border-dashed border-(--ui-border) bg-(--ui-bg-muted) p-3">
+            <div
+              class="flex min-h-0 flex-1 items-center justify-center rounded-xl border border-dashed border-(--ui-border) bg-(--ui-bg-muted) p-3"
+            >
               <div class="flex max-w-[240px] flex-col items-center text-center">
-                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-(--ui-bg-accented) text-2xl text-(--ui-text-dimmed)">
+                <div
+                  class="flex h-12 w-12 items-center justify-center rounded-xl bg-(--ui-bg-accented) text-2xl text-(--ui-text-dimmed)"
+                >
                   <UIcon name="line-md:list-3" />
                 </div>
-                <p class="mt-4 text-sm font-medium text-(--ui-text-highlighted)">
-                  暂无播放片段
-                </p>
-                <p class="mt-2 text-xs leading-5 text-(--ui-text-muted)">
-                  导入录像后，这里会显示可切换的片段列表。
-                </p>
+                <p class="mt-4 text-sm font-medium text-(--ui-text-highlighted)">暂无播放片段</p>
+                <p class="mt-2 text-xs leading-5 text-(--ui-text-muted)">导入录像后，这里会显示可切换的片段列表。</p>
               </div>
             </div>
           </div>
@@ -353,7 +347,11 @@ onBeforeUnmount(async () => {
 .videoplayer-page {
   color: var(--ui-text);
   background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--ui-color-primary-500) 14%, transparent) 0%, transparent 30%),
+    radial-gradient(
+      circle at top left,
+      color-mix(in srgb, var(--ui-color-primary-500) 14%, transparent) 0%,
+      transparent 30%
+    ),
     radial-gradient(circle at right, color-mix(in srgb, var(--ui-bg-elevated) 65%, transparent) 0%, transparent 26%),
     linear-gradient(
       180deg,

@@ -1,12 +1,15 @@
 <script setup lang="ts">
-const props = withDefaults(defineProps<{
-  compact?: boolean
-}>(), {
-  compact: false
-});
+const props = withDefaults(
+  defineProps<{
+    compact?: boolean;
+  }>(),
+  {
+    compact: false
+  }
+);
 
 const emit = defineEmits<{
-  "select-files": [File[]]
+  "select-files": [File[]];
 }>();
 
 function handleDrop(event: DragEvent) {
@@ -26,7 +29,9 @@ function handleDrop(event: DragEvent) {
     @dragover.prevent
     @drop.prevent="handleDrop"
   >
-    <div class="absolute inset-x-12 top-0 h-px bg-gradient-to-r from-transparent via-(--ui-primary) to-transparent opacity-70" />
+    <div
+      class="absolute inset-x-12 top-0 h-px bg-gradient-to-r from-transparent via-(--ui-primary) to-transparent opacity-70"
+    />
     <div
       class="mb-4 flex items-center justify-center rounded-2xl bg-black/20 text-(--ui-primary)"
       :class="props.compact ? 'h-14 w-14 text-3xl' : 'h-16 w-16 md:h-18 md:w-18 text-3xl md:text-4xl'"
@@ -39,16 +44,11 @@ function handleDrop(event: DragEvent) {
     >
       导入录像文件
     </h2>
-    <p
-      class="mt-3 max-w-xl text-(--ui-text-muted)"
-      :class="props.compact ? 'text-xs leading-5' : 'text-sm leading-6'"
-    >
-      支持拖入或选择 `.mp4`、`.cast.gz`、`.replay.gz`、`.part.gz` 以及包含这些文件的 `.tar` 包。
+    <p class="mt-3 max-w-xl text-(--ui-text-muted)" :class="props.compact ? 'text-xs leading-5' : 'text-sm leading-6'">
+      支持拖入或选择 `.mp4 .gz .tar` 包。
     </p>
     <div :class="props.compact ? 'mt-5' : 'mt-6 md:mt-8'">
-      <UButton color="neutral" variant="soft" :size="props.compact ? 'md' : 'lg'">
-        选择文件
-      </UButton>
+      <UButton color="neutral" variant="soft" :size="props.compact ? 'md' : 'lg'">选择文件</UButton>
     </div>
   </label>
 </template>

@@ -69,7 +69,7 @@ const sideBarItems = computed<NavigationMenuItem[]>(() => {
     },
     {
       label: t("Menu.Player"),
-      icon: "gravity-ui:play-fill",
+      icon: "line-md:play",
       to: localePath("videoplayer"),
       disabled: isLoading.value
     }
