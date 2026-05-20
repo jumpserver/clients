@@ -18,10 +18,12 @@ const VIDEO_PLAYER_TARGET_HEIGHT = 920;
 
 const { parseFiles } = useVideoPlayerParser();
 const { deleteTempFile } = useVideoPlayerTauri();
+const { userTheme, manualSetTheme } = useThemeAdapter();
 
 const currentItem = computed(() => items.value.find((item) => item.id === activeId.value) || null);
 const currentMeta = computed(() => currentItem.value?.meta || items.value[0]?.meta || {});
 const currentIndex = computed(() => items.value.findIndex((item) => item.id === activeId.value) + 1);
+const isDarkMode = computed(() => userTheme.value === "dark");
 
 const playerComponent = computed(() => {
   switch (currentItem.value?.type) {
@@ -156,6 +158,10 @@ function handleInputChange(event: Event) {
   void importFiles(files);
 }
 
+function toggleThemeMode() {
+  manualSetTheme(isDarkMode.value ? "light" : "dark");
+}
+
 async function optimizeWindowForVideoPlayer() {
   try {
     const currentWindow = useTauriWindowGetCurrentWindow();
@@ -226,9 +232,20 @@ onBeforeUnmount(async () => {
           </h1>
         </div>
 
-        <UButton color="neutral" variant="ghost" to="/linux">
-          返回主界面
-        </UButton>
+        <div class="flex items-center gap-2">
+          <UButton
+            color="neutral"
+            variant="ghost"
+            :icon="isDarkMode ? 'line-md:moon-filled-to-sunny-filled-loop-transition' : 'line-md:sunny-filled-loop-to-moon-filled-transition'"
+            @click="toggleThemeMode"
+          >
+            {{ isDarkMode ? "切换浅色" : "切换暗色" }}
+          </UButton>
+
+          <UButton color="neutral" variant="ghost" to="/linux">
+            返回主界面
+          </UButton>
+        </div>
       </header>
 
       <p v-if="importMessage && items.length === 0" class="mb-4 text-sm text-(--ui-text-muted)">
@@ -236,7 +253,7 @@ onBeforeUnmount(async () => {
       </p>
 
       <div class="grid min-h-0 flex-1 grid-cols-[minmax(0,1.9fr)_minmax(280px,0.78fr)] gap-5">
-        <section class="grid min-h-0 min-w-0 grid-rows-[minmax(0,1.7fr)_minmax(180px,0.9fr)] gap-4">
+        <section class="grid min-h-0 min-w-0 grid-rows-[minmax(0,1.85fr)_minmax(120px,0.55fr)] gap-3">
           <div class="flex min-h-0 overflow-hidden rounded-xl border-0 bg-black shadow-xl shadow-black/10 backdrop-blur">
             <div class="h-full min-w-0 flex-1 overflow-hidden bg-black">
               <component
@@ -267,24 +284,24 @@ onBeforeUnmount(async () => {
             </div>
           </div>
 
-          <div class="min-h-0 overflow-hidden rounded-xl border-0 bg-(--ui-bg-elevated)/60 px-4 py-3 shadow-lg shadow-black/5 backdrop-blur">
-            <div class="mb-3 flex items-center gap-3">
+          <div class="min-h-0 overflow-hidden rounded-xl border-0 bg-(--ui-bg-elevated)/60 px-3 py-2 shadow-lg shadow-black/5 backdrop-blur">
+            <div class="mb-2 flex items-center gap-2">
               <p class="text-[11px] uppercase tracking-[0.2em] text-(--ui-text-dimmed)">
                 录像信息
               </p>
               <div class="h-px flex-1 bg-(--ui-border)/60" />
             </div>
 
-            <div class="grid grid-cols-4 gap-2 xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2">
+            <div class="grid grid-cols-4 gap-1.5 xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2">
               <div
                 v-for="card in infoCards"
                 :key="card.label"
-                class="rounded-lg border-0 bg-(--ui-bg-muted)/90 px-3 py-2.5"
+                class="rounded-lg border border-(--ui-border)/80 bg-transparent px-[3px] py-[3px]"
               >
                 <p class="text-[10px] uppercase tracking-[0.14em] text-(--ui-text-dimmed)">
                   {{ card.label }}
                 </p>
-                <p class="mt-1 truncate text-[13px] font-medium text-(--ui-text-highlighted)">
+                <p class="mt-0.5 truncate text-[13px] font-medium text-(--ui-text-highlighted)">
                   {{ card.value }}
                 </p>
               </div>
@@ -303,15 +320,13 @@ onBeforeUnmount(async () => {
           />
           <div
             v-else
-            class="flex h-full min-h-0 flex-col rounded-2xl border-0 bg-(--ui-bg-elevated)/70 p-5 shadow-xl shadow-black/10 backdrop-blur"
+            class="flex h-full min-h-0 flex-col rounded-2xl border-0 bg-(--ui-bg-elevated)/70 shadow-xl shadow-black/10 backdrop-blur"
+            style="padding: 15px;"
           >
             <div class="mb-4">
               <p class="text-[11px] uppercase tracking-[0.2em] text-(--ui-text-dimmed)">
                 播放列表
               </p>
-              <h3 class="mt-1 text-sm font-semibold tracking-wide text-(--ui-text-highlighted)">
-                播放列表
-              </h3>
             </div>
 
             <div class="flex min-h-0 flex-1 items-center justify-center rounded-xl border border-dashed border-(--ui-border) bg-(--ui-bg-muted) p-3">

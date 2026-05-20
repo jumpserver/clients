@@ -67,7 +67,10 @@ function formatDuration(duration?: string, startAt?: string, endAt?: string) {
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col rounded-2xl border-0 bg-(--ui-bg-elevated)/70 p-5 shadow-xl shadow-black/10 backdrop-blur">
+  <div
+    class="flex h-full min-h-0 flex-col rounded-2xl border-0 bg-(--ui-bg-elevated)/70 shadow-xl shadow-black/10 backdrop-blur"
+    style="padding: 15px;"
+  >
     <div class="mb-3 flex items-center justify-between">
       <div class="min-w-0">
         <h3 class="truncate text-sm font-semibold tracking-wide text-(--ui-text-highlighted)">

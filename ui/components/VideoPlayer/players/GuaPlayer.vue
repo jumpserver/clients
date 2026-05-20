@@ -433,7 +433,7 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <div class="gua-controls flex items-center gap-3 rounded-xl px-3 py-2">
+    <div class="gua-controls flex items-center gap-3 rounded-none px-3 py-2">
       <button
         class="gua-play-button"
         :disabled="loading || !!errorMessage"
