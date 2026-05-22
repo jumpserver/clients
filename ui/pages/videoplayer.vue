@@ -147,10 +147,6 @@ async function importFiles(files: File[]) {
   }
 }
 
-function openFilePicker() {
-  fileInputRef.value?.click();
-}
-
 function handleInputChange(event: Event) {
   const target = event.target as HTMLInputElement;
   const files = Array.from(target.files || []);
@@ -221,10 +217,7 @@ onBeforeUnmount(async () => {
 
     <div class="mx-auto flex h-full w-full max-w-[1700px] flex-col px-6 py-5 lg:px-8">
       <header data-tauri-drag-region class="mb-5 flex items-center justify-between gap-4">
-        <div data-tauri-drag-region>
-          <p class="text-xs uppercase tracking-[0.32em] text-(--ui-text-dimmed)">JumpServer</p>
-          <h1 class="mt-2 text-3xl font-semibold tracking-tight text-(--ui-text-highlighted)">Video Player</h1>
-        </div>
+        <div data-tauri-drag-region />
 
         <div class="flex items-center gap-2">
           <UButton
