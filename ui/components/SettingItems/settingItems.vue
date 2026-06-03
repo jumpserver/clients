@@ -43,7 +43,8 @@ const imagesMap: Record<string, string | undefined> = {
   navicat17: getImageByName("navicat17"),
   royalts: getImageByName("royalts"),
   windows_rdm: getImageByName("windows_rdm"),
-  toad: getImageByName("toad")
+  toad: getImageByName("toad"),
+  mysqlworkbench: getImageByName("mysqlworkbench")
 };
 
 const commentText = computed(() => {

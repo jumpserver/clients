@@ -1,6 +1,7 @@
 package awaken
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"go-client/global"
@@ -23,6 +24,14 @@ func EnsureDirExist(path string) {
 	if err := os.MkdirAll(path, os.ModePerm); err != nil {
 		global.LOG.Error(err.Error())
 	}
+}
+
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }
 
 func getNavicatURL(connectInfo map[string]string) string {
@@ -293,6 +302,83 @@ func handleSSH(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	}
 }
 
+// prepareWorkbenchConnection writes a minimal connection entry into MySQL Workbench's
+// connections.xml so that the connection succeeds without OS mismatch warnings.
+func prepareWorkbenchConnection(connName, host, port, username string) error {
+	dir, err := os.UserConfigDir()
+	if err != nil {
+		return fmt.Errorf("failed to get user config dir: %w", err)
+	}
+	wbDir := filepath.Join(dir, "MySQL", "Workbench")
+	EnsureDirExist(wbDir)
+	connFile := filepath.Join(wbDir, "connections.xml")
+
+	// Generate a UUID for the connection entry
+	b := make([]byte, 16)
+	rand.Read(b)
+	connID := fmt.Sprintf("{%08X-%04X-%04X-%04X-%012X}",
+		b[0:4], b[4:6], b[6:8], b[8:10], b[10:16])
+
+	// Build the minimal connection XML entry
+	connEntry := fmt.Sprintf(`
+    <value type="object" struct-name="db.mgmt.Connection" id="%s" struct-checksum="0x96ba47d8">
+      <link type="object" struct-name="db.mgmt.Driver" key="driver">com.mysql.rdbms.mysql.driver.native</link>
+      <value type="string" key="hostIdentifier">Mysql@%s:%s</value>
+      <value type="int" key="isDefault">0</value>
+      <value type="dict" key="modules"/>
+      <value type="dict" key="parameterValues">
+        <value type="string" key="hostName">%s</value>
+        <value type="int" key="port">%s</value>
+        <value type="string" key="userName">%s</value>
+      </value>
+      <value type="string" key="name">%s</value>
+    </value>`,
+		connID, host, port, host, port, username, connName)
+
+	var data []byte
+	if !fileExists(connFile) {
+		content := fmt.Sprintf(`<?xml version="1.0"?>
+<data grt_format="2.0">
+  <value type="list" content-type="object" content-struct-name="db.mgmt.Connection">%s
+  </value>
+</data>`, connEntry)
+		data = []byte(content)
+	} else {
+		existing, err := ioutil.ReadFile(connFile)
+		if err != nil {
+			return fmt.Errorf("failed to read connections.xml: %w", err)
+		}
+		content := string(existing)
+
+		// Remove existing JumpServer connection if it exists
+		re := regexp.MustCompile(`(?s)<value type="object" struct-name="db\.mgmt\.Connection"[^>]*>.*?<value type="string" key="name">JumpServer</value>.*?</value>`)
+		content = re.ReplaceAllString(content, "")
+
+		insertPos := strings.Index(content, "</value>\n</data>")
+		if insertPos == -1 {
+			insertPos = strings.Index(content, "</value>\r\n</data>")
+		}
+		if insertPos != -1 {
+			content = content[:insertPos] + connEntry + "\n  " + content[insertPos:]
+			data = []byte(content)
+		} else {
+			content := fmt.Sprintf(`<?xml version="1.0"?>
+<data grt_format="2.0">
+  <value type="list" content-type="object" content-struct-name="db.mgmt.Connection">%s
+  </value>
+</data>`, connEntry)
+			data = []byte(content)
+		}
+	}
+
+	err = ioutil.WriteFile(connFile, data, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write connections.xml: %w", err)
+	}
+
+	return nil
+}
+
 func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	var appItem *config.AppItem
 	appLst := cfg.Windows.Databases
@@ -374,6 +460,45 @@ func handleDB(r *Rouse, cfg *config.AppConfig) *exec.Cmd {
 	if appItem.Name == "navicat17" {
 		url := getNavicatURL(connectMap)
 		connectMap["url"] = url
+	}
+	if appItem.Name == "mysqlworkbench" {
+		connName := "JumpServer"
+		err := prepareWorkbenchConnection(connName, r.Host, strconv.Itoa(r.Port), r.getUserName())
+		if err != nil {
+			global.LOG.Error("Failed to prepare MySQL Workbench connection: " + err.Error())
+			return nil
+		}
+		global.LOG.Info("MySQL Workbench connection prepared: " + connName)
+
+		autoit.LoadAuto()
+		
+		// Run Workbench with --query <connection name> to directly open the connection tab
+		global.LOG.Info("Launching MySQL Workbench with query: " + connName)
+		autoit.Run(fmt.Sprintf(`"%s" --query "%s"`, appPath, connName))
+
+		// Wait for password prompt dialog
+		// The title is "Connect to MySQL Server"
+		pwdTitle := "[REGEXPTITLE:.*Connect to MySQL Server.*]"
+		active := false
+		for i := 0; i <= 30; i++ {
+			ret := autoit.WinWaitActive(pwdTitle, "", 1)
+			time.Sleep(300 * time.Millisecond)
+			if ret != 0 {
+				active = true
+				break
+			}
+			autoit.WinActivate(pwdTitle, "")
+		}
+		if active {
+			time.Sleep(500 * time.Millisecond)
+			// Send password in raw mode and press Enter
+			autoit.Send(r.Value, 1)
+			time.Sleep(100 * time.Millisecond)
+			autoit.Send("{ENTER}")
+		} else {
+			global.LOG.Error("MySQL Workbench password dialog not detected")
+		}
+		return exec.Command("cmd", "/C", "exit", "0")
 	}
 	if len(appItem.AutoIt) == 0 {
 		commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
