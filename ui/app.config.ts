@@ -31,12 +31,22 @@ export default defineAppConfig({
     },
     button: {
       slots: {
-        base: "cursor-pointer"
+        base: "cursor-pointer rounded-app-md! font-semibold transition-colors duration-150"
       },
       variants: {
         ghost: {
           neutral: {
-            base: "bg-transparent hover:bg-gray-50"
+            base: "bg-transparent hover:bg-app-surface-2 dark:hover:bg-app-surface-2"
+          }
+        },
+        outline: {
+          neutral: {
+            base: "border-app-hairline text-app-ink hover:bg-app-surface-2"
+          }
+        },
+        soft: {
+          primary: {
+            base: "bg-primary-500/10 text-primary-600 hover:bg-primary-500/15 dark:text-primary-400"
           }
         }
       }
@@ -65,13 +75,13 @@ export default defineAppConfig({
     },
     dropdownMenu: {
       slots: {
-        content: "w-(--reka-dropdown-menu-trigger-width) p-1",
-        item: "mx-0.5 px-3 py-2 rounded-md transition-colors duration-150"
+        content: "w-(--reka-dropdown-menu-trigger-width) rounded-app-md! border border-app-hairline bg-app-surface-1 p-1 text-app-ink shadow-lg",
+        item: "mx-0.5 rounded-app-sm px-3 py-2 transition-colors duration-150"
       }
     },
     navigationMenu: {
       slots: {
-        link: "cursor-pointer"
+        link: "cursor-pointer rounded-app-sm! transition-colors duration-150"
       },
       variants: {
         disabled: {

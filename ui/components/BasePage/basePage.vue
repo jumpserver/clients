@@ -240,7 +240,7 @@ onBeforeUnmount(() => {
 
       <div
         v-else-if="isInitialLoading"
-        class="grid grid-cols-[repeat(auto-fit,minmax(360px,1fr))] gap-4 p-2"
+        class="asset-grid"
         aria-busy="true"
       >
         <SkeletonCard />
@@ -248,7 +248,7 @@ onBeforeUnmount(() => {
 
       <div
         v-else-if="visibleAssets && visibleAssets.length === 0"
-        class="w-full h-full flex flex-col items-center justify-center gap-1 text-gray-500"
+        class="asset-empty"
       >
         <UEmpty
           icon="mingcute:inbox-line"

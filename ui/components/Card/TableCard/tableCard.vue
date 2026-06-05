@@ -359,7 +359,7 @@ const columns: TableColumn<AssetItem>[] = [
 <template>
   <UCard
     variant="outline"
-    class="w-full overflow-hidden min-h-full flex flex-col"
+    class="app-table-card"
     :ui="{
       body: 'p-1 sm:p-1 flex-1 min-h-0'
     }"

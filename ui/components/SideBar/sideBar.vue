@@ -52,7 +52,7 @@ const sideBarItems = computed<NavigationMenuItem[]>(() => {
       icon: "mingcute:device-line",
       to: localePath("device"),
       disabled: isLoading.value
-      },
+    },
     {
       label: t("Menu.Web"),
       icon: "mingcute:web-line",
@@ -78,7 +78,7 @@ const debouncedSidebarSearch = useDebounceFn(emitSearch, 200);
 <template>
   <!-- backdrop-blur-lg 如果加上这个属性会导致在拖动窗口的时候，左侧背景一直在变化 -->
   <div
-    class="flex flex-col bg-white/30 dark:bg-zinc-900/20 backdrop-saturate-150 supports-backdrop-filter:dark:bg-zinc-900/15 border-r border-white/30 dark:border-white/10 shadow-sm"
+    class="app-sidebar"
     :style="{
       width: collapse ? '75px' : '220px'
     }"
@@ -100,7 +100,7 @@ const debouncedSidebarSearch = useDebounceFn(emitSearch, 200);
       >
         <div v-if="!isMacOS && !collapse" class="flex items-center gap-2">
           <UAvatar size="sm" src="/logo.png" class="bg-transparent" :ui="{ root: 'bg-transparent' }" />
-          <span v-if="appName" class="text-sm">{{ appName }}</span>
+          <span v-if="appName" class="app-sidebar-brand">{{ appName }}</span>
         </div>
 
         <UButton
@@ -124,7 +124,7 @@ const debouncedSidebarSearch = useDebounceFn(emitSearch, 200);
           icon="i-lucide-search"
           variant="outline"
           :placeholder="t('Operation.Search')"
-          class="dark:bg-transparent rounded-sm w-full search-input"
+          class="app-sidebar-search search-input"
           @update:model-value="debouncedSidebarSearch"
         >
           <template v-if="sidebarSearch?.length" #trailing>
@@ -159,9 +159,9 @@ const debouncedSidebarSearch = useDebounceFn(emitSearch, 200);
         :collapsed="collapse"
         color="neutral"
         :ui="{
-          link: 'px-2 my-1 rounded-sm menu-item flex items-center light:text-gray-800 dark:text-gray-200',
-          linkLeadingIcon: 'light:text-gray-800 dark:text-gray-200',
-          label: 'light:text-gray-500 dark:text-gray-400 pb-0 text-xs font-light'
+          link: 'app-menu-item menu-item',
+          linkLeadingIcon: 'text-app-ink-muted',
+          label: 'app-menu-label'
         }"
       />
     </div>
@@ -171,30 +171,3 @@ const debouncedSidebarSearch = useDebounceFn(emitSearch, 200);
     </div>
   </div>
 </template>
-
-<style>
-.light .menu .menu-item {
-  &[data-active] {
-    background-color: transparent;
-
-    &::before {
-      background-color: var(--bg-hover-light);
-    }
-
-    /* opacity: 0.8; */
-    font-weight: 500;
-  }
-
-  &:hover:not([data-active]) {
-    background-color: var(--bg-hover-light);
-  }
-}
-
-.light .search-input input {
-    background-color: var(--bg-hover-light);
-}
-
-.menu nav[data-collapsed="true"] {
-  width: 38px;
-}
-</style>

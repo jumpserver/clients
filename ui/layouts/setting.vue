@@ -5,7 +5,6 @@ const localePath = useLocalePath();
 
 const { t } = useI18n();
 const { isMacOS } = usePlatform();
-const { theme } = useSettingManager();
 const { initialTheme, listenOSThemeChange } = useThemeAdapter();
 
 const commonButtonProps = {
@@ -95,12 +94,9 @@ onMounted(() => {
 
 <template>
   <UPage
-    class="h-screen flex flex-col"
+    class="app-setting-page flex flex-col"
     :ui="{
       center: 'flex flex-col h-full min-h-0'
-    }"
-    :style="{
-      backgroundColor: theme === 'dark' ? '#2C2C2C' : '#F5F5F5'
     }"
   >
     <UPageHeader
@@ -157,17 +153,14 @@ onMounted(() => {
           :ui="{
             list: 'p-2'
           }"
-          :style="{
-            backgroundColor: theme === 'dark' ? '#222' : '#F5F5F7'
-          }"
           color="primary"
           variant="pill"
           orientation="vertical"
-          class="w-40"
+          class="app-setting-nav w-40"
         />
 
         <UCard
-          class="flex-1 min-w-0 h-full rounded-none overflow-y-auto"
+          class="app-setting-panel h-full"
           variant="outline"
           :ui="{ body: 'sm:p-0 h-full p-0' }"
         >

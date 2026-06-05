@@ -13,13 +13,13 @@ withDefaults(
   <UPageCard
     v-for="i in skeletonCount"
     :key="i"
-    class="w-full page-card shadow-sm"
+    class="asset-card w-full"
     :ui="{
       body: 'p-1 ',
       container: 'p-0 sm:p-0 '
     }"
   >
-    <section class="w-full p-4">
+    <section class="asset-card-content">
       <div class="flex items-center justify-between w-full">
         <div class="flex items-center gap-3 flex-1 min-w-0">
           <!-- 图标骨架 -->

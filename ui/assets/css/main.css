@@ -2,108 +2,292 @@
 @import "@nuxt/ui";
 
 @theme {
+  --color-app-canvas: var(--app-canvas);
+  --color-app-surface-1: var(--app-surface-1);
+  --color-app-surface-2: var(--app-surface-2);
+  --color-app-surface-3: var(--app-surface-3);
+  --color-app-overlay: var(--app-overlay);
+  --color-app-hairline: var(--app-hairline);
+  --color-app-hairline-soft: var(--app-hairline-soft);
+  --color-app-ink: var(--app-ink);
+  --color-app-ink-muted: var(--app-ink-muted);
+  --color-app-ink-subtle: var(--app-ink-subtle);
   --color-secondary: var(--ui-color-secondary-500);
-  --color-elevated: #1e1e20;
-}
-
-@theme .dark {
-  --color-elevated: #141419;
+  --color-elevated: var(--app-surface-2);
+  --radius-app-xs: 4px;
+  --radius-app-sm: 6px;
+  --radius-app-md: 8px;
+  --radius-app-lg: 12px;
+  --radius-app-xl: 16px;
 }
 
 :root {
+  color-scheme: light;
+
+  --app-canvas: #f7f8fa;
+  --app-surface-1: #ffffff;
+  --app-surface-2: #f1f3f5;
+  --app-surface-3: #e6e8ec;
+  --app-elevated: #ffffff;
+  --app-overlay: rgba(255, 255, 255, 0.82);
+  --app-hairline: #d8dbe1;
+  --app-hairline-soft: #e7e9ee;
+  --app-ink: #14161a;
+  --app-ink-muted: #555b66;
+  --app-ink-subtle: #7a808b;
+  --app-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  --app-product-terraform: #7b42bc;
+  --app-product-vault: #bb8500;
+  --app-product-consul: #e62b1e;
+  --app-product-waypoint: #0f9ca2;
+  --app-product-vagrant: #1868f2;
+  --app-product-nomad: #008f66;
+  --app-product-boundary: #d93642;
+  --app-success: #008f66;
+  --app-warning: #bb8500;
+  --app-error: #d92d20;
   --ui-color-primary-500: #1ab394;
-  --ui-color-elevated-500: #303237;
-  --ui-color-secondary-500: #7e7e7e;
-  --ui-color-neutral-100: #d8d8d8;
+  --ui-color-elevated-500: var(--app-surface-2);
+  --ui-color-secondary-500: var(--app-ink-subtle);
+  --ui-color-neutral-100: var(--app-surface-2);
+  --ui-bg: var(--app-canvas);
+  --ui-bg-muted: var(--app-surface-2);
+  --ui-bg-elevated: var(--app-elevated);
+  --ui-bg-accented: var(--app-surface-3);
+  --ui-border: var(--app-hairline);
+  --ui-border-muted: var(--app-hairline-soft);
+  --ui-text: var(--app-ink);
+  --ui-text-muted: var(--app-ink-muted);
+  --ui-text-dimmed: var(--app-ink-subtle);
   --el-font-family: var(--font-sans);
-  --bg-hover-light: rgba(60, 60, 60, 0.1);
-  --bg-hover-dark: rgba(0, 0, 0, 0.3);
-  --bg-selected-light: rgba(209, 209, 209, 0.8);
-  --bg-selected-dark: rgba(0, 0, 0, 0.5);
+  --bg-hover-light: rgba(20, 22, 26, 0.06);
+  --bg-hover-dark: rgba(255, 255, 255, 0.08);
+  --bg-selected-light: rgba(20, 22, 26, 0.1);
+  --bg-selected-dark: rgba(255, 255, 255, 0.12);
 }
 
-.text-xs-plus {
-  @apply text-[14px];
+.dark {
+  color-scheme: dark;
+
+  --app-canvas: #000000;
+  --app-surface-1: #15181e;
+  --app-surface-2: #1f232b;
+  --app-surface-3: #3b3d45;
+  --app-elevated: #15181e;
+  --app-overlay: rgba(21, 24, 30, 0.84);
+  --app-hairline: #3b3d45;
+  --app-hairline-soft: #252830;
+  --app-ink: #ffffff;
+  --app-ink-muted: #b2b6bd;
+  --app-ink-subtle: #656a76;
+  --app-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  --app-product-terraform: #7b42bc;
+  --app-product-vault: #ffcf25;
+  --app-product-consul: #e62b1e;
+  --app-product-waypoint: #14c6cb;
+  --app-product-vagrant: #1868f2;
+  --app-product-nomad: #00ca8e;
+  --app-product-boundary: #f24c53;
+  --app-success: #00ca8e;
+  --app-warning: #ffcf25;
+  --app-error: #e62b1e;
+  --ui-color-elevated-500: var(--app-surface-2);
+  --ui-color-secondary-500: var(--app-ink-subtle);
+  --ui-color-neutral-100: var(--app-surface-2);
+  --ui-bg: var(--app-canvas);
+  --ui-bg-muted: var(--app-surface-2);
+  --ui-bg-elevated: var(--app-elevated);
+  --ui-bg-accented: var(--app-surface-3);
+  --ui-border: var(--app-hairline);
+  --ui-border-muted: var(--app-hairline-soft);
+  --ui-text: var(--app-ink);
+  --ui-text-muted: var(--app-ink-muted);
+  --ui-text-dimmed: var(--app-ink-subtle);
 }
 
-.text-overflow-ellipsis {
-  @apply text-ellipsis overflow-hidden whitespace-nowrap;
+@layer base {
+  html,
+  body,
+  #__nuxt,
+  #app {
+    height: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -o-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-app-canvas text-app-ink;
+    letter-spacing: 0;
+  }
 }
 
-/* 全局按钮样式 */
-.btn-common {
-  @apply rounded-lg transition-colors duration-200;
-}
+@layer components {
+  .text-xs-plus {
+    @apply text-[14px] leading-5;
+  }
 
-.btn-common:hover {
-}
+  .text-overflow-ellipsis {
+    @apply overflow-hidden text-ellipsis whitespace-nowrap;
+  }
 
-.dark .btn-common:hover {
-}
+  .app-shell {
+    @apply h-screen w-full min-w-0 overflow-hidden bg-app-canvas text-app-ink;
+  }
 
-/* App Store 风格按钮 */
-.btn-connect {
-  @apply font-bold rounded-lg text-xs transition-all duration-200;
-}
+  .app-surface {
+    @apply border border-app-hairline bg-app-surface-1 text-app-ink shadow-sm;
+  }
 
-/* .light .btn-connect:hover {
-  @apply bg-green-500 text-white;
-}
+  .app-window-card {
+    @apply overflow-visible rounded-none! border-0! bg-transparent! shadow-none! ring-0!;
+  }
 
-.dark .btn-connect {
-  @apply bg-gray-600 hover:bg-gray-700;
-} */
+  .app-main-card {
+    @apply w-full rounded-none! border-0! bg-app-surface-1 text-app-ink shadow-none! ring-0!;
+  }
 
-/* Header 平台特定颜色 */
-.header-bg {
-  /* 默认颜色 */
-  --header-bg-light: rgb(231, 231, 231);
-  --header-bg-dark: #333334;
-}
+  .app-titlebar {
+    @apply border-b border-app-hairline-soft bg-app-overlay text-app-ink backdrop-saturate-150;
+  }
 
-/* Windows 平台 */
-.platform-windows .header-bg {
-  --header-bg-light: rgb(248, 248, 248);
-  --header-bg-dark: #2c2c2e;
-}
+  .app-sidebar {
+    @apply flex flex-col border-r border-app-hairline-soft bg-app-overlay text-app-ink shadow-sm transition-[width] duration-200 ease-out;
+  }
 
-.platform-windows {
-  @apply border-gray-300 border-1 overflow-hidden shadow-xl shadow-gray-500;
-}
+  .app-sidebar-brand {
+    @apply truncate text-sm font-semibold leading-none text-app-ink;
+  }
 
-/* macOS 平台 */
-.platform-darwin .header-bg {
-  --header-bg-light: rgba(255, 255, 255, 0.8);
-  --header-bg-dark: #1e1e1e;
-}
+  .app-sidebar-search {
+    @apply w-full rounded-app-sm bg-app-surface-2 text-app-ink;
+  }
 
-/* Linux 平台 */
-.platform-linux .header-bg {
-  --header-bg-light: rgb(240, 240, 240);
-  --header-bg-dark: #2d2d30;
-}
+  .app-menu-item {
+    @apply my-1 flex items-center rounded-app-sm px-2 text-app-ink transition-colors duration-150;
+  }
 
-/* 主题颜色应用 */
-.light .header-bg {
-  background-color: var(--header-bg-light);
-}
+  .app-menu-label {
+    @apply pb-0 text-xs font-medium uppercase text-app-ink-subtle;
+  }
 
-.dark .header-bg {
-  background-color: var(--header-bg-dark);
-}
+  .app-setting-page {
+    @apply h-screen bg-app-canvas text-app-ink;
+  }
 
-html,
-body,
-#__nuxt,
-#app {
-  height: 100%;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-  -ms-text-size-adjust: 100%;
-  -moz-text-size-adjust: 100%;
-  -o-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-  text-size-adjust: 100%;
+  .app-setting-nav {
+    @apply h-full border-r border-app-hairline-soft bg-app-surface-1 text-app-ink;
+  }
+
+  .app-setting-panel {
+    @apply min-w-0 flex-1 overflow-y-auto rounded-none! border-0! bg-app-surface-1 text-app-ink shadow-none! ring-0!;
+  }
+
+  .page-card,
+  .asset-card {
+    @apply rounded-app-md! border border-app-hairline-soft bg-app-surface-1 text-app-ink shadow-sm transition-[border-color,box-shadow,background-color] duration-200;
+  }
+
+  .asset-card {
+    @apply hover:border-primary-500/45 hover:shadow-[0_12px_32px_rgba(0,0,0,0.10)];
+  }
+
+  .dark .asset-card {
+    @apply hover:shadow-[0_14px_36px_rgba(0,0,0,0.34)];
+  }
+
+  .asset-card-content {
+    @apply w-full p-4;
+  }
+
+  .asset-title {
+    @apply truncate whitespace-nowrap text-[14px] font-semibold leading-5 text-app-ink;
+  }
+
+  .asset-meta {
+    @apply block max-w-full cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap text-[13px] leading-5 text-app-ink-muted;
+  }
+
+  .asset-rename-input {
+    @apply w-full truncate whitespace-nowrap border-0 border-b border-primary-500 bg-transparent text-[14px] font-semibold leading-5 text-app-ink outline-none;
+  }
+
+  .asset-grid {
+    @apply grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-3 p-2;
+  }
+
+  .asset-empty {
+    @apply flex h-full w-full flex-col items-center justify-center gap-1 text-app-ink-muted;
+  }
+
+  .app-table-card {
+    @apply flex min-h-full w-full flex-col overflow-hidden rounded-app-md! border border-app-hairline-soft bg-app-surface-1 shadow-sm;
+  }
+
+  .btn-common {
+    @apply rounded-app-md transition-colors duration-150;
+  }
+
+  .btn-connect {
+    @apply rounded-app-md text-xs font-semibold transition-[background-color,color,opacity,transform] duration-150 active:scale-[0.98];
+  }
+
+  .platform-windows {
+    @apply overflow-hidden border border-app-hairline shadow-[var(--app-shadow)];
+  }
+
+  .header-bg {
+    @apply border-b border-app-hairline-soft bg-app-overlay text-app-ink backdrop-saturate-150;
+  }
+
+  .container-scrollbar {
+    scrollbar-color: var(--app-ink-subtle) transparent;
+  }
+
+  .container-scrollbar::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .container-scrollbar::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 9999px;
+    background-clip: content-box;
+    background-color: var(--app-ink-subtle);
+  }
+
+  .light .menu .menu-item,
+  .dark .menu .menu-item {
+    color: var(--app-ink);
+  }
+
+  .menu .menu-item[data-active] {
+    @apply font-semibold;
+    background-color: var(--bg-selected-light);
+  }
+
+  .dark .menu .menu-item[data-active] {
+    background-color: var(--bg-selected-dark);
+  }
+
+  .menu .menu-item:hover:not([data-active]) {
+    background-color: var(--bg-hover-light);
+  }
+
+  .dark .menu .menu-item:hover:not([data-active]) {
+    background-color: var(--bg-hover-dark);
+  }
+
+  .light .search-input input,
+  .dark .search-input input {
+    background-color: var(--app-surface-2);
+  }
+
+  .menu nav[data-collapsed="true"] {
+    width: 38px;
+  }
 }

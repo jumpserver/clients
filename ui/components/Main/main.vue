@@ -1,8 +1,6 @@
 <script setup lang="ts">
 type alertTypes = "incompatible" | "noMatch";
 
-const { theme } = useSettingManager();
-const { componentsConfig } = useAppConfig();
 const clearSelectionCallback = ref<(() => void) | null>(null);
 
 const { t } = useI18n();
@@ -41,16 +39,12 @@ provide("providerClearSelection", providerClearSelection);
 <template>
   <UCard
     variant="soft"
-    class="w-full"
+    class="app-main-card"
     :style="{
       borderTopRightRadius: '0px',
       borderTopLeftRadius: '0px',
       borderBottomLeftRadius: '0px',
-      borderBottomRightRadius: '0px',
-      backgroundColor:
-        theme === 'dark'
-          ? componentsConfig.pages.mainCardDarkBackgroundColor
-          : componentsConfig.pages.mainCardLightBackgroundColor
+      borderBottomRightRadius: '0px'
     }"
     :ui="{
       header: 'p-0 sm:p-0',

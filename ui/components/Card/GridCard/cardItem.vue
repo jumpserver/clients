@@ -84,19 +84,19 @@ const cancelRename = () => {
 
 <template>
   <UPageCard
-    class="w-full page-card hover:shadow-lg/30 hover:shadow-primary-500/50 transition-shadow duration-300 ease-out"
+    class="asset-card w-full"
     :ui="{
       body: 'p-1 ',
       container: 'p-0 sm:p-0 '
     }"
   >
-    <section class="w-full p-4" @dblclick="emits('connectAsset', props.asset)" @contextmenu="handleContextMenu">
+    <section class="asset-card-content" @dblclick="emits('connectAsset', props.asset)" @contextmenu="handleContextMenu">
       <div class="flex items-center justify-between w-full">
         <div class="flex items-center gap-3 flex-1 min-w-0">
           <CardAssetIcon :type="props.asset.type" size="lg" />
 
           <div class="flex-1 min-w-0 overflow-hidden w-[120px]">
-            <div v-if="!isRenaming" class="text-xs-plus font-bold truncate whitespace-nowrap">
+            <div v-if="!isRenaming" class="asset-title">
               {{ props.asset.name }}
             </div>
 
@@ -104,7 +104,7 @@ const cancelRename = () => {
               v-else
               ref="renameInputRef"
               v-model="renameValue"
-              class="text-xs-plus font-bold truncate whitespace-nowrap bg-transparent border-b border-primary focus:outline-none w-full"
+              class="asset-rename-input"
               autocapitalize="off"
               autocorrect="off"
               spellcheck="false"
@@ -115,9 +115,7 @@ const cancelRename = () => {
             >
 
             <UTooltip arrow :text="displayAddressLine">
-              <span
-                class="block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[13px] text-neutral-500 dark:text-neutral-400 cursor-pointer"
-              >
+              <span class="asset-meta">
                 {{ displayAddressLine }}
               </span>
             </UTooltip>
