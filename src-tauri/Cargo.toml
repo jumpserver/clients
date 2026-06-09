@@ -2,7 +2,7 @@
 name = "JumpServerClient"
 version = "4.1.2"
 description = "JumpServer client tool"
-authors = [ "JumpServer" ]
+authors = ["JumpServer"]
 license = "MIT"
 repository = "https://github.com/jumpserver/clients"
 edition = "2021"
@@ -10,14 +10,14 @@ edition = "2021"
 [lib]
 name = "jumpserver_client_lib"
 crate-type = [
-  "staticlib",
-  "cdylib",
-  "rlib"
+    "staticlib",
+    "cdylib",
+    "rlib"
 ]
 
 [build-dependencies.tauri-build]
 version = "2.5.0"
-features = [ ]
+features = []
 
 [dependencies]
 url = "2.5.7"
@@ -46,33 +46,40 @@ tauri-plugin-deep-link = "2.4.5"
 tauri-plugin-single-instance = "2"
 tauri-plugin-clipboard-manager = "2.3.0"
 tauri-plugin-prevent-default = "5.0.0"
+flate2 = "1.1.9"
+tar = "0.4.46"
 
 [dependencies.tokio]
 version = "1.46.1"
 features = ["full"]
 
+[dependencies.zip]
+version = "8.6.0"
+default-features = false
+features = ["deflate"]
+
 [dependencies.tauri]
 version = "2.9.5"
 features = [
-  "macos-private-api",
-  "tray-icon",
-  "unstable",
+    "macos-private-api",
+    "tray-icon",
+    "unstable",
 ]
 
 [dependencies.serde]
 version = "1"
-features = [ "derive" ]
+features = ["derive"]
 
 [dependencies.tauri-plugin-http]
 version = "2.5.2"
-features = [ "unsafe-headers" ]
+features = ["unsafe-headers"]
 
 [dependencies.reqwest]
 version = "0.12.25"
 default-features = false
 features = [
-  "json",
-  "native-tls"
+    "json",
+    "native-tls"
 ]
 
 [target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
