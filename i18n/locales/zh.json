@@ -30,7 +30,7 @@
   },
   "Auth": {
     "SignInTitle": "请在浏览器中完成登录",
-    "BrowserHintPrefix": "如果浏览器没有自动为你打开 JumpServer 登录页面",
+    "BrowserHintPrefix": "如果浏览器没有自动为你打开登录页面",
     "OpenManually": "手动打开",
     "CopyUrl": "复制登录地址",
     "Or": "或",
@@ -154,6 +154,7 @@
     "Password": "密码",
     "DynamicUser": "同名账号",
     "ManualInput": "手动输入",
+    "Anonymous": "匿名账号",
     "RememberPassword": "记住密码"
   },
   "Setting": {
@@ -168,6 +169,8 @@
     "Auto": "自动",
     "Enable": "启用",
     "Disable": "禁用",
+    "EnableFailed": "无法启用",
+    "ExecutableNotFound": "未找到程序，请下载并正确安装",
     "DownloadApplication": "下载应用"
   },
   "ConnectError": {

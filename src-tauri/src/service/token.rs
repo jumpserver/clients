@@ -1,62 +1,78 @@
-use crate::commands::requests::{get_with_response, post_with_response, ApiResponse};
-use std::collections::HashMap;
-use url::Url;
+use anyhow::Result;
+use keyring_core::{Entry, Error as KeyringError};
 use serde::{Deserialize, Serialize};
-use serde_json::{to_value, Value};
+
+const SERVICE_NAME: &str = "com.jumpserver.client.auth";
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct TokenRequestBody {
-    pub asset: String,
-    pub account: String,
-    pub protocol: String,
-    pub input_username: String,
-    pub input_secret: String,
-    pub connect_method: String,
-    pub connect_options: Option<Value>,
+pub struct TokenRecord {
+    pub access_token: String,
+    pub refresh_token: Option<String>,
+    pub expires_at: Option<i64>,
+    pub client_id: Option<String>,
 }
 
 pub struct TokenService {
-    pub site: String,
-    pub bearer_token: String,
-    pub request_body: TokenRequestBody,
+    site: String,
+}
+
+fn token_entry(site: &str) -> Result<Entry> {
+    keyring::use_native_store(false)?;
+    Ok(Entry::new(SERVICE_NAME, site)?)
 }
 
 impl TokenService {
-    pub fn new(site: String, bearer_token: String, request_body: TokenRequestBody) -> Self {
-        Self {
-            site,
-            bearer_token,
-            request_body,
-        }
+    pub fn new(site: impl Into<String>) -> Self {
+        Self { site: site.into() }
     }
 
-    pub async fn get_connect_token(&self) -> ApiResponse {
-        let url = format!("{}/api/v1/authentication/connection-token/", self.site);
-        let body_value = to_value(&self.request_body).unwrap_or_default();
-
-        post_with_response(&url, &self.bearer_token, &body_value).await
-    }
-
-    pub async fn get_local_client_url(
+    pub async fn persist(
         &self,
-        token_id: String,
-        extra_params: Option<&HashMap<String, String>>,
-    ) -> ApiResponse {
-        let mut url = format!(
-            "{}/api/v1/authentication/connection-token/{}/client-url/",
-            self.site, &token_id
-        );
-        if let Some(params) = extra_params {
-            if let Ok(mut parsed) = Url::parse(&url) {
-                {
-                    let mut query = parsed.query_pairs_mut();
-                    for (key, value) in params {
-                        query.append_pair(key, value);
-                    }
-                }
-                url = parsed.to_string();
+        access: &str,
+        refresh: Option<&str>,
+        expires_at: Option<i64>,
+        client_id: Option<&str>,
+    ) -> Result<()> {
+        let record = TokenRecord {
+            access_token: access.to_string(),
+            refresh_token: refresh.map(|r| r.to_string()),
+            expires_at,
+            client_id: client_id.map(|c| c.to_string()),
+        };
+        let payload = serde_json::to_string(&record)?;
+        let site = self.site.clone();
+
+        tokio::task::spawn_blocking(move || -> Result<()> {
+            token_entry(&site)?.set_password(&payload)?;
+            Ok(())
+        })
+        .await??;
+
+        Ok(())
+    }
+
+    pub async fn load(&self) -> Result<Option<TokenRecord>> {
+        let site = self.site.clone();
+        tokio::task::spawn_blocking(move || -> Result<Option<TokenRecord>> {
+            let entry = token_entry(&site)?;
+            match entry.get_password() {
+                Ok(val) => Ok(Some(serde_json::from_str(&val)?)),
+                Err(KeyringError::NoEntry) => Ok(None),
+                Err(e) => Err(e.into()),
             }
-        }
-        get_with_response(&url, &self.bearer_token).await
+        })
+        .await?
+    }
+
+    pub async fn delete(&self) -> Result<()> {
+        let site = self.site.clone();
+        tokio::task::spawn_blocking(move || -> Result<()> {
+            if let Ok(entry) = token_entry(&site) {
+                let _ = entry.delete_credential();
+            }
+            Ok(())
+        })
+        .await??;
+        Ok(())
     }
 }

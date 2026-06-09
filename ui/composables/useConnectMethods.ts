@@ -1,73 +1,91 @@
 import { useUserInfoStore } from "~/store/modules/userInfo";
 
 interface ConnectMethod {
-  value: string;
-  label: string;
-  type: string;
-  icon: string;
-  disabled: boolean;
-  listen: string;
-  component: string;
+  value: string
+  label: string
+  type: string
+  icon: string
+  disabled: boolean
+  listen: string
+  component: string
 }
 
 interface ConnectMethodsResponse {
-  [protocol: string]: ConnectMethod[];
-  originals: ConnectMethod[];
+  [protocol: string]: ConnectMethod[]
+  originals: ConnectMethod[]
 }
 
-let connectMethodsCache: ConnectMethodsResponse | null = null;
-let fetchPromise: Promise<ConnectMethodsResponse> | null = null;
+const connectMethodsCache = new Map<string, ConnectMethodsResponse>();
+const fetchPromise = new Map<string, Promise<ConnectMethodsResponse>>();
 
 export const useConnectMethods = () => {
-  const { currentSite, currentUser } = storeToRefs(useUserInfoStore());
+  const { currentSite, orgId } = storeToRefs(useUserInfoStore());
 
   const fetchConnectMethods = async (): Promise<ConnectMethodsResponse> => {
-    if (connectMethodsCache) {
-      return connectMethodsCache;
+    const key = `${currentSite.value || ""}:${orgId.value || ""}`;
+    const cached = connectMethodsCache.get(key);
+
+    if (cached) {
+      return cached;
     }
 
-    if (fetchPromise) {
-      return fetchPromise;
+    const running = fetchPromise.get(key);
+
+    if (running) {
+      return running;
     }
 
-    fetchPromise = new Promise(async (resolve, reject) => {
-      const unlistenSuccess = await useTauriEventListen("get-connect-methods-success", (event) => {
-        interface eventPayload {
-          status: number;
-          data: string;
-        }
+    const promise = new Promise<ConnectMethodsResponse>((resolve, reject) => {
+      let unlistenSuccess: (() => void) | undefined;
+      let unlistenFailure: (() => void) | undefined;
+      const cleanup = () => {
+        unlistenSuccess?.();
+        unlistenFailure?.();
+      };
 
-        const payload = event.payload as eventPayload;
-        if (payload.status === 200) {
-          try {
-            const methods = JSON.parse(payload.data) as ConnectMethodsResponse;
-            connectMethodsCache = methods;
-            resolve(methods);
-          } catch (error) {
-            reject(error);
+      interface EventPayload {
+        status: number
+        data: string
+      }
+
+      Promise.all([
+        useTauriEventListen("get-connect-methods-success", (event) => {
+          const payload = event.payload as EventPayload;
+          if (payload.status === 200) {
+            try {
+              const methods = JSON.parse(payload.data) as ConnectMethodsResponse;
+              connectMethodsCache.set(key, methods);
+              resolve(methods);
+            } catch (error) {
+              reject(error);
+            }
           }
-        }
-        unlistenSuccess?.();
-        unlistenFailure?.();
-      });
+          cleanup();
+        }),
+        useTauriEventListen("get-connect-methods-failure", () => {
+          reject(new Error("Failed to fetch connect methods"));
+          cleanup();
+        })
+      ])
+        .then(([success, failure]) => {
+          unlistenSuccess = success;
+          unlistenFailure = failure;
 
-      const unlistenFailure = await useTauriEventListen("get-connect-methods-failure", () => {
-        reject(new Error("Failed to fetch connect methods"));
-        unlistenSuccess?.();
-        unlistenFailure?.();
-      });
-
-      useTauriCoreInvoke("get_connect_methods", {
-        site: currentSite.value,
-        bearerToken: currentUser.value?.bearerToken
-      });
+          useTauriCoreInvoke("get_connect_methods", {}).catch((error) => {
+            cleanup();
+            reject(error);
+          });
+        })
+        .catch(reject);
     });
 
+    fetchPromise.set(key, promise);
+
     try {
-      const result = await fetchPromise;
+      const result = await promise;
       return result;
     } finally {
-      fetchPromise = null;
+      fetchPromise.delete(key);
     }
   };
 
@@ -75,11 +93,11 @@ export const useConnectMethods = () => {
     const allMethods = await fetchConnectMethods();
     const protocolMethods = allMethods[protocol] || [];
     if (protocol === "http") {
-        return protocolMethods.filter((method) => !method.disabled && method.type === "applet")
-    }else {
-        return protocolMethods.filter((method) => {
-            return !method.disabled && (method.type === "native" && !method.value.endsWith("_guide"));
-        });
+      return protocolMethods.filter((method) => !method.disabled && method.type === "applet");
+    } else {
+      return protocolMethods.filter((method) => {
+        return !method.disabled && (method.type === "native" && !method.value.endsWith("_guide"));
+      });
     }
   };
 
@@ -98,7 +116,7 @@ export const useConnectMethods = () => {
   };
 
   const clearCache = () => {
-    connectMethodsCache = null;
+    connectMethodsCache.clear();
   };
 
   return {

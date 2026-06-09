@@ -30,7 +30,7 @@
   },
   "Auth": {
     "SignInTitle": "Sign in from your browser to continue",
-    "BrowserHintPrefix": "If your browser hasn't opened JumpServer for you to sign in,",
+    "BrowserHintPrefix": "If your browser hasn't opened for you to sign in,",
     "OpenManually": "open it manually",
     "CopyUrl": "copy the URL",
     "Or": "or",
@@ -151,6 +151,7 @@
     "Password": "Password",
     "DynamicUser": "Dynamic user",
     "ManualInput": "Manual input",
+    "Anonymous": "Anonymous",
     "RememberPassword": "Remember password"
   },
   "Setting": {
@@ -165,6 +166,8 @@
     "Auto": "Auto",
     "Enable": "Enable",
     "Disable": "Disable",
+    "EnableFailed": "Unable to enable",
+    "ExecutableNotFound": "Application not found. Please download and install it correctly.",
     "DownloadApplication": "Download Application"
   },
   "ConnectError": {

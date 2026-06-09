@@ -1,4 +1,6 @@
+mod api;
 mod commands;
+mod http;
 mod service;
 mod setup;
 mod utils;
@@ -7,26 +9,27 @@ use crate::setup::apply_window_effects;
 use crate::setup::menu::{build_menu, handle_menu_event};
 use crate::setup::setup_tray;
 
-use crate::commands::auth_login::{auth_cancel, auth_login, handle_auth_callback, AuthFlowState};
-use crate::commands::get_asset_detail::get_asset_detail;
-use crate::commands::get_assets::get_assets;
+use crate::api::session::ApiSessionStore;
+use crate::commands::api_session::{set_api_org, set_api_session};
+use crate::commands::asset_actions::{
+    get_asset_detail, get_assets, rename, set_favorite, unfavorite,
+};
+use crate::commands::auth_flow::{auth_cancel, auth_login};
+use crate::commands::auth_logout::logout;
+use crate::commands::client_launcher::pull_up;
+use crate::commands::config_update::update_config_selection;
+use crate::commands::connect_methods::get_connect_methods;
+use crate::commands::connect_token::get_connect_token;
+use crate::commands::dev_http_server::init_http_callback_server;
 use crate::commands::get_config::get_config;
-use crate::commands::get_connect_methods::get_connect_methods;
 use crate::commands::get_setting::get_setting;
-use crate::commands::get_token::get_connect_token;
-use crate::commands::get_version_message::get_version_message;
-use crate::commands::http_callback::init_http_callback_server;
-use crate::commands::list_system_fonts::list_system_fonts;
-use crate::commands::logout::logout;
-use crate::commands::pull_up::pull_up;
-use crate::commands::rename_asset::rename;
-use crate::commands::set_favorite::set_favorite;
-use crate::commands::unfavorite::unfavorite;
-use crate::commands::update_config::update_config_selection;
+use crate::commands::get_version::get_version_message;
+use crate::commands::system_fonts::list_system_fonts;
 use crate::commands::video_player::{
     delete_video_player_file, read_video_player_text_stream, write_video_player_gzip_file,
 };
-use crate::commands::window_controls::{close_window, minimize_window, toggle_maximize_window};
+use crate::commands::window_control::{close_window, minimize_window, toggle_maximize_window};
+use crate::service::oauth::AuthFlowState;
 use crate::utils::is_auth_callback;
 
 use log::{error, info, warn};
@@ -68,7 +71,7 @@ fn process_deep_link(handle: &tauri::AppHandle, raw: &str) -> bool {
         info!("deep link is auth callback, handling in current instance");
         raise_main_window_for_auth(handle);
         let flow_state = handle.state::<AuthFlowState>();
-        handle_auth_callback(&flow_state, raw);
+        flow_state.handle_callback(raw);
         return false;
     }
 
@@ -87,6 +90,7 @@ fn process_deep_link(handle: &tauri::AppHandle, raw: &str) -> bool {
 pub fn run() {
     tauri::Builder::default()
         .manage(AuthFlowState::default())
+        .manage(ApiSessionStore::default())
         .plugin(single_instance(|app, argv, _cwd| {
             info!("single_instance event, argv={:?}", argv);
 
@@ -200,6 +204,8 @@ pub fn run() {
             update_config_selection,
             init_http_callback_server,
             get_connect_methods,
+            set_api_session,
+            set_api_org,
             write_video_player_gzip_file,
             read_video_player_text_stream,
             delete_video_player_file,

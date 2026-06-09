@@ -35,6 +35,8 @@ export interface ConfigItem {
   is_internal: boolean
   is_default: boolean
   is_set: boolean
+  executable_type?: string
+  path_exists?: boolean
 }
 
 export interface AppConfigType {
@@ -218,7 +220,7 @@ export interface ConnectionInfo {
   protocol: string
   username: string
   accountId?: string
-  accountMode?: "hosted" | "dynamic" | "manual"
+  accountMode?: "hosted" | "dynamic" | "manual" | "anonymous"
   manualUsername?: string
   manualPassword?: string
   rememberSecret?: boolean

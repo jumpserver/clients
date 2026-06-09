@@ -1,7 +1,8 @@
-use crate::commands::requests::{get_unified, get_with_response, ApiResponse};
-use crate::utils::to_api_response;
+use crate::api::endpoint;
+use crate::api::request::{ApiRequestClient, ApiResponse};
 use log::info;
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Default)]
 #[serde(rename_all = "lowercase")]
@@ -36,12 +37,15 @@ pub struct AssetQuery {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub order: Option<String>,
 
+    #[serde(default)]
     pub oid: String,
 }
 
 impl AssetQuery {
+    // 根据资产类型和组织初始化资产查询参数
     #[allow(dead_code)]
     pub fn new(asset_type: Category, org: String) -> Self {
+        // r#type 这种形式是因为 type 是 Rust 关键字，所以要写成 r#type
         let (r#type, category) = match asset_type {
             Category::Database | Category::Device => (None, Some(asset_type)),
             Category::Linux | Category::Windows | Category::WindowsAd | Category::Web => {
@@ -60,59 +64,57 @@ impl AssetQuery {
         }
     }
 
+    /// 获取当前查询使用的资产分类
     pub fn get_category(&self) -> Category {
+        // 先调用 category，如果没有就用 type
         self.category.or(self.r#type).unwrap_or_default()
     }
 }
 
-pub trait HasOrg {
-    fn org(&self) -> &str;
+#[derive(Serialize)]
+struct RenameBody {
+    asset: String,
+    name: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
+    oid: String,
 }
 
-impl HasOrg for AssetQuery {
-    fn org(&self) -> &str {
-        &self.oid
-    }
+#[derive(Serialize)]
+struct FavoriteAssetBody {
+    asset: String,
 }
 
 pub struct AssetService {
-    origin: String,
-    bearer_token: String,
-    query: AssetQuery,
+    api: ApiRequestClient,
 }
 
 impl AssetService {
-    pub fn new(origin: String, bearer_token: String, query: AssetQuery) -> Self {
-        Self {
-            origin,
-            bearer_token,
-            query,
-        }
+    pub fn new(api: ApiRequestClient) -> Self {
+        Self { api }
     }
 
-    pub async fn get_category_assets(&self, favorite: bool) -> ApiResponse {
-        let url = if favorite {
-            format!(
-                "{}/api/v1/perms/users/self/nodes/favorite/assets/",
-                self.origin
-            )
+    /// 获取指定分类下的资产列表，支持普通资产和收藏节点资产两种入口
+    pub async fn get_category_assets(&self, query: &AssetQuery, favorite: bool) -> ApiResponse {
+        let path = if favorite {
+            endpoint::assets::FAVORITE_NODE_ASSETS
         } else {
-            format!("{}/api/v1/perms/users/self/assets/", self.origin)
+            endpoint::assets::USER_ASSETS
         };
+
+        let url = self.api.endpoint(path);
 
         info!(
             "获取类型为：{:?} 的资产信息，请求 url: {}, oid: {}",
-            self.query.get_category(),
+            query.get_category(),
             url,
-            self.query.oid
+            query.oid
         );
-        info!("Bearer: {}", self.bearer_token);
-        info!("query: {:?}", self.query);
+        info!("query: {:?}", query);
 
         let (r#type, category) = if favorite {
             (None, None)
         } else {
-            match self.query.get_category() {
+            match query.get_category() {
                 Category::Linux => (Some(Category::Linux), None),
                 Category::Windows => (Some(Category::Windows), None),
                 Category::WindowsAd => (Some(Category::WindowsAd), None),
@@ -125,19 +127,61 @@ impl AssetService {
         let query = AssetQuery {
             r#type,
             category,
-            offset: Some(self.query.offset.unwrap_or(0)),
-            limit: Some(self.query.limit.unwrap_or(20)),
-            search: Some(self.query.search.clone().unwrap_or_default()),
-            order: Some(self.query.order.clone().unwrap_or_default()),
-            oid: self.query.oid.clone(),
+            offset: Some(query.offset.unwrap_or(0)),
+            limit: Some(query.limit.unwrap_or(20)),
+            search: Some(query.search.clone().unwrap_or_default()),
+            order: Some(query.order.clone().unwrap_or_default()),
+            oid: query.oid.clone(),
         };
 
-        to_api_response(&url, get_unified(&url, &self.bearer_token, &query).await).await
+        self.api.get_with_query_response(&url, &query).await
     }
 
+    /// 获取当前用户收藏的资产列表
     pub async fn get_favorite_assets(&self) -> ApiResponse {
-        let url = format!("{}/api/v1/assets/favorite-assets/", &self.origin);
+        let url = self.api.endpoint(endpoint::assets::FAVORITE_ASSETS);
+        self.api.get_with_response(&url).await
+    }
 
-        get_with_response(&url, &self.bearer_token).await
+    /// 获取指定资产的详情信息
+    pub async fn get_asset_detail(&self, asset_id: &str) -> ApiResponse {
+        let path = endpoint::assets::detail(asset_id);
+        let url = self.api.endpoint(&path);
+
+        self.api.get_with_response(&url).await
+    }
+
+    /// 将指定资产加入收藏
+    pub async fn favorite(&self, asset_id: &str) -> ApiResponse {
+        let url = self.api.endpoint(endpoint::assets::FAVORITE_ASSETS);
+        let body = FavoriteAssetBody {
+            asset: asset_id.to_string(),
+        };
+
+        self.api.post_json_with_response(&url, &body).await
+    }
+
+    /// 从收藏列表中移除指定资产
+    pub async fn unfavorite(&self, asset_id: &str) -> ApiResponse {
+        let mut url = self.api.endpoint(endpoint::assets::FAVORITE_ASSETS);
+
+        if let Ok(mut parsed) = Url::parse(&url) {
+            parsed.query_pairs_mut().append_pair("asset", asset_id);
+            url = parsed.to_string();
+        };
+
+        self.api.delete_with_response(&url).await
+    }
+
+    /// 提交资产重命名请求
+    pub async fn rename(&self, asset_id: &str, name: &str, oid: &str) -> ApiResponse {
+        let url = self.api.endpoint(endpoint::assets::MY_ASSET);
+        let body = RenameBody {
+            asset: asset_id.to_string(),
+            name: name.to_string(),
+            oid: oid.to_string(),
+        };
+
+        self.api.post_json_with_response(&url, &body).await
     }
 }

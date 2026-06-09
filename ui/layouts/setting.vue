@@ -81,7 +81,7 @@ const settingMenu = computed<NavigationMenuItem[]>(() => {
     },
     {
       label: t("Common.About"),
-      icon: "ix:about",
+      icon: "i-lucide-info",
       to: localePath({ name: "setting-about" })
     }
   ];
@@ -109,7 +109,7 @@ onMounted(() => {
       }"
     >
       <template #default>
-        <!-- 
+        <!--
           整条标题栏底层是一个满宽度的 data-tauri-drag-region
           上层可见内容默认 pointer-events-none，所以标题区域和空白区域都会把事件透传给底层拖拽层
           右侧窗口按钮区域单独恢复 pointer-events-auto，并且整块都标记 data-tauri-drag-region="false"，确保按钮区域不会触发拖拽事件
@@ -151,20 +151,25 @@ onMounted(() => {
 
     <UPageBody class="mt-0 pb-0 flex-1 min-h-0 h-full overflow-y-auto">
       <div class="flex gap-0 w-full h-full min-h-0">
-        <UNavigationMenu
-          :items="settingMenu"
-          :highlight="false"
-          :ui="{
-            list: 'p-2'
-          }"
+        <div
+          class="menu setting-menu shrink-0"
           :style="{
             backgroundColor: theme === 'dark' ? '#222' : '#F5F5F7'
           }"
-          color="primary"
-          variant="pill"
-          orientation="vertical"
-          class="w-40"
-        />
+        >
+          <UNavigationMenu
+            :items="settingMenu"
+            :highlight="false"
+            :ui="{
+              list: 'p-2',
+              link: 'px-2 my-1 rounded-sm menu-item flex items-center light:text-gray-800 dark:text-gray-200',
+              linkLeadingIcon: 'light:text-gray-800 dark:text-gray-200'
+            }"
+            color="neutral"
+            orientation="vertical"
+            class="w-40"
+          />
+        </div>
 
         <UCard
           class="flex-1 min-w-0 h-full rounded-none overflow-y-auto"

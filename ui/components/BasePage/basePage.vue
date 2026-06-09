@@ -49,12 +49,13 @@ const {
 const assetManager = useAssetFetcher(props.type, scrollRef);
 const connEditorRef = ref<InstanceType<typeof ConnectionEditor> | null>(null);
 
-const { loggedIn, currentSite, currentUser } = storeToRefs(userInfoStore);
+const { loggedIn } = storeToRefs(userInfoStore);
 const { refreshAssets, assetsData, isAppending, scrollbarStyles, isInitialLoading, appendSkeletonCount } = assetManager;
 
 const { visibleAssets } = useDisplayAssets(
   assetsData,
-  computed(() => props.platform)
+  computed(() => props.platform),
+  computed(() => props.type)
 );
 
 const isSameArray = (left?: string[], right?: string[]) => {
@@ -102,10 +103,7 @@ watch(
  * 获取 Setting 信息
  */
 async function getSettings() {
-  await useTauriCoreInvoke("get_setting", {
-    site: currentSite.value,
-    bearerToken: currentUser.value!.bearerToken
-  });
+  await useTauriCoreInvoke("get_setting", {});
 }
 
 /**
@@ -297,7 +295,7 @@ onBeforeUnmount(() => {
       </div>
     </section>
 
-    <ConnectionEditor ref="connEditorRef" />
+    <ConnectionEditor ref="connEditorRef" :asset-type="props.type" />
   </div>
 </template>
 

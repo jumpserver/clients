@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from "@nuxt/ui";
+import { getConfiguredAppName } from "~/composables/useAppName";
 
 import SidebarFlipIcon from "~/icons/SidebarFlipIcon.vue";
 import Profile from "./profile.vue";
@@ -12,6 +13,7 @@ const { isMacOS } = usePlatform();
 // const isMacOS = false;
 const { collapse, setCollapse } = useSettingManager();
 
+const appName = ref(getConfiguredAppName());
 const isLoading = ref(false);
 const sidebarSearch = ref("");
 
@@ -108,7 +110,7 @@ const debouncedSidebarSearch = useDebounceFn(emitSearch, 200);
       >
         <div v-if="!isMacOS && !collapse" class="flex items-center gap-2">
           <UAvatar size="sm" src="/logo.png" class="bg-transparent" :ui="{ root: 'bg-transparent' }" />
-          <span class="text-sm">JumpServer</span>
+          <span v-if="appName" class="text-sm">{{ appName }}</span>
         </div>
 
         <UButton
@@ -195,6 +197,33 @@ const debouncedSidebarSearch = useDebounceFn(emitSearch, 200);
 
   &:hover:not([data-active]) {
     background-color: var(--bg-hover-light);
+  }
+}
+
+.dark .menu .menu-item {
+  &[data-active] {
+    background-color: transparent;
+
+    &::before {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    font-weight: 500;
+  }
+
+  &:hover:not([data-active]) {
+    background-color: rgba(255, 255, 255, 0.06);
+  }
+}
+
+/* 配置页左侧为纯色背景，需要比透明侧边栏更明显的高亮 */
+.dark .setting-menu .menu-item {
+  &[data-active]::before {
+    background-color: rgba(255, 255, 255, 0.16);
+  }
+
+  &:hover:not([data-active]) {
+    background-color: rgba(255, 255, 255, 0.1);
   }
 }
 
