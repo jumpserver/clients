@@ -1,85 +1,108 @@
 <script setup lang="ts">
-import * as AsciinemaPlayer from "@cyolosecurity/asciinema-player";
+import { create as createAsciinemaPlayer } from "@cyolosecurity/asciinema-player";
 
 const props = defineProps<{
   source: string
+  castData?: string
 }>();
 
 const terminalRef = ref<HTMLElement | null>(null);
+let playerInstance: { dispose?: () => void } | null = null;
+let resizeObserver: ResizeObserver | null = null;
+
+function resolveCastSource() {
+  if (props.castData) {
+    return { data: props.castData };
+  }
+
+  if (props.source) {
+    return props.source;
+  }
+
+  return null;
+}
+
+function destroyPlayer() {
+  resizeObserver?.disconnect();
+  resizeObserver = null;
+  playerInstance?.dispose?.();
+  playerInstance = null;
+}
 
 function mountPlayer() {
-  if (!terminalRef.value) return;
+  const mountTarget = terminalRef.value;
+  const castSource = resolveCastSource();
 
-  terminalRef.value.innerHTML = "";
-  AsciinemaPlayer.create(props.source, terminalRef.value, {
+  if (!mountTarget || !castSource || playerInstance) return;
+  if (mountTarget.clientWidth === 0 || mountTarget.clientHeight === 0) return;
+
+  playerInstance = createAsciinemaPlayer(castSource, mountTarget, {
     fit: "both",
     preload: true,
-    autoplay: true,
-    terminalFontSize: "14px"
+    autoplay: true
   });
 }
 
-onMounted(mountPlayer);
-watch(() => props.source, () => nextTick(mountPlayer));
+function scheduleMount() {
+  destroyPlayer();
+
+  const mountTarget = terminalRef.value;
+
+  if (!mountTarget) return;
+
+  const tryMount = () => {
+    if (!terminalRef.value || playerInstance) return;
+
+    mountPlayer();
+  };
+
+  resizeObserver = new ResizeObserver(() => {
+    tryMount();
+  });
+  resizeObserver.observe(mountTarget);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(tryMount);
+  });
+}
+
+onMounted(() => {
+  nextTick(scheduleMount);
+});
+
+onBeforeUnmount(destroyPlayer);
 </script>
 
 <template>
-  <div class="relative isolate h-full w-full overflow-hidden bg-black">
-    <div ref="terminalRef" class="h-full w-full overflow-hidden" />
+  <div class="terminal-root">
+    <div ref="terminalRef" class="terminal-host" />
   </div>
 </template>
 
 <style scoped>
-@import "@cyolosecurity/asciinema-player/dist/bundle/asciinema-player.css";
+.terminal-root,
+.terminal-host {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
 
 :deep(.ap-wrapper) {
-  position: relative;
-  z-index: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
-:deep(.ap-wrapper),
-:deep(.ap-player) {
   width: 100%;
   height: 100%;
 }
 
 :deep(.ap-player) {
-  overflow: hidden;
-}
-
-:deep(.ap-player),
-:deep(.ap-terminal),
-:deep(.xterm) {
-  position: relative;
-  z-index: 0;
-  max-width: 100%;
-}
-
-:deep(.ap-terminal) {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-:deep(.xterm),
-:deep(.xterm-screen),
-:deep(.xterm-viewport) {
   width: 100% !important;
-  max-width: 100%;
-  box-sizing: border-box;
+  height: 100% !important;
 }
 
-:deep(.xterm-viewport) {
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  scrollbar-gutter: stable;
+:deep(.ap-search-button) {
+  display: none;
 }
+</style>
 
-:deep(.xterm-screen canvas) {
-  max-width: 100%;
-}
+<style>
+@import "@cyolosecurity/asciinema-player/dist/bundle/asciinema-player.css";
 </style>

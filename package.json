@@ -30,7 +30,8 @@
   },
   "dependencies": {
     "@cyolosecurity/asciinema-player": "3.6.3-3",
-    "@nuxt/fonts": "0.14.0",
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/noto-sans-sc": "^5.2.8",
     "@nuxt/icon": "2.2.2",
     "@nuxt/ui": "4.8.0",
     "@nuxtjs/i18n": "10.4.0",

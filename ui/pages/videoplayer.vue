@@ -21,8 +21,6 @@ const { deleteTempFile } = useVideoPlayerTauri();
 const { userTheme, manualSetTheme } = useThemeAdapter();
 
 const currentItem = computed(() => items.value.find((item) => item.id === activeId.value) || null);
-const currentMeta = computed(() => currentItem.value?.meta || items.value[0]?.meta || {});
-const currentIndex = computed(() => items.value.findIndex((item) => item.id === activeId.value) + 1);
 const isDarkMode = computed(() => userTheme.value === "dark");
 
 const playerComponent = computed(() => {
@@ -38,37 +36,6 @@ const playerComponent = computed(() => {
       return null;
   }
 });
-
-const infoCards = computed(() => {
-  const meta = currentMeta.value;
-
-  return [
-    { label: "账号", value: meta.account || "-" },
-    { label: "用户", value: meta.user || "-" },
-    { label: "资产", value: meta.asset || "-" },
-    { label: "协议", value: meta.protocol || "-" },
-    { label: "开始时间", value: meta.date_start || "-" },
-    { label: "时长", value: meta.duration || formatDuration(meta.date_start, meta.date_end) },
-    { label: "片段", value: currentIndex.value > 0 ? `${currentIndex.value} / ${items.value.length}` : "-" }
-  ];
-});
-
-function formatDuration(startAt?: string, endAt?: string) {
-  if (!startAt || !endAt) return "-";
-
-  const start = new Date(startAt);
-  const end = new Date(endAt);
-  const diff = end.getTime() - start.getTime();
-
-  if (!Number.isFinite(diff) || diff < 0) return "-";
-
-  const totalSeconds = Math.floor(diff / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  return [hours, minutes, seconds].map((value) => `${value}`.padStart(2, "0")).join(":");
-}
 
 async function cleanupItem(item: VideoPlayerItem) {
   if (item.source.startsWith("blob:")) {
@@ -211,12 +178,12 @@ onBeforeUnmount(async () => {
       class="sr-only"
       type="file"
       multiple
-      accept=".mp4,.gz,.tar,.json"
+      accept=".mp4,.gz,.tar,.json,.cast"
       @change="handleInputChange"
     />
 
     <div class="mx-auto flex h-full w-full max-w-[1700px] flex-col px-6 py-5 lg:px-8">
-      <header data-tauri-drag-region class="mb-5 flex items-center justify-between gap-4">
+      <header data-tauri-drag-region class="mb-2 flex items-center justify-between gap-4">
         <div data-tauri-drag-region />
 
         <div class="flex items-center gap-2">
@@ -242,12 +209,16 @@ onBeforeUnmount(async () => {
       </p>
 
       <div class="grid min-h-0 flex-1 grid-cols-[minmax(0,1.9fr)_minmax(280px,0.78fr)] gap-5">
-        <section class="grid min-h-0 min-w-0 grid-rows-[minmax(0,1.85fr)_minmax(120px,0.55fr)] gap-3">
-          <div
-            class="flex min-h-0 overflow-hidden rounded-xl border-0 bg-black shadow-xl shadow-black/10 backdrop-blur"
-          >
+        <section class="min-h-0 min-w-0 overflow-hidden rounded-xl border-2 border-(--ui-border)">
+          <div class="flex h-full min-h-0 overflow-hidden bg-black">
             <div class="h-full min-w-0 flex-1 overflow-hidden bg-black">
-              <component :is="playerComponent" v-if="playerComponent && currentItem" :source="currentItem.source" />
+              <component
+                :is="playerComponent"
+                v-if="playerComponent && currentItem"
+                :key="currentItem.id"
+                :source="currentItem.source"
+                :cast-data="currentItem.castData"
+              />
               <label
                 v-else
                 for="videoplayer-file-input"
@@ -272,30 +243,6 @@ onBeforeUnmount(async () => {
               </label>
             </div>
           </div>
-
-          <div
-            class="min-h-0 overflow-hidden rounded-xl border-0 bg-(--ui-bg-elevated)/60 px-3 py-2 shadow-lg shadow-black/5 backdrop-blur"
-          >
-            <div class="mb-2 flex items-center gap-2">
-              <p class="text-[11px] uppercase tracking-[0.2em] text-(--ui-text-dimmed)">录像信息</p>
-              <div class="h-px flex-1 bg-(--ui-border)/60" />
-            </div>
-
-            <div class="grid grid-cols-4 gap-1.5 xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2">
-              <div
-                v-for="card in infoCards"
-                :key="card.label"
-                class="rounded-lg border border-(--ui-border)/80 bg-transparent px-[3px] py-[3px]"
-              >
-                <p class="text-[10px] uppercase tracking-[0.14em] text-(--ui-text-dimmed)">
-                  {{ card.label }}
-                </p>
-                <p class="mt-0.5 truncate text-[13px] font-medium text-(--ui-text-highlighted)">
-                  {{ card.value }}
-                </p>
-              </div>
-            </div>
-          </div>
         </section>
 
         <aside class="min-h-0 min-w-0 overflow-hidden">
@@ -303,25 +250,21 @@ onBeforeUnmount(async () => {
             v-if="items.length > 0"
             :active-id="activeId"
             :items="items"
-            :meta="currentMeta"
             @play="selectItem"
             @remove="removeItem"
           />
           <div
             v-else
-            class="flex h-full min-h-0 flex-col rounded-2xl border-0 bg-(--ui-bg-elevated)/70 shadow-xl shadow-black/10 backdrop-blur"
-            style="padding: 15px"
+            class="flex h-full min-h-0 flex-col rounded-xl border-2 border-(--ui-border) p-4"
           >
-            <div class="mb-4">
-              <p class="text-[11px] uppercase tracking-[0.2em] text-(--ui-text-dimmed)">播放列表</p>
-            </div>
+            <p class="mb-3 text-[11px] uppercase tracking-[0.2em] text-(--ui-text-dimmed)">播放列表</p>
 
             <div
-              class="flex min-h-0 flex-1 items-center justify-center rounded-xl border border-dashed border-(--ui-border) bg-(--ui-bg-muted) p-3"
+              class="flex min-h-0 flex-1 items-center justify-center rounded-lg border border-dashed border-(--ui-border) p-3"
             >
               <div class="flex max-w-[240px] flex-col items-center text-center">
                 <div
-                  class="flex h-12 w-12 items-center justify-center rounded-xl bg-(--ui-bg-accented) text-2xl text-(--ui-text-dimmed)"
+                  class="flex h-12 w-12 items-center justify-center rounded-xl border border-(--ui-border) text-2xl text-(--ui-text-dimmed)"
                 >
                   <UIcon name="line-md:list-3" />
                 </div>
