@@ -2,6 +2,7 @@ import type { UnlistenFn } from "@tauri-apps/api/event";
 import type { ConnectionBody, PermedAccount, PermedProtocol, TokenResponse } from "~/types";
 
 import { useSettingManager } from "~/composables/useSettingManager";
+import { useConnectMethods } from "~/composables/useConnectMethods";
 import { useUserInfoStore } from "~/store/modules/userInfo";
 
 let tauriListenersInitialized = false;
@@ -56,6 +57,7 @@ export const useAssetAction = () => {
   const toast = useToast();
   const userInfoStore = useUserInfoStore();
   const settingManager = useSettingManager();
+  const { getMethodsForProtocol, fetchConnectMethods } = useConnectMethods();
   // prettier-ignore
   const { currentSite, currentConnectionInfoMap, currentRdpClientOption } = storeToRefs(userInfoStore);
   const { charset, rdpResolution, backspaceAsCtrlH, keyboardLayout, rdpClientOption, rdpColorQuality, rdpSmartSize }
@@ -193,34 +195,15 @@ export const useAssetAction = () => {
   };
 
   /**
-   * @description 根据协议分发连接方法
-   * @param protocol
+   * @description 从服务端 ACL 过滤后的连接方式中解析可用方法
    */
-  const dispatchConnectMethod = (protocol: string) => {
-    let method = "";
-
-    switch (protocol) {
-      case "ssh":
-      case "telnet":
-        method = "ssh_client";
-        break;
-      case "rdp":
-        method = "mstsc";
-        break;
-      case "sftp":
-        method = "sftp_client";
-        break;
-      case "vnc":
-        method = "vnc_client";
-        break;
-      case "http":
-        method = "chrome";
-        break;
-      default:
-        method = "db_client";
+  const resolveConnectMethod = async (protocol: string, preferred?: string): Promise<string> => {
+    const methods = await getMethodsForProtocol(protocol);
+    const normalized = preferred?.trim();
+    if (normalized && methods.some((m) => m.value === normalized)) {
+      return normalized;
     }
-
-    return method;
+    return methods[0]?.value || "";
   };
 
   const generateConnectOptions = (protocol: string) => {
@@ -258,7 +241,7 @@ export const useAssetAction = () => {
    * @param accounts
    * @param protocolOverride
    */
-  const handleAssetConnection = (
+  const handleAssetConnection = async (
     user: string,
     assetId: string,
     displayProtocol: string,
@@ -320,10 +303,24 @@ export const useAssetAction = () => {
       return getUserId(accounts!, assetId, user);
     })();
 
+    await fetchConnectMethods({ force: true });
+
     // 当前连接显式选择优先；仅在协议一致时复用已保存连接方法，避免跨协议复用错误的客户端
-    const connectMethod = ephemeral?.connectMethod?.trim()
-      || (saved?.protocol === protocol ? saved?.connectMethod?.trim() : "")
-      || dispatchConnectMethod(protocol);
+    const preferredMethod = ephemeral?.connectMethod?.trim()
+      || (saved?.protocol === protocol ? saved?.connectMethod?.trim() : "");
+    const connectMethod = await resolveConnectMethod(protocol, preferredMethod);
+
+    if (!connectMethod) {
+      toast.add({
+        title: t("ConnectError.ConnectFailed"),
+        description: t("ConnectError.ConnectMethodNotAllowed"),
+        color: "error",
+        icon: "line-md:close-circle",
+        progress: true,
+        duration: 4000
+      });
+      return;
+    }
 
     userInfoStore.setConnectionInfoForAsset(assetId, {
       protocol,

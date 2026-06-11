@@ -27,7 +27,7 @@ const emits = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { getMethodsForProtocol, getDefaultMethodForProtocol } = useConnectMethods();
+const { getMethodsForProtocol, getDefaultMethodForProtocol, fetchConnectMethods } = useConnectMethods();
 // prettier-ignore
 const trailingIcon = "group-data-[state=open]:rotate-180 transition-transform duration-200";
 
@@ -79,14 +79,16 @@ watch(
   async (newProtocol) => {
     if (!newProtocol) return;
 
+    await fetchConnectMethods({ force: true });
     const methods = await getMethodsForProtocol(newProtocol);
     availableConnectMethods.value = methods;
 
-    if (!props.connectMethod || !methods.some((m) => m.value === props.connectMethod)) {
+    const currentValid = props.connectMethod
+      && methods.some((m) => m.value === props.connectMethod);
+    if (!currentValid) {
+      // 无可用方式时须清空，避免残留上一协议的 connectMethod（如 ssh_client）
       const defaultMethod = await getDefaultMethodForProtocol(newProtocol);
-      if (defaultMethod) {
-        emits("update:connectMethod", defaultMethod);
-      }
+      emits("update:connectMethod", defaultMethod);
     }
   },
   { immediate: true }

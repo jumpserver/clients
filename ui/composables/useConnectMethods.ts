@@ -21,8 +21,16 @@ const fetchPromise = new Map<string, Promise<ConnectMethodsResponse>>();
 export const useConnectMethods = () => {
   const { currentSite, orgId } = storeToRefs(useUserInfoStore());
 
-  const fetchConnectMethods = async (): Promise<ConnectMethodsResponse> => {
-    const key = `${currentSite.value || ""}:${orgId.value || ""}`;
+  const getCacheKey = () => `${currentSite.value || ""}:${orgId.value || ""}`;
+
+  const fetchConnectMethods = async (options?: { force?: boolean }): Promise<ConnectMethodsResponse> => {
+    const key = getCacheKey();
+
+    if (options?.force) {
+      connectMethodsCache.delete(key);
+      fetchPromise.delete(key);
+    }
+
     const cached = connectMethodsCache.get(key);
 
     if (cached) {
@@ -117,6 +125,7 @@ export const useConnectMethods = () => {
 
   const clearCache = () => {
     connectMethodsCache.clear();
+    fetchPromise.clear();
   };
 
   return {
