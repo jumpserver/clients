@@ -35,12 +35,6 @@ const sideBarItems = computed<NavigationMenuItem[]>(() => {
       disabled: isLoading.value
     },
     {
-      label: t("Menu.DirectoryService"),
-      icon: "lucide:folder-tree",
-      to: localePath("windows_ad"),
-      disabled: isLoading.value
-    },
-    {
       label: t("Menu.Database"),
       icon: "gravity-ui:database",
       to: localePath("database"),
@@ -56,6 +50,12 @@ const sideBarItems = computed<NavigationMenuItem[]>(() => {
       label: t("Menu.Web"),
       icon: "mingcute:web-line",
       to: localePath("web"),
+      disabled: isLoading.value
+    },
+    {
+      label: t("Menu.Other"),
+      icon: "lucide:circle-ellipsis",
+      to: localePath("other"),
       disabled: isLoading.value
     },
     {

@@ -93,7 +93,7 @@ const cancelRename = () => {
     <section class="w-full p-4" @dblclick="emits('connectAsset', props.asset)" @contextmenu="handleContextMenu">
       <div class="flex items-center justify-between w-full">
         <div class="flex items-center gap-3 flex-1 min-w-0">
-          <CardAssetIcon :type="props.asset.type" size="lg" />
+          <CardAssetIcon :type="props.asset.type" :platform="props.asset.platform" size="lg" />
 
           <div class="flex-1 min-w-0 overflow-hidden w-[120px]">
             <div v-if="!isRenaming" class="text-xs-plus font-bold truncate whitespace-nowrap">

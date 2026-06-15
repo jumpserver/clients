@@ -1,8 +1,9 @@
 <script setup lang="ts">
 interface Props {
-  type: string;
-  size?: "sm" | "md" | "lg" | "xl";
-  class?: string;
+  type?: string
+  platform?: string
+  size?: "sm" | "md" | "lg" | "xl"
+  class?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -12,7 +13,9 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const imageProps = computed(() => {
-  const prop: { src?: string; alt?: string } = {};
+  const prop: { src?: string, alt?: string } = {};
+  const normalizedType = (props.type || "").toLowerCase();
+  const normalizedPlatform = (props.platform || "").toLowerCase();
   const iconMap: Record<string, string> = {
     windows: "/icons/windows.png",
     linux: "/icons/linux.png",
@@ -28,9 +31,17 @@ const imageProps = computed(() => {
     windows_ad: "/icons/windows.png",
     website: "/icons/browser.png"
   };
+  const textIconMap: Record<string, string> = {
+    bsd: "B",
+    aix: "A",
+    macos: "M",
+    unix: "U",
+    other: "O"
+  };
 
-  const src = iconMap[props.type] || "";
-  const alt = props.type;
+  const textIcon = textIconMap[normalizedPlatform] || textIconMap[normalizedType] || normalizedType.slice(0, 1).toUpperCase();
+  const src = iconMap[normalizedType] || "";
+  const alt = textIcon || props.type;
 
   if (src) {
     prop.src = src;
@@ -56,7 +67,7 @@ const sizeClasses = computed(() => {
   <UAvatar
     :size="size"
     v-bind="imageProps"
-    :ui="{ root: 'rounded-md', image: `${sizeClasses} p-1` }"
+    :ui="{ root: 'rounded-md font-semibold', image: `${sizeClasses} p-1` }"
     class="shrink-0 bg-neutral-200 dark:bg-neutral-600"
     :class="[props.class]"
   />
