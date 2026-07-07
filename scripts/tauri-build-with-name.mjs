@@ -3,6 +3,10 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
+const DEFAULT_PRODUCT_NAME = 'JumpServerClient'
+const DEFAULT_PUBLISHER = 'jumpserver'
+const CUSTOM_PUBLISHER = 'sangfor'
+
 function parseArgs(argv) {
   const args = argv.slice(2)
   let name
@@ -37,6 +41,8 @@ const raw = fs.readFileSync(confPath, 'utf8')
 const conf = JSON.parse(raw)
 
 conf.productName = name
+// Keep Windows publisher consistent with set-product-name.mjs for default/custom builds.
+conf.bundle.publisher = name === DEFAULT_PRODUCT_NAME ? DEFAULT_PUBLISHER : CUSTOM_PUBLISHER
 
 const tmpPath = path.join(
   os.tmpdir(),

@@ -1,6 +1,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+const DEFAULT_PRODUCT_NAME = 'JumpServerClient'
+const DEFAULT_PUBLISHER = 'jumpserver'
+const CUSTOM_PUBLISHER = 'sangfor'
+
 function parseArgs(argv) {
   const args = argv.slice(2)
   let name
@@ -32,7 +36,12 @@ const confPath = path.join(repoRoot, 'src-tauri', 'tauri.conf.json')
 const conf = JSON.parse(fs.readFileSync(confPath, 'utf8'))
 
 conf.productName = name
+// Windows uses bundle.publisher as the publisher shown in "Programs and Features".
+// Keep the upstream publisher for JumpServerClient and use Sangfor for custom builds such as OSMClient.
+conf.bundle.publisher = name === DEFAULT_PRODUCT_NAME ? DEFAULT_PUBLISHER : CUSTOM_PUBLISHER
 
 fs.writeFileSync(confPath, JSON.stringify(conf, null, 2) + '\n')
-console.log(`Set src-tauri/tauri.conf.json productName to "${name}".`)
+console.log(
+  `Set src-tauri/tauri.conf.json productName to "${name}" and publisher to "${conf.bundle.publisher}".`,
+)
 
