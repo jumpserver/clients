@@ -60,14 +60,12 @@ const selectedAppearance = computed<ThemeType>({
   set: (id: ThemeType) => {
     if (id === "withSystem") {
       void enableFollowSystem().then(() => {
-        useTauriEventEmit("theme-changed", { mode: "withSystem" });
         nextTick().then(() => applyCurrentThemeColor(true));
       });
       return;
     }
 
     manualSetTheme(id as any);
-    useTauriEventEmit("theme-changed", { mode: id });
     nextTick().then(() => applyCurrentThemeColor(true));
   }
 });

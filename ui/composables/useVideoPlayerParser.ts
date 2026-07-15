@@ -217,6 +217,14 @@ export function useVideoPlayerParser() {
     const kind = match?.[1];
     const effectiveMeta = resolveItemMeta(meta, entry.name);
 
+    console.info("[VideoPlayer:Parser] parsing tar entry", {
+      name: entry.name,
+      basename: entryName,
+      matchedSuffix: match?.[0] || null,
+      kind: kind || null,
+      byteLength: entry.buffer.byteLength
+    });
+
     if (isCastMediaEntry(entry.name)) {
       return buildCastItem(entry.name, entry.buffer, meta);
     }
@@ -256,6 +264,11 @@ export function useVideoPlayerParser() {
         );
       }
       default:
+        console.warn("[VideoPlayer:Parser] unsupported tar entry", {
+          name: entry.name,
+          matchedSuffix: match?.[0] || null,
+          kind: kind || null
+        });
         return null;
     }
   }
@@ -263,20 +276,65 @@ export function useVideoPlayerParser() {
   async function parseTarFile(file: File): Promise<ParseResult> {
     const recordingId = createId(file.name);
     const recordingLabel = stripArchiveExtension(file.name);
-    const extractedFiles = await untar(await file.arrayBuffer()).progress(() => {});
+    console.info("[VideoPlayer:Parser] reading tar", {
+      name: file.name,
+      size: file.size,
+      type: file.type
+    });
+
+    let extractedFiles: UntarEntry[];
+
+    try {
+      const buffer = await file.arrayBuffer();
+      console.info("[VideoPlayer:Parser] tar ArrayBuffer ready", {
+        name: file.name,
+        byteLength: buffer.byteLength
+      });
+      extractedFiles = await untar(buffer).progress(() => {}) as UntarEntry[];
+    } catch (error) {
+      console.error("[VideoPlayer:Parser] tar extraction failed", {
+        name: file.name,
+        size: file.size,
+        error
+      });
+      throw error;
+    }
+
+    console.info("[VideoPlayer:Parser] tar extracted", {
+      name: file.name,
+      entryCount: extractedFiles.length,
+      entries: extractedFiles.map((entry) => ({
+        name: entry.name,
+        byteLength: entry.buffer.byteLength,
+        matchedSuffix: basename(entry.name).match(REGEXP)?.[0] || null,
+        metadata: isMetadataEntry(entry.name)
+      }))
+    });
     let meta: VideoPlayerMeta | null = null;
     const items: VideoPlayerItem[] = [];
 
-    for (const entry of extractedFiles as UntarEntry[]) {
+    for (const entry of extractedFiles) {
       if (!isMetadataEntry(entry.name)) continue;
 
       meta = safeParseJson(entry.buffer) || meta;
+      console.info("[VideoPlayer:Parser] metadata entry parsed", {
+        name: entry.name,
+        parsed: Boolean(meta),
+        metaId: meta?.id || null,
+        fileCount: meta?.files?.length || 0
+      });
     }
 
-    for (const entry of extractedFiles as UntarEntry[]) {
+    for (const entry of extractedFiles) {
       const match = basename(entry.name).match(REGEXP);
 
-      if (!match || isMetadataEntry(entry.name)) continue;
+      if (!match || isMetadataEntry(entry.name)) {
+        console.info("[VideoPlayer:Parser] skipping tar entry", {
+          name: entry.name,
+          reason: !match ? "filename does not match player suffixes" : "metadata entry"
+        });
+        continue;
+      }
 
       const item = await buildItemFromEntry(entry, meta);
 
@@ -286,6 +344,13 @@ export function useVideoPlayerParser() {
           recordingId,
           recordingLabel
         });
+        console.info("[VideoPlayer:Parser] tar entry produced item", {
+          entry: entry.name,
+          itemName: item.name,
+          itemType: item.type
+        });
+      } else {
+        console.warn("[VideoPlayer:Parser] tar entry produced no item", { entry: entry.name });
       }
     }
 
@@ -302,6 +367,12 @@ export function useVideoPlayerParser() {
       });
     }
 
+    console.info("[VideoPlayer:Parser] tar parsing complete", {
+      name: file.name,
+      itemCount: items.length,
+      items: items.map((item) => ({ name: item.name, type: item.type }))
+    });
+
     return { items };
   }
 
@@ -311,6 +382,13 @@ export function useVideoPlayerParser() {
     const recordingLabel = stripArchiveExtension(fileName);
     const effectiveMeta = resolveItemMeta(meta, fileName);
     const items: VideoPlayerItem[] = [];
+
+    console.info("[VideoPlayer:Parser] parsing single file", {
+      name: fileName,
+      size: file.size,
+      type: file.type,
+      hasMetadata: Boolean(meta)
+    });
 
     if (fileName.endsWith(".mp4")) {
       items.push(withMeta({
@@ -359,10 +437,18 @@ export function useVideoPlayerParser() {
       return { items };
     }
 
+    console.warn("[VideoPlayer:Parser] unsupported single file", {
+      name: fileName,
+      size: file.size,
+      type: file.type
+    });
     return { items };
   }
 
   async function parseFiles(files: File[]) {
+    console.info("[VideoPlayer:Parser] parseFiles start", {
+      files: files.map((file) => ({ name: file.name, size: file.size, type: file.type }))
+    });
     const items: VideoPlayerItem[] = [];
     const metaByKey = new Map<string, VideoPlayerMeta>();
     const tarFiles: File[] = [];
@@ -372,11 +458,13 @@ export function useVideoPlayerParser() {
       const fileName = basename(file.name);
 
       if (fileName.includes(".tar")) {
+        console.info("[VideoPlayer:Parser] classified as tar", { name: fileName });
         tarFiles.push(file);
         continue;
       }
 
       if (isMetadataEntry(fileName)) {
+        console.info("[VideoPlayer:Parser] classified as metadata", { name: fileName });
         const parsedMeta = safeParseJson(await file.arrayBuffer());
 
         if (parsedMeta) {
@@ -386,6 +474,7 @@ export function useVideoPlayerParser() {
         continue;
       }
 
+      console.info("[VideoPlayer:Parser] classified as media/unknown", { name: fileName });
       mediaFiles.push(file);
     }
 
@@ -398,6 +487,15 @@ export function useVideoPlayerParser() {
       const meta = metaByKey.get(stripArchiveExtension(fileName)) || null;
       items.push(...(await parseSingleFile(file, meta)).items);
     }
+
+    console.info("[VideoPlayer:Parser] parseFiles complete", {
+      inputCount: files.length,
+      tarCount: tarFiles.length,
+      mediaCount: mediaFiles.length,
+      metadataCount: metaByKey.size,
+      itemCount: items.length,
+      items: items.map((item) => ({ name: item.name, type: item.type }))
+    });
 
     return items;
   }

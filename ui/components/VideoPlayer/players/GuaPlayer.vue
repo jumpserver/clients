@@ -6,6 +6,7 @@ const props = defineProps<{
   source: string
 }>();
 
+const { t } = useI18n();
 const { streamTextFile } = useVideoPlayerTauri();
 
 const playerAreaRef = ref<HTMLElement | null>(null);
@@ -413,7 +414,7 @@ onBeforeUnmount(() => {
         v-if="loading"
         class="absolute inset-0 z-10 flex items-center justify-center bg-black/40 text-sm text-white/80"
       >
-        正在解析录像…
+        {{ t("VideoPlayer.ParsingRecording") }}
       </div>
 
       <div

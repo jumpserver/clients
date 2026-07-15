@@ -6,20 +6,24 @@ definePageMeta({
 });
 
 const toast = useToast();
-const fileInputRef = ref<HTMLInputElement | null>(null);
+const { t } = useI18n();
 const isImporting = ref(false);
 const items = ref<VideoPlayerItem[]>([]);
 const activeId = ref<string | null>(null);
 const importMessage = ref("");
+const isDraggingFiles = ref(false);
+let unlistenFileDrop: (() => void) | null = null;
 const VIDEO_PLAYER_MIN_WIDTH = 1320;
 const VIDEO_PLAYER_MIN_HEIGHT = 860;
 const VIDEO_PLAYER_TARGET_WIDTH = 1480;
 const VIDEO_PLAYER_TARGET_HEIGHT = 920;
 
 const { parseFiles } = useVideoPlayerParser();
-const { deleteTempFile } = useVideoPlayerTauri();
+const { deleteTempFile, readDroppedFiles } = useVideoPlayerTauri();
+const { userTheme, manualSetTheme } = useThemeAdapter();
 
 const currentItem = computed(() => items.value.find((item) => item.id === activeId.value) || null);
+const isDarkMode = computed(() => userTheme.value === "dark");
 
 const playerComponent = computed(() => {
   switch (currentItem.value?.type) {
@@ -63,19 +67,29 @@ async function removeItem(item: VideoPlayerItem) {
 }
 
 async function importFiles(files: File[]) {
+  console.info("[VideoPlayer:DnD] page importFiles called", {
+    files: files.map((file) => ({ name: file.name, size: file.size, type: file.type }))
+  });
+
   if (files.length === 0) return;
 
   isImporting.value = true;
-  importMessage.value = `正在导入 ${files.length} 个文件…`;
+  importMessage.value = t("VideoPlayer.ImportingFiles", { count: files.length });
 
   try {
     const parsed = await parseFiles(files);
 
+    console.info("[VideoPlayer:DnD] parser returned", {
+      inputCount: files.length,
+      itemCount: parsed.length,
+      items: parsed.map((item) => ({ name: item.name, type: item.type, recordingId: item.recordingId }))
+    });
+
     if (parsed.length === 0) {
       importMessage.value = "";
       toast.add({
-        title: "未识别到可播放文件",
-        description: "请导入 mp4、cast.gz、replay.gz、part.gz 或包含这些文件的 tar 包。",
+        title: t("VideoPlayer.NoPlayableFilesTitle"),
+        description: t("VideoPlayer.NoPlayableFilesDescription"),
         color: "warning"
       });
       return;
@@ -95,15 +109,16 @@ async function importFiles(files: File[]) {
 
     if (duplicates > 0) {
       toast.add({
-        title: "部分文件已跳过",
-        description: `有 ${duplicates} 个同名条目已存在，未重复导入。`,
+        title: t("VideoPlayer.DuplicatesSkippedTitle"),
+        description: t("VideoPlayer.DuplicatesSkippedDescription", { count: duplicates }),
         color: "neutral"
       });
     }
   } catch (error: any) {
+    console.error("[VideoPlayer:DnD] import failed", error);
     importMessage.value = "";
     toast.add({
-      title: "导入失败",
+      title: t("VideoPlayer.ImportFailed"),
       description: error?.message || String(error),
       color: "error"
     });
@@ -112,11 +127,8 @@ async function importFiles(files: File[]) {
   }
 }
 
-function handleInputChange(event: Event) {
-  const target = event.target as HTMLInputElement;
-  const files = Array.from(target.files || []);
-  target.value = "";
-  void importFiles(files);
+function toggleThemeMode() {
+  manualSetTheme(isDarkMode.value ? "light" : "dark");
 }
 
 async function handleWindowDrag(event: MouseEvent) {
@@ -166,6 +178,27 @@ onMounted(async () => {
 
   try {
     const currentWindow = useTauriWindowGetCurrentWindow();
+    unlistenFileDrop = await currentWindow.onDragDropEvent(async ({ payload }) => {
+      if (payload.type === "enter" || payload.type === "over") {
+        isDraggingFiles.value = true;
+        return;
+      }
+
+      isDraggingFiles.value = false;
+
+      if (payload.type === "drop" && payload.paths.length > 0) {
+        try {
+          const files = await readDroppedFiles(payload.paths);
+          await importFiles(files);
+        } catch (error: any) {
+          toast.add({
+            title: t("VideoPlayer.ImportFailed"),
+            description: error?.message || String(error),
+            color: "error"
+          });
+        }
+      }
+    });
     await currentWindow.setTitle("JumpServer Video Player");
     await optimizeWindowForVideoPlayer();
   } catch {
@@ -174,6 +207,8 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(async () => {
+  unlistenFileDrop?.();
+  unlistenFileDrop = null;
   await Promise.all(items.value.map((item) => cleanupItem(item)));
 
   try {
@@ -185,20 +220,29 @@ onBeforeUnmount(async () => {
 </script>
 
 <template>
-  <div class="videoplayer-page h-screen overflow-hidden">
-    <input
-      id="videoplayer-file-input"
-      ref="fileInputRef"
-      class="sr-only"
-      type="file"
-      multiple
-      accept=".mp4,.gz,.tar,.json,.cast"
-      @change="handleInputChange"
-    >
-
+  <div class="videoplayer-page relative h-screen overflow-hidden">
     <div class="mx-auto flex h-full w-full max-w-[1700px] flex-col px-6 py-5 lg:px-8">
       <header class="relative mb-2 h-8" @mousedown="handleWindowDrag">
         <div data-tauri-drag-region class="absolute inset-0 z-0" />
+
+        <div
+          class="relative z-10 flex h-full items-center justify-end gap-2 pointer-events-auto"
+          data-tauri-drag-region="false"
+        >
+          <UButton
+            color="neutral"
+            variant="ghost"
+            :icon="
+              isDarkMode
+                ? 'line-md:moon-filled-to-sunny-filled-loop-transition'
+                : 'line-md:sunny-filled-loop-to-moon-filled-transition'
+            "
+            data-tauri-drag-region="false"
+            @click="toggleThemeMode"
+          >
+            {{ isDarkMode ? t("VideoPlayer.SwitchToLight") : t("VideoPlayer.SwitchToDark") }}
+          </UButton>
+        </div>
       </header>
 
       <p v-if="importMessage && items.length === 0" class="mb-4 text-sm text-(--ui-text-muted)">
@@ -216,28 +260,12 @@ onBeforeUnmount(async () => {
                 :source="currentItem.source"
                 :cast-data="currentItem.castData"
               />
-              <label
+              <VideoPlayerDropzone
                 v-else
-                for="videoplayer-file-input"
-                class="group flex h-full w-full cursor-pointer flex-col items-center justify-center gap-4 px-6 py-6 text-center"
-              >
-                <div
-                  class="flex h-16 w-16 items-center justify-center rounded-xl bg-white/8 text-3xl text-(--ui-primary)"
-                >
-                  <UIcon name="line-md:upload-loop" />
-                </div>
-                <div class="max-w-xl">
-                  <p class="text-xl font-semibold tracking-tight text-(--ui-text-highlighted)">导入录像文件</p>
-                  <p class="mt-2 text-sm leading-6 text-(--ui-text-muted)">
-                    将录像拖入播放区，或点击这里选择 `.mp4`、`.gz`、`.tar` 文件。
-                  </p>
-                </div>
-                <div
-                  class="rounded-full border-0 bg-(--ui-bg-muted) px-4 py-2 text-sm text-(--ui-text-toned) transition group-hover:bg-(--ui-bg-accented)"
-                >
-                  选择文件
-                </div>
-              </label>
+                compact
+                :disabled="isImporting"
+                @select-files="importFiles"
+              />
             </div>
           </div>
         </section>
@@ -249,13 +277,14 @@ onBeforeUnmount(async () => {
             :items="items"
             @play="selectItem"
             @remove="removeItem"
+            @select-files="importFiles"
           />
           <div
             v-else
             class="flex h-full min-h-0 flex-col rounded-xl border-2 border-(--ui-border) p-4"
           >
             <p class="mb-3 text-[11px] uppercase tracking-[0.2em] text-(--ui-text-dimmed)">
-              播放列表
+              {{ t("VideoPlayer.Playlist") }}
             </p>
 
             <div
@@ -268,15 +297,27 @@ onBeforeUnmount(async () => {
                   <UIcon name="line-md:list-3" />
                 </div>
                 <p class="mt-4 text-sm font-medium text-(--ui-text-highlighted)">
-                  暂无播放片段
+                  {{ t("VideoPlayer.EmptyPlaylist") }}
                 </p>
                 <p class="mt-2 text-xs leading-5 text-(--ui-text-muted)">
-                  导入录像后，这里会显示可切换的片段列表。
+                  {{ t("VideoPlayer.EmptyPlaylistDescription") }}
                 </p>
               </div>
             </div>
           </div>
         </aside>
+      </div>
+    </div>
+
+    <div
+      v-if="isDraggingFiles"
+      class="pointer-events-none absolute inset-3 z-50 flex items-center justify-center rounded-2xl border-2 border-dashed border-(--ui-primary) bg-(--ui-bg)/90 backdrop-blur-sm"
+    >
+      <div class="flex flex-col items-center gap-4 text-center text-(--ui-primary)">
+        <UIcon name="line-md:upload-loop" class="text-5xl" />
+        <p class="text-lg font-semibold">
+          {{ t("VideoPlayer.DropToImport") }}
+        </p>
       </div>
     </div>
   </div>

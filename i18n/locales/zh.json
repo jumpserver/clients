@@ -26,6 +26,7 @@
     "General": "通用",
     "ChooseColor": "选择颜色",
     "OpenWith": "应用配置",
+    "OperationFailed": "操作失败",
     "EmptyDescription": "当前类型下暂无可用的授权资产",
     "SelectFromMenu": "请从左侧选择一个配置项"
   },
@@ -61,7 +62,6 @@
     "Other": "其他",
     "Tool": "工具",
     "Favorite": "收藏",
-    "Tool": "工具",
     "Transcode": "录像转码",
     "OfflinePlayer": "离线播放器",
     "Player": "播放器"
@@ -77,6 +77,7 @@
     "CompletedCount": "已完成 {completed}/{total}",
     "InProgress": "处理中 {processing}/{total}",
     "NotStarted": "尚未开始",
+    "Elapsed": "耗时 {duration}",
     "ArchivesTitle": "录像转码任务",
     "ArchivesHint": "支持单选或多选，可继续追加录像文件。",
     "SelectArchives": "添加文件",
@@ -148,6 +149,32 @@
     "PowerMedium": "中等（1/2 CPU）",
     "PowerLow": "低速（1/4 CPU）"
   },
+  "VideoPlayer": {
+    "ImportingFiles": "正在导入 {count} 个文件…",
+    "NoPlayableFilesTitle": "未识别到可播放文件",
+    "NoPlayableFilesDescription": "请导入 mp4、cast.gz、replay.gz、part.gz 或包含这些文件的 tar 包。",
+    "DuplicatesSkippedTitle": "部分文件已跳过",
+    "DuplicatesSkippedDescription": "有 {count} 个同名条目已存在，未重复导入。",
+    "ImportFailed": "导入失败",
+    "SwitchToLight": "切换浅色模式",
+    "SwitchToDark": "切换暗色模式",
+    "ImportRecording": "导入录像文件",
+    "DropToImport": "松开即可导入录像文件",
+    "DropzoneHint": "支持拖入或选择 `.mp4`、`.gz`、`.tar` 文件。",
+    "SelectFiles": "选择文件",
+    "Playlist": "播放列表",
+    "EmptyPlaylist": "暂无播放片段",
+    "EmptyPlaylistDescription": "导入录像后，这里会显示可切换的片段列表。",
+    "AddRecording": "添加录像",
+    "Account": "账号",
+    "User": "用户",
+    "Protocol": "协议",
+    "StartTime": "开始时间",
+    "TotalDuration": "总时长",
+    "Segment": "片段",
+    "SegmentProgress": "片段 {index} / {total}",
+    "ParsingRecording": "正在解析录像…"
+  },
   "AssetCard": {
     "Activated": "已激活",
     "Deactivated": "未激活",
@@ -180,6 +207,15 @@
     "OptionalProtocol": "协议",
     "ConnectMethod": "连接方法",
     "OptionalAccount": "账号"
+  },
+  "ConnectMethod": {
+    "ssh_client": "SSH 客户端",
+    "sftp_client": "SFTP 客户端",
+    "rdp_client": "RDP 客户端",
+    "vnc_client": "VNC 客户端",
+    "db_client": "数据库客户端",
+    "builtin_client": "内置终端",
+    "chrome": "Chrome"
   },
   "SettingModal": {
     "Description": "连接设置用于配置后续连接中默认启动的应用程序"

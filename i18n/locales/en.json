@@ -26,6 +26,7 @@
     "General": "General",
     "ChooseColor": "Choose color",
     "OpenWith": "Open with",
+    "OperationFailed": "Operation failed",
     "EmptyDescription": "No authorized assets are available for the current type",
     "SelectFromMenu": "Select an item on the left"
   },
@@ -61,7 +62,6 @@
     "Resource": "Resource",
     "Database": "Database",
     "Web": "Web",
-    "Tool": "Tools",
     "Transcode": "Replay Transcode",
     "OfflinePlayer": "Offline Player",
     "Favorite": "Favorite"
@@ -77,6 +77,7 @@
     "CompletedCount": "Completed {completed}/{total}",
     "InProgress": "Processing {processing}/{total}",
     "NotStarted": "Not started",
+    "Elapsed": "Elapsed {duration}",
     "ArchivesTitle": "Replay archives",
     "ArchivesHint": "Single and multiple selection are both supported, and you can append more archives later.",
     "SelectArchives": "Add archives",
@@ -148,6 +149,32 @@
     "PowerMedium": "Medium (1/2 CPU)",
     "PowerLow": "Low (1/4 CPU)"
   },
+  "VideoPlayer": {
+    "ImportingFiles": "Importing {count} file(s)…",
+    "NoPlayableFilesTitle": "No playable files found",
+    "NoPlayableFilesDescription": "Import mp4, cast.gz, replay.gz, part.gz, or a tar archive containing these files.",
+    "DuplicatesSkippedTitle": "Some files were skipped",
+    "DuplicatesSkippedDescription": "{count} item(s) with the same name already exist and were not imported again.",
+    "ImportFailed": "Import failed",
+    "SwitchToLight": "Switch to light mode",
+    "SwitchToDark": "Switch to dark mode",
+    "ImportRecording": "Import recording files",
+    "DropToImport": "Drop files to import recordings",
+    "DropzoneHint": "Drag or select `.mp4`, `.gz`, or `.tar` files.",
+    "SelectFiles": "Select files",
+    "Playlist": "Playlist",
+    "EmptyPlaylist": "No playable segments",
+    "EmptyPlaylistDescription": "Imported recording segments will appear here.",
+    "AddRecording": "Add recording",
+    "Account": "Account",
+    "User": "User",
+    "Protocol": "Protocol",
+    "StartTime": "Start time",
+    "TotalDuration": "Total duration",
+    "Segment": "Segment",
+    "SegmentProgress": "Segment {index} / {total}",
+    "ParsingRecording": "Parsing recording…"
+  },
   "AssetCard": {
     "Activated": "Activated",
     "Deactivated": "Deactivated",
@@ -180,6 +207,18 @@
     "OptionalProtocol": "Protocol",
     "ConnectMethod": "Connect Method",
     "OptionalAccount": "Account"
+  },
+  "ConnectMethod": {
+    "ssh_client": "SSH Client",
+    "sftp_client": "SFTP Client",
+    "rdp_client": "RDP Client",
+    "vnc_client": "VNC Client",
+    "db_client": "Database Client",
+    "builtin_client": "Built-in Terminal",
+    "chrome": "Chrome"
+  },
+  "SettingModal": {
+    "Description": "Connection settings configure the default application used for subsequent connections"
   },
   "Layout": {
     "Grid": "Grid View",

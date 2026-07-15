@@ -26,7 +26,7 @@ const emits = defineEmits<{
   (e: "update:connectMethod", v: string): void
 }>();
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 const { getMethodsForProtocol, getDefaultMethodForProtocol } = useConnectMethods();
 // prettier-ignore
 const trailingIcon = "group-data-[state=open]:rotate-180 transition-transform duration-200";
@@ -36,10 +36,15 @@ const showDynamicUserArea = ref(false);
 const availableConnectMethods = ref<any[]>([]);
 const connectMethodItems = computed<SelectMenuItem[]>(() => {
   return availableConnectMethods.value.map((method) => ({
-    label: method.label || method.value,
+    label: getConnectMethodLabel(method),
     value: method.value
   }));
 });
+
+function getConnectMethodLabel(method: { label?: string, value: string }) {
+  const key = `ConnectMethod.${method.value}`;
+  return te(key) ? t(key) : method.label || method.value;
+}
 
 const localManualUsername = computed<string>({
   get: () => props.manualUsername || "",

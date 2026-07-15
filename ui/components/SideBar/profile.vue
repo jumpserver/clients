@@ -157,14 +157,12 @@ const selectedAppearance = computed<ThemeType>({
   set: (id: ThemeType) => {
     if (id === "withSystem") {
       void enableFollowSystem().then(() => {
-        useTauriEventEmit("theme-changed", { mode: "withSystem" });
         nextTick().then(() => applyCurrentThemeColor(true));
       });
       return;
     }
 
     manualSetTheme(id as any);
-    useTauriEventEmit("theme-changed", { mode: id });
     nextTick().then(() => applyCurrentThemeColor(true));
   }
 });
@@ -320,6 +318,8 @@ async function openToolWindow(
       minHeight,
       hiddenTitle: true,
       titleBarStyle: "overlay",
+      // Tauri's native handler must be disabled so UFileUpload receives HTML5 drag/drop events.
+      dragDropEnabled: false,
       trafficLightPosition: new LogicalPosition(10, 22),
       decorations: useNativeWindowFrame,
       shadow: useNativeWindowFrame
@@ -728,7 +728,7 @@ onMounted(async () => {
     let description = message || t("Login.LoginFailedErrorPage");
 
     if (reason === "invalid-site") {
-      description = t(" ");
+      description = t("Login.InvalidSiteError");
     }
 
     toast.add({

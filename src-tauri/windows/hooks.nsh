@@ -28,3 +28,24 @@
   ; 通知 Windows shell 协议关联已经变化，避免卸载后继续使用旧缓存。
   System::Call 'shell32::SHChangeNotify(i, i, p, p) (0x08000000, 0x1000, 0, 0)'
 !macroend
+
+!macro NSIS_HOOK_POSTUNINSTALL
+  ; Tauri 的更新器会以 /UPDATE 调用旧版卸载器，此时同样会执行本 hook。
+  ; 只在用户真正卸载时删除数据，避免升级过程丢失配置、日志和插件。
+  ${If} $UpdateMode <> 1
+    ; installMode="both" 可能会将 shell 上下文切到 all，用户数据始终属于当前用户。
+    SetShellVarContext current
+
+    ; Tauri 自身的 app data/store/video 目录。
+    RMDir /r "$APPDATA\${BUNDLEID}"
+    RMDir /r "$LOCALAPPDATA\${BUNDLEID}"
+
+    ; JumpServer 配置、日志和用户插件使用的自定义目录。
+    RMDir /r "$APPDATA\jumpserver-client"
+    RMDir /r "$LOCALAPPDATA\jumpserver-client"
+
+    ; 兼容旧版本使用产品名创建的用户数据目录。
+    RMDir /r "$APPDATA\JumpServerClient"
+    RMDir /r "$LOCALAPPDATA\JumpServerClient"
+  ${EndIf}
+!macroend

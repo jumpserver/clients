@@ -9,7 +9,9 @@ const props = defineProps<{
 const emit = defineEmits<{
   play: [VideoPlayerItem]
   remove: [VideoPlayerItem]
+  selectFiles: [File[]]
 }>();
+const { t, locale } = useI18n();
 
 interface PlaylistGroup {
   key: string
@@ -32,7 +34,7 @@ function formatLocalStartTime(value?: string) {
     return value.replace(/\s+[+-]\d{4}$/, "");
   }
 
-  return new Intl.DateTimeFormat("zh-CN", {
+  return new Intl.DateTimeFormat(locale.value, {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -123,18 +125,18 @@ const playlistGroups = computed<PlaylistGroup[]>(() => {
 
 function sessionDetailFields(item: VideoPlayerItem) {
   return [
-    { label: "账号", value: item.meta?.account || "-" },
-    { label: "用户", value: item.meta?.user || "-" },
-    { label: "协议", value: item.meta?.protocol || "-" }
+    { label: t("VideoPlayer.Account"), value: item.meta?.account || "-" },
+    { label: t("VideoPlayer.User"), value: item.meta?.user || "-" },
+    { label: t("VideoPlayer.Protocol"), value: item.meta?.protocol || "-" }
   ];
 }
 
 function itemDetailFields(item: VideoPlayerItem) {
   return [
     ...sessionDetailFields(item),
-    { label: "开始时间", value: formatLocalStartTime(item.meta?.date_start) },
+    { label: t("VideoPlayer.StartTime"), value: formatLocalStartTime(item.meta?.date_start) },
     {
-      label: "总时长",
+      label: t("VideoPlayer.TotalDuration"),
       value: formatDuration(item.meta?.duration, item.meta?.date_start, item.meta?.date_end)
     }
   ];
@@ -142,9 +144,9 @@ function itemDetailFields(item: VideoPlayerItem) {
 
 function partDetailFields(item: VideoPlayerItem) {
   return [
-    { label: "开始时间", value: formatLocalStartTime(item.meta?.date_start) },
+    { label: t("VideoPlayer.StartTime"), value: formatLocalStartTime(item.meta?.date_start) },
     {
-      label: "总时长",
+      label: t("VideoPlayer.TotalDuration"),
       value: formatDuration(item.meta?.duration, item.meta?.date_start, item.meta?.date_end)
     }
   ];
@@ -152,10 +154,10 @@ function partDetailFields(item: VideoPlayerItem) {
 
 function partLabel(item: VideoPlayerItem) {
   if (item.partIndex && item.partTotal) {
-    return `片段 ${item.partIndex} / ${item.partTotal}`;
+    return t("VideoPlayer.SegmentProgress", { index: item.partIndex, total: item.partTotal });
   }
 
-  return "片段";
+  return t("VideoPlayer.Segment");
 }
 
 function groupHasActivePart(group: PlaylistGroup) {
@@ -167,18 +169,13 @@ function groupHasActivePart(group: PlaylistGroup) {
   <div class="flex h-full min-h-0 flex-col rounded-xl border-2 border-(--ui-border) p-4">
     <div class="mb-3 flex items-center justify-between gap-3">
       <h3 class="min-w-0 text-sm font-semibold tracking-wide text-(--ui-text-highlighted)">
-        播放列表
+        {{ t("VideoPlayer.Playlist") }}
       </h3>
       <div class="flex shrink-0 items-center gap-2">
         <span class="rounded-full border border-(--ui-primary)/30 px-2.5 py-1 text-xs font-medium text-(--ui-primary)">
           {{ items.length }}
         </span>
-        <label
-          for="videoplayer-file-input"
-          class="cursor-pointer rounded-full border border-(--ui-border) px-3 py-1 text-xs font-medium text-(--ui-text-toned) transition hover:border-(--ui-primary)/50 hover:text-(--ui-primary)"
-        >
-          添加录像
-        </label>
+        <VideoPlayerDropzone inline @select-files="emit('selectFiles', $event)" />
       </div>
     </div>
 

@@ -447,7 +447,7 @@ onBeforeUnmount(async () => {
                       variant="subtle"
                       size="sm"
                     >
-                      耗时 {{ formatDuration(item.duration) }}
+                      {{ t("Transcode.Elapsed", { duration: formatDuration(item.duration) }) }}
                     </UBadge>
 
                     <UBadge :color="getStatusColor(item.status)" variant="soft" size="sm">
