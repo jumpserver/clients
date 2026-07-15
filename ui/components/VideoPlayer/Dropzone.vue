@@ -51,10 +51,7 @@ function handleFileUploadChange(event: Event) {
 const dropzoneUi = computed(() => {
   if (props.inline) {
     return {
-      root: "shrink-0",
-      base: "min-h-0 cursor-pointer rounded-full border border-(--ui-border) bg-transparent px-3 py-1 hover:border-(--ui-primary)/50 data-[dragging=true]:border-(--ui-primary) data-[dragging=true]:bg-(--ui-primary)/10",
-      wrapper: "flex-row",
-      label: "m-0 text-xs font-medium text-(--ui-text-toned)"
+      root: "shrink-0"
     };
   }
 
@@ -107,6 +104,17 @@ watch(selectedFiles, (files) => {
       :ui="dropzoneUi"
       @change="handleFileUploadChange"
     >
+      <template v-if="props.inline" #default="{ open }">
+        <UButton
+          color="neutral"
+          variant="outline"
+          size="xs"
+          @click.stop="open"
+        >
+          {{ t("VideoPlayer.AddRecording") }}
+        </UButton>
+      </template>
+
       <template v-if="!props.inline" #leading>
         <div
           class="flex items-center justify-center rounded-xl bg-white/8 text-(--ui-primary)"
