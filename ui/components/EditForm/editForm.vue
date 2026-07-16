@@ -139,9 +139,7 @@ const accountItems = computed(() => {
   return [
     { type: "label", label: t("Account.Hosted") },
     ...hosted,
-    { type: "separator" },
-    { type: "label", label: t("Account.Manual") },
-    ...manual
+    ...(manual.length ? [{ type: "separator" }, { type: "label", label: t("Account.Manual") }, ...manual] : [])
   ] as SelectMenuItem[];
 });
 

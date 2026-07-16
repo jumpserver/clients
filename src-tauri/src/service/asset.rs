@@ -1,11 +1,10 @@
 use crate::api::endpoint;
 use crate::api::request::{ApiRequestClient, ApiResponse};
-use log::info;
+use log::{info, warn};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::cmp::Ordering;
 use std::collections::HashSet;
-use url::Url;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Default)]
 #[serde(rename_all = "lowercase")]
@@ -100,6 +99,44 @@ struct FavoriteAssetBody {
     asset: String,
 }
 
+#[derive(Serialize)]
+struct FavoriteAssetQuery<'a> {
+    asset: &'a str,
+}
+
+#[derive(Deserialize)]
+struct FavoriteAssetRecord {
+    id: String,
+    asset: String,
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum FavoriteAssetListResponse {
+    List(Vec<FavoriteAssetRecord>),
+    Paginated { results: Vec<FavoriteAssetRecord> },
+}
+
+impl FavoriteAssetListResponse {
+    fn find_id(self, asset_id: &str) -> Option<String> {
+        let records = match self {
+            Self::List(records) => records,
+            Self::Paginated { results } => results,
+        };
+
+        records
+            .into_iter()
+            .find(|record| record.asset == asset_id)
+            .map(|record| record.id)
+    }
+}
+
+fn favorite_record_id(data: &str, asset_id: &str) -> Option<String> {
+    serde_json::from_str::<FavoriteAssetListResponse>(data)
+        .ok()
+        .and_then(|response| response.find_id(asset_id))
+}
+
 pub struct AssetService {
     api: ApiRequestClient,
 }
@@ -180,13 +217,24 @@ impl AssetService {
 
     /// 从收藏列表中移除指定资产
     pub async fn unfavorite(&self, asset_id: &str) -> ApiResponse {
-        let mut url = self.api.endpoint(endpoint::assets::FAVORITE_ASSETS);
+        let list_url = self.api.endpoint(endpoint::assets::FAVORITE_ASSETS);
+        let query = FavoriteAssetQuery { asset: asset_id };
+        let lookup = self.api.get_with_query_response(&list_url, &query).await;
 
-        if let Ok(mut parsed) = Url::parse(&url) {
-            parsed.query_pairs_mut().append_pair("asset", asset_id);
-            url = parsed.to_string();
+        if !lookup.success {
+            return lookup;
+        }
+
+        let favorite_id = match favorite_record_id(&lookup.data, asset_id) {
+            Some(favorite_id) => favorite_id,
+            None => {
+                warn!("收藏列表响应中未找到资产 {} 对应的收藏记录 ID", asset_id);
+                return ApiResponse::failed(format!("未找到资产 {} 对应的收藏记录 ID", asset_id));
+            }
         };
 
+        let path = endpoint::assets::favorite_detail(&favorite_id);
+        let url = self.api.endpoint(&path);
         self.api.delete_with_response(&url).await
     }
 
@@ -384,5 +432,44 @@ impl AssetService {
             .and_then(Value::as_str)
             .unwrap_or_default()
             .to_lowercase()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::favorite_record_id;
+
+    #[test]
+    fn favorite_record_id_should_be_found_in_list_response() {
+        let data = r#"[{"id":"favorite-1","asset":"asset-1"}]"#;
+
+        assert_eq!(
+            favorite_record_id(data, "asset-1"),
+            Some("favorite-1".to_string())
+        );
+    }
+
+    #[test]
+    fn favorite_record_id_should_be_found_in_paginated_response() {
+        let data = r#"{"results":[{"id":"favorite-1","asset":"asset-1"}]}"#;
+
+        assert_eq!(
+            favorite_record_id(data, "asset-1"),
+            Some("favorite-1".to_string())
+        );
+    }
+
+    #[test]
+    fn favorite_record_id_should_not_use_a_different_asset() {
+        let data = r#"[{"id":"favorite-2","asset":"asset-2"}]"#;
+
+        assert_eq!(favorite_record_id(data, "asset-1"), None);
+    }
+
+    #[test]
+    fn favorite_record_id_should_be_absent_when_response_has_no_id() {
+        let data = r#"[{"asset":"asset-1"}]"#;
+
+        assert_eq!(favorite_record_id(data, "asset-1"), None);
     }
 }

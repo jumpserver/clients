@@ -286,7 +286,9 @@ export const useAssetAction = () => {
     accounts?: PermedAccount[],
     protocolOverride?: string,
     ephemeral?: {
+      formInput?: boolean
       accountMode?: "hosted" | "dynamic" | "manual" | "anonymous"
+      accountId?: string
       manualUsername?: string
       manualPassword?: string
       dynamicPassword?: string
@@ -294,10 +296,11 @@ export const useAssetAction = () => {
     }
   ) => {
     const saved = currentConnectionInfoMap.value[assetId];
+    const isFormInput = ephemeral?.formInput === true;
 
-    // 以已保存的账号模式为准；未保存时回退临时模式
-    const effectiveMode = saved?.accountMode ?? ephemeral?.accountMode;
-    const selected = saved?.username ?? user;
+    // 只有弹窗确认时才使用本次表单数据；直接连接仍沿用已保存配置。
+    const effectiveMode = isFormInput ? ephemeral?.accountMode : saved?.accountMode ?? ephemeral?.accountMode;
+    const selected = isFormInput ? user : saved?.username ?? user;
 
     let input_username = "";
     let input_secret = "";
@@ -310,12 +313,12 @@ export const useAssetAction = () => {
 
     if (effectiveMode === "manual" || selected === "手动输入" || selected === "Manual input") {
       // prettier-ignore
-      input_username = ephemeral?.manualUsername ?? saved?.manualUsername ?? matchedAccount?.username ?? "";
-      input_secret = ephemeral?.manualPassword ?? saved?.manualPassword ?? "";
+      input_username = isFormInput ? (ephemeral?.manualUsername || "") : saved?.manualUsername ?? matchedAccount?.username ?? "";
+      input_secret = isFormInput ? (ephemeral?.manualPassword || "") : saved?.manualPassword ?? "";
     } else if (effectiveMode === "dynamic" || selected?.includes("同名账号") || selected?.includes("Dynamic user")) {
       // 同名账号仅需传递密码
       input_username = "";
-      input_secret = ephemeral?.dynamicPassword ?? saved?.dynamicPassword ?? "";
+      input_secret = isFormInput ? (ephemeral?.dynamicPassword || "") : saved?.dynamicPassword ?? "";
     } else if (effectiveMode === "anonymous" || selected?.includes("@ANON")) {
       input_username = "";
       input_secret = "";
@@ -338,6 +341,10 @@ export const useAssetAction = () => {
         return "@ANON";
       }
 
+      if (isFormInput) {
+        return ephemeral?.accountId || matchedAccount?.id || "";
+      }
+
       return getUserId(accounts!, assetId, user);
     })();
 
@@ -347,10 +354,17 @@ export const useAssetAction = () => {
       ephemeral?.connectMethod?.trim() || (saved?.protocol === protocol ? saved?.connectMethod?.trim() : "")
     );
 
+    const accountId
+      = effectiveMode === "hosted"
+        ? isFormInput
+          ? ephemeral?.accountId || matchedAccount?.id
+          : matchedAccount?.id || saved?.accountId
+        : undefined;
+
     userInfoStore.setConnectionInfoForAsset(assetId, {
       protocol,
       username: selected || user,
-      accountId: effectiveMode === "hosted" ? matchedAccount?.id || saved?.accountId : undefined,
+      accountId,
       accountMode: effectiveMode,
       connectMethod
     });

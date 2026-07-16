@@ -16,12 +16,12 @@ const emits = defineEmits<{
   (e: "update:visible", visible: boolean): void
   (e: "contextTrigger", asset: AssetItem): void
   (e: "editTrigger", asset: AssetItem): void
-  (e: "connectTrigger", asset: AssetItem): void
+  (e: "connectTrigger", asset: AssetItem, protocol?: string): void
   (e: "renameTrigger", asset: AssetItem): void
 }>();
 
 const { t } = useI18n();
-const { handleAssetConnection, displayUser, handleAssetFavorite, handleAssetUnfavorite } = useAssetAction();
+const { handleAssetFavorite, handleAssetUnfavorite } = useAssetAction();
 const userInfoStore = useUserInfoStore();
 const { currentConnectionInfoMap } = storeToRefs(userInfoStore);
 
@@ -89,20 +89,7 @@ const menuItems = computed((): MenuItem[] => {
  */
 function handleConnect(protocol?: string) {
   if (protocol) {
-    // 如果有指定协议，直接连接
-    handleAssetConnection(
-      displayUser(props.asset.id, props.asset.permedAccounts!),
-      props.asset.id,
-      protocol,
-      props.asset.permedAccounts!,
-      undefined,
-      {
-        accountMode: "hosted",
-        manualUsername: "",
-        manualPassword: "",
-        dynamicPassword: ""
-      }
-    );
+    emits("connectTrigger", props.asset, protocol);
   } else {
     emits("connectTrigger", props.asset);
   }

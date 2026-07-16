@@ -134,7 +134,7 @@ const handleEditTrigger = async (asset: AssetItem) => {
 /**
  * @description 处理资产连接
  */
-const handleConnectAsset = async (asset: AssetItem) => {
+const handleConnectAsset = async (asset: AssetItem, preferredProtocol?: string) => {
   const saved = asset.savedConnection;
 
   const canDirectConnect = (() => {
@@ -153,7 +153,7 @@ const handleConnectAsset = async (asset: AssetItem) => {
 
   if (canDirectConnect) {
     return confirmConnection(asset, {
-      protocol: saved!.protocol,
+      protocol: preferredProtocol || saved!.protocol,
       account: saved!.username,
       accountId: (saved as any).accountId,
       accountMode: (saved!.accountMode as any) || "hosted",
@@ -161,13 +161,13 @@ const handleConnectAsset = async (asset: AssetItem) => {
       manualPassword: saved!.manualPassword || "",
       dynamicPassword: saved!.dynamicPassword || "",
       rememberSecret: !!saved!.rememberSecret,
-      connectMethod: saved!.connectMethod || "",
+      connectMethod: !preferredProtocol || preferredProtocol === saved!.protocol ? saved!.connectMethod || "" : "",
       availableProtocols: saved!.availableProtocols || []
     });
   }
 
   try {
-    const info = await connEditorRef.value!.open(asset);
+    const info = await connEditorRef.value!.open(asset, preferredProtocol);
     confirmConnection(asset, info);
   } catch (e) {
     console.error(e);
@@ -177,8 +177,8 @@ const handleConnectAsset = async (asset: AssetItem) => {
 /**
  * @description 右键菜单的连接操作
  */
-const handleConnectTrigger = (asset: AssetItem) => {
-  handleConnectAsset(asset);
+const handleConnectTrigger = (asset: AssetItem, protocol?: string) => {
+  handleConnectAsset(asset, protocol);
 };
 
 /**

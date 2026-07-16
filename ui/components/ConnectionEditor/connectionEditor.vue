@@ -32,14 +32,16 @@ const modalTitle = computed(() => {
  * @description 初始化 Form
  * @param asset
  */
-const initDraft = (asset: AssetItem) => {
+const initDraft = (asset: AssetItem, preferredProtocol?: string) => {
   const saved: ConnectionInfo | undefined = asset.savedConnection;
 
   const protocols = sortPermedProtocols(asset.permedProtocols || ([] as PermedProtocol[]));
   const accounts = asset.permedAccounts || ([] as PermedAccount[]);
 
   // 协议默认：保存的协议 -> 第一个协议 -> 空
-  draftProtocol.value = saved?.protocol || protocols[0]?.name || "";
+  draftProtocol.value = protocols.some((protocol) => protocol.name === preferredProtocol)
+    ? preferredProtocol!
+    : saved?.protocol || protocols[0]?.name || "";
 
   // 账号默认：保存的用户名 -> 第一条托管账号 -> 动态账号(@USER) -> 手动输入(@INPUT) -> 空
   if (saved?.username) {
@@ -68,7 +70,8 @@ const initDraft = (asset: AssetItem) => {
   draftManualPassword.value = saved?.manualPassword || "";
   draftDynamicPassword.value = saved?.dynamicPassword || "";
   draftRememberSecret.value = saved?.rememberSecret || false;
-  draftConnectMethod.value = saved?.connectMethod || "";
+  draftConnectMethod.value
+    = !preferredProtocol || preferredProtocol === saved?.protocol ? saved?.connectMethod || "" : "";
 };
 
 /**
@@ -188,10 +191,10 @@ async function ensureDetails(asset: AssetItem) {
  * @description 打开 Modal
  * @param asset
  */
-async function openModal(asset: AssetItem): Promise<any> {
+async function openModal(asset: AssetItem, preferredProtocol?: string): Promise<any> {
   currentAsset.value = asset;
   await ensureDetails(asset);
-  initDraft(currentAsset.value!);
+  initDraft(currentAsset.value!, preferredProtocol);
   open.value = true;
 
   return new Promise((resolve, reject) => {

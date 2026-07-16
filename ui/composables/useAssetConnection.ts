@@ -16,33 +16,8 @@ interface ConnectionFormInfo {
 }
 
 export function useAssetConnection() {
-  const { handleAssetConnection, displayUser } = useAssetAction();
+  const { handleAssetConnection } = useAssetAction();
   const userInfoStore = useUserInfoStore();
-
-  /**
-   * 处理资产连接
-   */
-  const connectAsset = (asset: AssetItem, protocol?: string) => {
-    if (protocol) {
-      // 如果有指定协议，直接连接
-      handleAssetConnection(
-        displayUser(asset.id, asset.permedAccounts!),
-        asset.id,
-        protocol,
-        asset.permedAccounts!,
-        undefined,
-        {
-          accountMode: "hosted",
-          manualUsername: "",
-          manualPassword: "",
-          dynamicPassword: ""
-        }
-      );
-    } else {
-      // 否则需要打开编辑模态框
-      return { needsModal: true, asset };
-    }
-  };
 
   /**
    * 仅保存连接信息（不触发连接）
@@ -92,19 +67,20 @@ export function useAssetConnection() {
    * 处理连接确认（从模态框）
    */
   const confirmConnection = (asset: AssetItem, connectionInfo: ConnectionFormInfo) => {
-    saveConnectionInfo(asset, connectionInfo);
-
     handleAssetConnection(connectionInfo.account, asset.id, connectionInfo.protocol, asset.permedAccounts!, undefined, {
+      formInput: true,
       accountMode: connectionInfo.accountMode,
+      accountId: connectionInfo.accountId,
       manualUsername: connectionInfo.manualUsername,
       manualPassword: connectionInfo.manualPassword,
       dynamicPassword: connectionInfo.dynamicPassword,
       connectMethod: connectionInfo.connectMethod
     });
+
+    saveConnectionInfo(asset, connectionInfo);
   };
 
   return {
-    connectAsset,
     confirmConnection,
     saveConnectionInfo
   };
