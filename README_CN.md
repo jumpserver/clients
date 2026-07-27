@@ -107,7 +107,7 @@ sudo dnf install ./jumpserver-client_*.rpm
 
 ### 支持的连接类型
 
-- **SSH/Telnet** - 终端连接（PuTTY、XShell、SecureCRT、iTerm2）
+- **SSH/Telnet** - 终端连接（PuTTY、XShell、SecureCRT、iTerm2、Ghostty）
 - **RDP** - Windows 服务器的远程桌面协议
 - **VNC** - 用于远程桌面访问的虚拟网络计算
 - **数据库连接**：

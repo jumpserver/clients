@@ -20,6 +20,7 @@ const { setAppConfig } = useSettingManager();
 
 const imagesMap: Record<string, string | undefined> = {
   iterm: getImageByName("item2"),
+  ghostty: getImageByName("ghostty"),
   dbeaver: getImageByName("dbeaver"),
   dbx: getImageByName("dbx"),
   heidisql: getImageByName("heidisql"),

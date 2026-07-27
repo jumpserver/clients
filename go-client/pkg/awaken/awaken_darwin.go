@@ -117,6 +117,30 @@ func awakenSSHCommand(r *Rouse, cfg *config.AppConfig) (*exec.Cmd, error) {
 			scriptPath := filepath.Join(currentPath, "Scripts", "iterm2_loader.scpt")
 			//command = fmt.Sprintf(`%s "%s"`, scriptPath, command)
 			cmd = exec.Command("osascript", "-s", "h", scriptPath, itermCmd, "0")
+		} else if appItem.Name == "ghostty" {
+			// Ghostty has no "do script" AppleEvent; `open -na --args -e` only works
+			// cleanly on a cold start. Once Ghostty is already running, that path
+			// triggers a security confirmation and, if allowed, a broken extra tab.
+			// Its AppleScript dictionary avoids both, cold or warm. "wait after
+			// command" keeps the surface open once the client exits. "activate"
+			// runs last since calling it earlier opens Ghostty's own default tab;
+			// the window-count check picks new tab vs. new window so repeat
+			// connections land in the existing window instead of a new one.
+			ghosttyCmd := strings.NewReplacer(`\`, `\\`, `"`, `\"`).Replace(
+				fmt.Sprintf("%s %s", clientPath, commands),
+			)
+			script := fmt.Sprintf(`tell application "Ghostty"
+	set cfg to new surface configuration
+	set command of cfg to "%s"
+	set wait after command of cfg to true
+	if (count of windows) > 0 then
+		new tab in (front window) with configuration cfg
+	else
+		new window with configuration cfg
+	end if
+	activate
+end tell`, ghosttyCmd)
+			cmd = exec.Command("osascript", "-e", script)
 		} else {
 			cmd = exec.Command(
 				"osascript", "-s", "h", "-e", fmt.Sprintf(`tell application "%s" to do script "%s %s" activate`,

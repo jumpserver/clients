@@ -316,7 +316,7 @@ sequenceDiagram
 | Windows | terminal | putty |
 | Windows | remotedesktop | mstsc |
 | Windows | filetransfer | winscp（可选） |
-| macOS | terminal | terminal, iterm |
+| macOS | terminal | terminal, iterm, ghostty |
 | macOS | remotedesktop | 系统 RDP（open） |
 | Linux | terminal | 系统 terminal |
 | Linux | remotedesktop | xfreerdp, tigervnc |

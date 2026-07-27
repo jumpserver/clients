@@ -17,6 +17,11 @@
       "category": "databases"
     },
     {
+      "id": "macos.ghostty",
+      "name": "ghostty",
+      "category": "terminal"
+    },
+    {
       "id": "macos.iterm",
       "name": "iterm",
       "category": "terminal"

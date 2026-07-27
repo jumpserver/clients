@@ -111,7 +111,7 @@ sudo dnf install ./jumpserver-client_*.rpm
 
 ### Supported Connection Types
 
-- **SSH/Telnet** - Terminal connections (PuTTY, XShell, SecureCRT, iTerm2)
+- **SSH/Telnet** - Terminal connections (PuTTY, XShell, SecureCRT, iTerm2, Ghostty)
 - **RDP** - Remote Desktop Protocol for Windows servers
 - **VNC** - Virtual Network Computing for remote desktop access
 - **Database Connections**:
