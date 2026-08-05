@@ -4,6 +4,13 @@ import type { AssetPageType, AssetsResponse, PermedAccount, PermedProtocol, RawA
 import { useUserInfoStore } from "~/store/modules/userInfo";
 
 const LIMIT = 20;
+let assetRequestSequence = 0;
+
+// get_assets 通过全局事件返回结果，请求 ID 用于区分不同菜单及不同分页请求。
+const createAssetRequestId = (assetType: AssetPageType) => {
+  assetRequestSequence += 1;
+  return `${assetType}-${Date.now()}-${assetRequestSequence}`;
+};
 
 export const useAssetFetcher = (assetType: AssetPageType, scrollRef?: Ref<HTMLElement | null>) => {
   const { t } = useI18n();
@@ -23,6 +30,7 @@ export const useAssetFetcher = (assetType: AssetPageType, scrollRef?: Ref<HTMLEl
   const isLoading = ref(false);
   const rawAssetsList = ref<RawAssetData[]>([]);
   const lastDetailAssetId = ref<string | null>(null);
+  const activeRequestId = ref<string | null>(null);
   const subscribeGetAssetsEvent = ref<UnlistenFn | null>(null);
   const subscribeGetAssetFailedEvent = ref<UnlistenFn | null>(null);
   const subscribeGetFavoriteAssetsEvent = ref<UnlistenFn | null>(null);
@@ -243,16 +251,19 @@ export const useAssetFetcher = (assetType: AssetPageType, scrollRef?: Ref<HTMLEl
   /**
    * @description 追加页码数据
    * @param pageData
+   * @param fetchedCount
    * @param count
    */
-  const appendPageData = (pageData: RawAssetData[], count?: number | null) => {
+  const appendPageData = (pageData: RawAssetData[], fetchedCount: number, count?: number | null) => {
     // 如果大于 20 条那么只显示 20 条
     if (pageData.length > LIMIT) pageData = pageData.slice(0, LIMIT);
 
     rawAssetsList.value.push(...pageData);
-    offset.value += pageData.length;
-    totalCount.value = (count ?? rawAssetsList.value.length) as number;
-    hasMore.value = rawAssetsList.value.length < totalCount.value;
+    // pageData 是过滤后的展示数据；分页游标必须按服务端原始页条数推进，保持与 count 同一口径。
+    offset.value += fetchedCount;
+    totalCount.value = count ?? offset.value;
+    // 原始页为空代表分页没有进展，即使 count 异常偏大也要停止，避免重复请求同一个 offset。
+    hasMore.value = fetchedCount > 0 && offset.value < totalCount.value;
   };
 
   /**
@@ -285,10 +296,13 @@ export const useAssetFetcher = (assetType: AssetPageType, scrollRef?: Ref<HTMLEl
     currentSearch.value = searchParam;
     currentOrder.value = orderParam;
 
+    const requestId = createAssetRequestId(assetType);
+    activeRequestId.value = requestId;
     beginLoading();
 
     try {
       await useTauriCoreInvoke("get_assets", {
+        requestId,
         favorite: assetType === "favorite",
         query: {
           type: assetType === "favorite" ? undefined : assetType,
@@ -299,6 +313,9 @@ export const useAssetFetcher = (assetType: AssetPageType, scrollRef?: Ref<HTMLEl
         }
       });
     } catch (e: any) {
+      if (activeRequestId.value !== requestId) return;
+
+      activeRequestId.value = null;
       hasMore.value = false;
       endLoading();
       toast.add({
@@ -321,6 +338,8 @@ export const useAssetFetcher = (assetType: AssetPageType, scrollRef?: Ref<HTMLEl
     const searchParam = search !== undefined ? search : currentSearch.value;
     const orderParam = order !== undefined ? order : currentOrder.value;
 
+    activeRequestId.value = null;
+    isLoading.value = false;
     rawAssetsList.value = [];
     offset.value = 0;
     hasMore.value = true;
@@ -336,30 +355,38 @@ export const useAssetFetcher = (assetType: AssetPageType, scrollRef?: Ref<HTMLEl
       interface eventPayload {
         status: number
         data: AssetsResponse
+        request_id: string
       }
+
+      const resp = event.payload as eventPayload;
 
       if (!isLoading.value) return;
       if (!isActiveForCurrentRoute()) return;
+      // 全局事件会被所有菜单实例收到，只允许当前活动请求修改本菜单状态。
+      if (resp.request_id !== activeRequestId.value) return;
 
-      const resp = event.payload as eventPayload;
-      const filtered = filterResultsByAssetType(resp.data.results ?? []);
+      activeRequestId.value = null;
+      const pageResults = resp.data.results ?? [];
+      const filtered = filterResultsByAssetType(pageResults);
 
-      appendPageData(filtered, resp.data.count);
-
-      nextTick(() => {
-        endLoading();
-      });
+      appendPageData(filtered, pageResults.length, resp.data.count);
+      endLoading();
     });
 
     subscribeGetAssetFailedEvent.value = await useTauriEventListen("get-asset-failure", (event) => {
       interface eventPayload {
         status: number
+        request_id: string
       }
+
+      const payload = event.payload as eventPayload;
 
       if (!isLoading.value) return;
       if (!isActiveForCurrentRoute()) return;
+      // 过期请求失败不能结束新请求的 loading，也不能修改 hasMore 或登录状态。
+      if (payload.request_id !== activeRequestId.value) return;
 
-      const payload = event.payload as eventPayload;
+      activeRequestId.value = null;
       const status = payload.status;
 
       hasMore.value = false;
@@ -379,9 +406,7 @@ export const useAssetFetcher = (assetType: AssetPageType, scrollRef?: Ref<HTMLEl
         });
       }
 
-      nextTick(() => {
-        endLoading();
-      });
+      endLoading();
     });
 
     subscribeGetFavoriteAssetsEvent.value = await useTauriEventListen("get-favorite-assets-success", async (event) => {
@@ -408,6 +433,11 @@ export const useAssetFetcher = (assetType: AssetPageType, scrollRef?: Ref<HTMLEl
   const unListenTauriEvent = () => {
     subscribeGetAssetsEvent.value?.();
     subscribeGetAssetFailedEvent.value?.();
+    subscribeGetFavoriteAssetsEvent.value?.();
+
+    subscribeGetAssetsEvent.value = null;
+    subscribeGetAssetFailedEvent.value = null;
+    subscribeGetFavoriteAssetsEvent.value = null;
   };
 
   let unsubscribeSearch: (() => void) | null = null;
@@ -531,6 +561,7 @@ export const useAssetFetcher = (assetType: AssetPageType, scrollRef?: Ref<HTMLEl
   });
 
   onBeforeUnmount(() => {
+    activeRequestId.value = null;
     unListenTauriEvent();
     unListenEventBusEvent();
     stopScrollListener?.();

@@ -40,12 +40,17 @@ pub async fn get_assets(
     session: State<'_, ApiSessionStore>,
     mut query: AssetQuery,
     favorite: Option<bool>,
+    request_id: String,
 ) -> Result<(), String> {
+    // 资产结果通过全局事件广播，所有成功和失败分支都必须原样回传该请求 ID。
     let (context, asset_service) = match load_asset_service(&app, &session).await {
         Ok(result) => result,
         Err(error) => {
             error!("load asset service failed: {}", error);
-            let _ = app.emit("get-asset-failure", json!({ "status": 401 }));
+            let _ = app.emit(
+                "get-asset-failure",
+                json!({ "status": 401, "request_id": request_id }),
+            );
             return Ok(());
         }
     };
@@ -58,7 +63,10 @@ pub async fn get_assets(
 
     if !assets_data.success {
         error!("获取 Asset 数据失败");
-        let _ = app.emit("get-asset-failure", json!({ "status": assets_data.status }));
+        let _ = app.emit(
+            "get-asset-failure",
+            json!({ "status": assets_data.status, "request_id": request_id }),
+        );
         return Ok(());
     }
 
@@ -69,12 +77,16 @@ pub async fn get_assets(
                 json!({
                     "status": assets_data.status,
                     "data": data,
+                    "request_id": request_id,
                 }),
             );
         }
         Err(error) => {
             error!("解析资产列表 JSON 失败: {}", error);
-            let _ = app.emit("get-asset-failure", json!({ "status": assets_data.status }));
+            let _ = app.emit(
+                "get-asset-failure",
+                json!({ "status": assets_data.status, "request_id": request_id }),
+            );
             return Ok(());
         }
     }
