@@ -6,16 +6,19 @@ use crate::service::oauth::{
     build_oauth_client, create_authorization_request, exchange_authorization_code,
     fetch_oauth_config, AuthFlowState,
 };
+use crate::service::proxy::ProxyManager;
 use crate::service::user::UserService;
 
 #[tauri::command]
 pub async fn auth_login(
     app: AppHandle,
     flow_state: State<'_, AuthFlowState>,
+    proxy_manager: State<'_, ProxyManager>,
     site: String,
 ) -> Result<(), String> {
     // 获取 OAuth 配置
-    let config_http_client = api_client_for_origin(&site).map_err(|e| e.to_string())?;
+    let config_http_client =
+        api_client_for_origin(&proxy_manager, &site).map_err(|e| e.to_string())?;
     let oauth_config = match fetch_oauth_config(&site, &config_http_client).await {
         Ok(config) => config,
         Err(e) => {
@@ -49,8 +52,6 @@ pub async fn auth_login(
             log::warn!("emit auth_url failed: {}", e);
         }
 
-        let http_client = oauth_client_for_origin(&site)?;
-
         // 等待 deep link 回调传回 code/state
         let callback = match pending.callback_rx.await {
             Ok(callback) => callback,
@@ -60,6 +61,8 @@ pub async fn auth_login(
             }
         };
 
+        // The user may update proxy settings while the system browser is open.
+        let http_client = oauth_client_for_origin(&proxy_manager, &site)?;
         let tokens = exchange_authorization_code(&client, &http_client, callback).await?;
 
         // 保存 OAuth token，供后续请求自动刷新使用。
@@ -68,7 +71,8 @@ pub async fn auth_login(
         }
 
         // 发起请求
-        let user_service = UserService::new(site.clone(), tokens.access_token.clone())?;
+        let user_service =
+            UserService::new(site.clone(), tokens.access_token.clone(), &proxy_manager)?;
         let (profile, permission_orgs, current_org, xpack_message) = tokio::join!(
             user_service.get_user_profile(),
             user_service.get_permission_orgs(),

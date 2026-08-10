@@ -84,6 +84,11 @@ const settingMenu = computed<NavigationMenuItem[]>(() => {
       to: localePath({ name: "setting-appearance" })
     },
     {
+      label: t("Proxy.Title"),
+      icon: "i-lucide-network",
+      to: localePath({ name: "setting-network" })
+    },
+    {
       label: t("Common.OpenWith"),
       icon: "tabler:toggle-right",
       to: localePath({ name: "setting-application" })

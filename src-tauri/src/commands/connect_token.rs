@@ -1,12 +1,13 @@
 use serde_json::json;
 use serde_json::Value;
 use std::collections::HashMap;
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 use crate::api::{request::ApiRequestClient, session::ApiSessionStore};
 use crate::commands::api_session::fresh_api_context;
 use crate::commands::client_launcher::pull_up;
 use crate::service::connect::{ConnectService, TokenRequestBody};
+use crate::service::proxy::ProxyManager;
 
 #[tauri::command]
 pub async fn get_connect_token(
@@ -26,7 +27,8 @@ pub async fn get_connect_token(
         }
     };
 
-    let api = match ApiRequestClient::from_session(&context) {
+    let proxy_manager = app.state::<ProxyManager>();
+    let api = match ApiRequestClient::from_session(&context, &proxy_manager) {
         Ok(api) => api,
         Err(error) => {
             let _ = app.emit(

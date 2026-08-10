@@ -25,12 +25,16 @@ use crate::commands::dev_http_server::init_http_callback_server;
 use crate::commands::get_config::get_config;
 use crate::commands::get_setting::get_setting;
 use crate::commands::get_version::get_version_message;
+use crate::commands::proxy_settings::{
+    get_proxy_settings, test_proxy_settings, update_proxy_settings,
+};
 use crate::commands::system_fonts::list_system_fonts;
 use crate::commands::video_player::{
     delete_video_player_file, read_video_player_text_stream, write_video_player_gzip_file,
 };
 use crate::commands::window_control::{close_window, minimize_window, toggle_maximize_window};
 use crate::service::oauth::AuthFlowState;
+use crate::service::proxy::ProxyManager;
 use crate::transcode::transcode_replays;
 use crate::utils::is_auth_callback;
 
@@ -145,6 +149,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_prevent_default::debug())
         .setup(|app| {
+            app.manage(ProxyManager::from_app(app.handle())?);
             let menu = build_menu(app)?;
             #[cfg(target_os = "macos")]
             {
@@ -204,6 +209,9 @@ pub fn run() {
             get_asset_detail,
             get_connect_token,
             get_version_message,
+            get_proxy_settings,
+            update_proxy_settings,
+            test_proxy_settings,
             list_system_fonts,
             toggle_maximize_window,
             update_config_selection,

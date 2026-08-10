@@ -31,6 +31,7 @@ flate2 = "1.1.5"
 font-kit = "0.14"
 anyhow = "1.0.100"
 serde_json = "1.0"
+tempfile = "3.27"
 tar = "0.4"
 base64 = "0.22"
 fast_image_resize = "6.0"
@@ -91,7 +92,8 @@ version = "0.12.25"
 default-features = false
 features = [
   "json",
-  "native-tls"
+  "native-tls",
+  "socks"
 ]
 
 [target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]

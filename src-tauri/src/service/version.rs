@@ -2,6 +2,8 @@ use crate::api::{
     endpoint,
     request::{ApiRequestClient, ApiResponse},
 };
+use crate::service::proxy::ProxyManager;
+use anyhow::Result;
 
 pub struct VersionService {
     api: ApiRequestClient,
@@ -9,9 +11,14 @@ pub struct VersionService {
 
 impl VersionService {
     /// 创建版本服务，该服务访问公开接口，不需要 Token 和组织上下文
-    pub fn new(origin: String) -> Result<Self, reqwest::Error> {
+    pub fn new(origin: String, proxy_manager: &ProxyManager) -> Result<Self> {
         Ok(Self {
-            api: ApiRequestClient::with_origin(origin, String::new(), String::new())?,
+            api: ApiRequestClient::with_origin(
+                origin,
+                String::new(),
+                String::new(),
+                proxy_manager,
+            )?,
         })
     }
 

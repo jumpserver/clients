@@ -1,8 +1,9 @@
+use crate::service::proxy::ProxyManager;
 use crate::{
     api::session::{ApiSessionContext, ApiSessionStore},
     service::oauth::ensure_fresh_token,
 };
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, Manager, State};
 
 #[tauri::command]
 pub fn set_api_session(
@@ -21,14 +22,15 @@ pub fn set_api_org(state: State<'_, ApiSessionStore>, org_id: String) -> Result<
 }
 
 pub(crate) async fn fresh_api_context(
-    _app: &AppHandle,
+    app: &AppHandle,
     state: &ApiSessionStore,
 ) -> Result<ApiSessionContext, String> {
     let mut context = state
         .current_context()
         .ok_or_else(|| "missing current api session".to_string())?;
 
-    let bearer = ensure_fresh_token(&context.origin, Some(&context.bearer_token))
+    let proxy_manager = app.state::<ProxyManager>();
+    let bearer = ensure_fresh_token(&context.origin, Some(&context.bearer_token), &proxy_manager)
         .await
         .map_err(|error| error.to_string())?;
 

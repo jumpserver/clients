@@ -6,6 +6,7 @@ use crate::{
     },
     utils::tz_offset_string,
 };
+use anyhow::Result;
 use log::info;
 use reqwest::{header::AUTHORIZATION, Client, Method, RequestBuilder, Response};
 use serde::Serialize;
@@ -13,6 +14,7 @@ use url::Url;
 
 pub(crate) use crate::api::response::ApiResponse;
 use crate::api::session::ApiSessionContext;
+use crate::service::proxy::ProxyManager;
 
 pub struct ApiRequestClient {
     client: Client,
@@ -27,9 +29,10 @@ impl ApiRequestClient {
         origin: String,
         bearer_token: String,
         org_id: String,
-    ) -> Result<Self, reqwest::Error> {
+        proxy_manager: &ProxyManager,
+    ) -> Result<Self> {
         Ok(Self {
-            client: api_client_for_origin(&origin)?,
+            client: api_client_for_origin(proxy_manager, &origin)?,
             origin,
             bearer_token,
             org_id,
@@ -37,11 +40,12 @@ impl ApiRequestClient {
     }
 
     /// 根据当前 API 会话上下文创建请求客户端
-    pub fn from_session(context: &ApiSessionContext) -> Result<Self, reqwest::Error> {
+    pub fn from_session(context: &ApiSessionContext, proxy_manager: &ProxyManager) -> Result<Self> {
         Self::with_origin(
             context.origin.clone(),
             context.bearer_token.clone(),
             context.org_id.clone(),
+            proxy_manager,
         )
     }
 

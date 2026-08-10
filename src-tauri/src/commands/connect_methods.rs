@@ -1,9 +1,10 @@
 use crate::api::{request::ApiRequestClient, session::ApiSessionStore};
 use crate::commands::api_session::fresh_api_context;
 use crate::service::connect::ConnectService;
+use crate::service::proxy::ProxyManager;
 use log::{error, info};
 use serde_json::json;
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 #[tauri::command]
 pub async fn get_connect_methods(
@@ -20,7 +21,8 @@ pub async fn get_connect_methods(
             return Ok(());
         }
     };
-    let api = match ApiRequestClient::from_session(&context) {
+    let proxy_manager = app.state::<ProxyManager>();
+    let api = match ApiRequestClient::from_session(&context, &proxy_manager) {
         Ok(api) => api,
         Err(error) => {
             let _ = app.emit(

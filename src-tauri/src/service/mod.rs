@@ -3,6 +3,7 @@ pub(crate) mod config;
 pub(crate) mod connect;
 pub(crate) mod oauth;
 pub(crate) mod plugin;
+pub(crate) mod proxy;
 pub(crate) mod setting;
 pub(crate) mod token;
 pub(crate) mod user;

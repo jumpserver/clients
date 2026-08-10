@@ -4,16 +4,19 @@ use crate::api::{
 };
 use crate::commands::api_session::fresh_api_context;
 use crate::service::asset::{AssetQuery, AssetService};
+use crate::service::proxy::ProxyManager;
 use log::{error, info};
 use serde_json::{json, Value};
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 async fn load_asset_service(
     app: &AppHandle,
     session: &ApiSessionStore,
 ) -> Result<(ApiSessionContext, AssetService), String> {
     let context = fresh_api_context(app, session).await?;
-    let api = ApiRequestClient::from_session(&context).map_err(|error| error.to_string())?;
+    let proxy_manager = app.state::<ProxyManager>();
+    let api = ApiRequestClient::from_session(&context, &proxy_manager)
+        .map_err(|error| error.to_string())?;
 
     Ok((context, AssetService::new(api)))
 }

@@ -7,23 +7,26 @@ use crate::service::plugin::PluginService;
 pub struct ConfigService;
 
 impl ConfigService {
-    /// 获取用户配置目录中的 config.json 路径
-    fn get_user_config_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
-        // 使用系统配置目录 + 自定义应用名 "jumpserver-client"
+    /// 获取 jumpserver-client 共享用户配置目录。
+    pub(crate) fn get_user_config_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
         let config_dir = app
             .path()
             .config_dir()
             .map_err(|e| format!("Failed to get config directory: {}", e))?
             .join("jumpserver-client");
 
-        // 确保配置目录存在
         if !config_dir.exists() {
             std::fs::create_dir_all(&config_dir)
                 .map_err(|e| format!("Failed to create config directory: {}", e))?;
             log::info!("Created config directory: {:?}", config_dir);
         }
 
-        Ok(config_dir.join("config.json"))
+        Ok(config_dir)
+    }
+
+    /// 获取用户配置目录中的 config.json 路径
+    fn get_user_config_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+        Ok(Self::get_user_config_dir(app)?.join("config.json"))
     }
 
     /// 获取资源目录中的 config.json 路径（作为默认模板）

@@ -2,6 +2,8 @@ use crate::api::{
     endpoint,
     request::{ApiRequestClient, ApiResponse},
 };
+use crate::service::proxy::ProxyManager;
+use anyhow::Result;
 
 pub struct UserService {
     api: ApiRequestClient,
@@ -9,9 +11,9 @@ pub struct UserService {
 
 impl UserService {
     /// 创建用户服务，登录阶段不携带组织上下文
-    pub fn new(origin: String, bearer_token: String) -> Result<Self, reqwest::Error> {
+    pub fn new(origin: String, bearer_token: String, proxy_manager: &ProxyManager) -> Result<Self> {
         Ok(Self {
-            api: ApiRequestClient::with_origin(origin, bearer_token, String::new())?,
+            api: ApiRequestClient::with_origin(origin, bearer_token, String::new(), proxy_manager)?,
         })
     }
 

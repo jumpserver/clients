@@ -3194,6 +3194,7 @@ dependencies = [
  "tauri-plugin-store",
  "tauri-plugin-updater",
  "tauri-plugin-window-state",
+ "tempfile",
  "tokio",
  "url",
  "window-vibrancy 0.7.1",

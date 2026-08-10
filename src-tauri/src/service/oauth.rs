@@ -1,5 +1,6 @@
-use crate::api::client::oauth_client;
+use crate::api::client::oauth_client_for_origin;
 use crate::api::endpoint;
+use crate::service::proxy::ProxyManager;
 use crate::service::token::TokenService;
 use anyhow::Result;
 use chrono::{Duration, Utc};
@@ -301,13 +302,13 @@ pub async fn exchange_authorization_code(
 }
 
 /// 撤销并删除本地保存的 OAuth token。
-pub async fn revoke_and_clear_tokens(site: &str) -> Result<()> {
+pub async fn revoke_and_clear_tokens(site: &str, proxy_manager: &ProxyManager) -> Result<()> {
     let token_service = TokenService::new(site.to_string());
 
     if let Some(entry) = token_service.load().await? {
         if let Some(refresh_token) = entry.refresh_token {
             let client_id = entry.client_id.unwrap_or_default();
-            let http_client = oauth_client()?;
+            let http_client = oauth_client_for_origin(proxy_manager, site)?;
 
             if let Err(error) =
                 revoke_refresh_token(&site, &client_id, &refresh_token, &http_client).await
@@ -323,7 +324,11 @@ pub async fn revoke_and_clear_tokens(site: &str) -> Result<()> {
 }
 
 /// 确保 access_token 可用；如果即将过期，则使用 refresh_token 刷新并写回本地存储。
-pub async fn ensure_fresh_token(site: &str, provided: Option<&str>) -> Result<String> {
+pub async fn ensure_fresh_token(
+    site: &str,
+    provided: Option<&str>,
+    proxy_manager: &ProxyManager,
+) -> Result<String> {
     let token_service = TokenService::new(site.to_string());
     let entry = token_service.load().await?;
 
@@ -342,7 +347,7 @@ pub async fn ensure_fresh_token(site: &str, provided: Option<&str>) -> Result<St
             .as_ref()
             .ok_or_else(|| anyhow::anyhow!("refresh_token missing for site {}", site))?;
 
-        let http_client = oauth_client()?;
+        let http_client = oauth_client_for_origin(proxy_manager, site)?;
         let tokens = refresh_access_token(site, &client_id, refresh_token, &http_client).await?;
 
         tokens.persist(site, &client_id).await?;
