@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Extension } from "@codemirror/state";
-import type { ChenSqlHints } from "~/chen/types";
+import type { ChenSqlEditorSnapshot, ChenSqlHints } from "~/chen/types";
 import { sql } from "@codemirror/lang-sql";
 import { Compartment, EditorState, Prec } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
@@ -104,6 +104,25 @@ function selectedText() {
   return from === to ? "" : state.doc.sliceString(from, to);
 }
 
+function snapshot(): ChenSqlEditorSnapshot {
+  if (!editor) {
+    return {
+      documentSql: props.modelValue,
+      selectedSql: "",
+      selectionFrom: 0,
+      selectionTo: 0
+    };
+  }
+  const { state } = editor;
+  const { from, to } = state.selection.main;
+  return {
+    documentSql: state.doc.toString(),
+    selectedSql: from === to ? "" : state.doc.sliceString(from, to),
+    selectionFrom: from,
+    selectionTo: to
+  };
+}
+
 function focus() {
   editor?.focus();
 }
@@ -176,6 +195,7 @@ onBeforeUnmount(() => {
 defineExpose({
   focus,
   replaceDocument,
+  snapshot,
   selectedText
 });
 </script>
