@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Context, Result};
 use keyring_core::{Entry, Error as KeyringError};
-use reqwest::{redirect, Client, NoProxy, Proxy};
+use reqwest::{redirect, Client, NoProxy, Proxy, Request, Response};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::fs;
@@ -9,7 +9,7 @@ use std::net::IpAddr;
 use std::path::{Path, PathBuf};
 use std::sync::{
     atomic::{AtomicU64, Ordering},
-    RwLock,
+    Arc, RwLock,
 };
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::AppHandle;
@@ -17,11 +17,13 @@ use tempfile::NamedTempFile;
 use url::{Host, Url};
 
 use crate::service::config::ConfigService;
+use crate::service::system_proxy::{self, ProxyDirective, RoutePlan};
 
 const PROXY_PASSWORD_SERVICE: &str = "com.jumpserver.client.proxy";
 const LEGACY_PROXY_PASSWORD_ACCOUNT: &str = "manual-proxy";
 const CREDENTIAL_ID_PREFIX: &str = "manual-proxy-v1-";
 const PROXY_CONFIG_FILE: &str = "proxy.json";
+const PROXY_CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 const DEFAULT_BYPASS: [&str; 3] = ["localhost", "127.0.0.0/8", "::1"];
 const MAX_HOST_LEN: usize = 255;
 const MAX_USERNAME_LEN: usize = 256;
@@ -39,6 +41,17 @@ pub enum ProxyMode {
     #[serde(alias = "environment")]
     #[default]
     Direct,
+    System,
+    Pac,
+    Manual,
+}
+
+#[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ProxyPreferredMode {
+    System,
+    Pac,
+    #[default]
     Manual,
 }
 
@@ -54,6 +67,8 @@ pub enum ProxyType {
 #[serde(default, rename_all = "camelCase")]
 pub struct ProxySettings {
     pub mode: ProxyMode,
+    pub preferred_mode: ProxyPreferredMode,
+    pub pac_url: String,
     pub proxy_type: ProxyType,
     pub host: String,
     pub port: Option<u16>,
@@ -68,6 +83,8 @@ impl Default for ProxySettings {
     fn default() -> Self {
         Self {
             mode: ProxyMode::Direct,
+            preferred_mode: ProxyPreferredMode::Manual,
+            pac_url: String::new(),
             proxy_type: ProxyType::Http,
             host: String::new(),
             port: None,
@@ -85,6 +102,8 @@ impl Default for ProxySettings {
 #[serde(default, rename_all = "camelCase")]
 pub struct ProxySettingsInput {
     pub mode: ProxyMode,
+    pub preferred_mode: ProxyPreferredMode,
+    pub pac_url: String,
     pub proxy_type: ProxyType,
     pub host: String,
     pub port: Option<u16>,
@@ -99,6 +118,8 @@ impl Default for ProxySettingsInput {
         let settings = ProxySettings::default();
         Self {
             mode: settings.mode,
+            preferred_mode: settings.preferred_mode,
+            pac_url: settings.pac_url,
             proxy_type: settings.proxy_type,
             host: settings.host,
             port: settings.port,
@@ -114,6 +135,8 @@ impl Default for ProxySettingsInput {
 #[serde(default, rename_all = "camelCase")]
 struct StoredProxySettings {
     mode: ProxyMode,
+    preferred_mode: ProxyPreferredMode,
+    pac_url: String,
     proxy_type: ProxyType,
     host: String,
     port: Option<u16>,
@@ -128,6 +151,8 @@ impl Default for StoredProxySettings {
         let settings = ProxySettings::default();
         Self {
             mode: settings.mode,
+            preferred_mode: settings.preferred_mode,
+            pac_url: settings.pac_url,
             proxy_type: settings.proxy_type,
             host: settings.host,
             port: settings.port,
@@ -142,6 +167,8 @@ impl StoredProxySettings {
     fn public(&self, has_password: bool, warning: Option<String>) -> ProxySettings {
         ProxySettings {
             mode: self.mode,
+            preferred_mode: self.preferred_mode,
+            pac_url: self.pac_url.clone(),
             proxy_type: self.proxy_type,
             host: self.host.clone(),
             port: self.port,
@@ -153,10 +180,172 @@ impl StoredProxySettings {
     }
 }
 
+#[derive(Clone)]
 pub struct ProxyManager {
     config_path: PathBuf,
-    state: RwLock<ProxyRuntimeState>,
-    update_lock: tokio::sync::Mutex<()>,
+    state: Arc<RwLock<ProxyRuntimeState>>,
+    update_lock: Arc<tokio::sync::Mutex<()>>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ProxyRouteKind {
+    Direct,
+    Proxy,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ProxyResolverKind {
+    Direct,
+    System,
+    Pac,
+    Manual,
+}
+
+pub struct ProxyTestClient {
+    pub plan: ProxyExecutionPlan,
+    pub resolver: ProxyResolverKind,
+}
+
+pub(crate) struct ProxyExecutionPlan {
+    attempts: Vec<ProxyRouteAttempt>,
+    timeout: Option<Duration>,
+}
+
+struct ProxyRouteAttempt {
+    client: Result<Client>,
+    route: ProxyRouteKind,
+}
+
+pub(crate) struct ProxyExecutionResult {
+    pub(crate) response: Response,
+    pub(crate) route: ProxyRouteKind,
+    pub(crate) fallback_attempts: usize,
+}
+
+#[derive(Debug)]
+pub(crate) struct ProxyExecutionFailure {
+    error: anyhow::Error,
+    pub(crate) route: ProxyRouteKind,
+    pub(crate) fallback_attempts: usize,
+}
+
+impl std::fmt::Display for ProxyExecutionFailure {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.error.fmt(formatter)
+    }
+}
+
+impl std::error::Error for ProxyExecutionFailure {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        self.error.source()
+    }
+}
+
+impl ProxyExecutionPlan {
+    pub(crate) async fn execute(
+        self,
+        request: Request,
+    ) -> std::result::Result<ProxyExecutionResult, ProxyExecutionFailure> {
+        let deadline = self
+            .timeout
+            .map(|timeout| std::time::Instant::now() + timeout);
+        let total = self.attempts.len();
+        let mut request = Some(request);
+
+        for (index, attempt) in self.attempts.into_iter().enumerate() {
+            let client = attempt.client.map_err(|error| ProxyExecutionFailure {
+                error,
+                route: attempt.route,
+                fallback_attempts: index,
+            })?;
+            let current = request
+                .take()
+                .expect("proxy execution always carries a request");
+            let retry = (index + 1 < total).then(|| current.try_clone()).flatten();
+
+            let result = if let Some(deadline) = deadline {
+                let remaining = deadline.saturating_duration_since(std::time::Instant::now());
+                if remaining.is_zero() {
+                    return Err(ProxyExecutionFailure {
+                        error: anyhow!("Proxy request timed out across fallback routes"),
+                        route: attempt.route,
+                        fallback_attempts: index,
+                    });
+                }
+                match tokio::time::timeout(remaining, client.execute(current)).await {
+                    Ok(result) => result,
+                    Err(_) => {
+                        return Err(ProxyExecutionFailure {
+                            error: anyhow!("Proxy request timed out across fallback routes"),
+                            route: attempt.route,
+                            fallback_attempts: index,
+                        });
+                    }
+                }
+            } else {
+                client.execute(current).await
+            };
+
+            match result {
+                Ok(response) => {
+                    return Ok(ProxyExecutionResult {
+                        response,
+                        route: attempt.route,
+                        fallback_attempts: index,
+                    });
+                }
+                Err(error) => {
+                    if is_retryable_connect_failure(&error) {
+                        if let Some(retry) = retry {
+                            log::warn!(
+                                "Proxy route {} of {} failed during connection setup; trying the next PAC route",
+                                index + 1,
+                                total
+                            );
+                            request = Some(retry);
+                            continue;
+                        }
+                        if index + 1 < total {
+                            log::warn!(
+                                "Proxy route failed during connection setup, but the request body cannot be cloned; fallback was not attempted"
+                            );
+                        }
+                    }
+                    return Err(ProxyExecutionFailure {
+                        error: error.without_url().into(),
+                        route: attempt.route,
+                        fallback_attempts: index,
+                    });
+                }
+            }
+        }
+
+        Err(ProxyExecutionFailure {
+            error: anyhow!("Proxy resolver returned no executable routes"),
+            route: ProxyRouteKind::Direct,
+            fallback_attempts: 0,
+        })
+    }
+}
+
+fn is_retryable_connect_failure(error: &reqwest::Error) -> bool {
+    if !error.is_connect() {
+        return false;
+    }
+    if error.is_timeout() {
+        return true;
+    }
+
+    let mut source = std::error::Error::source(error);
+    while let Some(current) = source {
+        if current.downcast_ref::<std::io::Error>().is_some() {
+            return true;
+        }
+        source = current.source();
+    }
+    false
 }
 
 #[derive(Clone)]
@@ -172,6 +361,9 @@ enum PasswordState {
         password: Option<String>,
         account: Option<String>,
     },
+    Deferred {
+        account: Option<String>,
+    },
     Unavailable {
         account: Option<String>,
         error: String,
@@ -182,28 +374,50 @@ impl PasswordState {
     fn password(&self) -> Result<Option<String>> {
         match self {
             Self::Available { password, .. } => Ok(password.clone()),
+            Self::Deferred { account } => account
+                .as_deref()
+                .map(load_password)
+                .transpose()
+                .map(Option::flatten),
             Self::Unavailable { error, .. } => {
                 Err(anyhow!("Proxy password keyring is unavailable: {}", error))
             }
         }
     }
 
+    async fn password_async(&self) -> Result<Option<String>> {
+        let Self::Deferred {
+            account: Some(account),
+        } = self
+        else {
+            return self.password();
+        };
+        let account = account.clone();
+        tokio::task::spawn_blocking(move || load_password(&account))
+            .await
+            .context("proxy keyring task failed")?
+    }
+
     fn account(&self) -> Option<&str> {
         match self {
-            Self::Available { account, .. } | Self::Unavailable { account, .. } => {
-                account.as_deref()
-            }
+            Self::Available { account, .. }
+            | Self::Deferred { account }
+            | Self::Unavailable { account, .. } => account.as_deref(),
         }
     }
 
     fn has_password(&self) -> bool {
-        matches!(
-            self,
-            Self::Available {
-                password: Some(_),
-                ..
-            }
-        )
+        match self {
+            Self::Available { password, .. } => password.is_some(),
+            Self::Deferred { account } => account.is_some(),
+            Self::Unavailable { .. } => false,
+        }
+    }
+
+    fn deferred(&self) -> Self {
+        Self::Deferred {
+            account: self.account().map(str::to_string),
+        }
     }
 }
 
@@ -216,16 +430,40 @@ impl ProxyManager {
         if let Some(warning) = load_warning.as_deref() {
             log::warn!("{}", warning);
         }
-        let password = load_password_state(credential_account(&settings));
+        let password = if settings.mode == ProxyMode::Pac {
+            PasswordState::Deferred {
+                account: credential_account(&settings),
+            }
+        } else {
+            load_password_state(credential_account(&settings))
+        };
 
         Ok(Self {
             config_path,
-            state: RwLock::new(ProxyRuntimeState {
+            state: Arc::new(RwLock::new(ProxyRuntimeState {
                 settings,
                 password,
                 load_warning,
-            }),
-            update_lock: tokio::sync::Mutex::new(()),
+            })),
+            update_lock: Arc::new(tokio::sync::Mutex::new(())),
+        })
+    }
+
+    #[cfg(test)]
+    pub(crate) fn for_test(config_path: PathBuf, input: ProxySettingsInput) -> Result<Self> {
+        let (settings, password) = normalize_input(input, None)?;
+        validate_authentication(&settings, password.as_deref())?;
+        Ok(Self {
+            config_path,
+            state: Arc::new(RwLock::new(ProxyRuntimeState {
+                settings,
+                password: PasswordState::Available {
+                    password,
+                    account: None,
+                },
+                load_warning: None,
+            })),
+            update_lock: Arc::new(tokio::sync::Mutex::new(())),
         })
     }
 
@@ -254,9 +492,14 @@ impl ProxyManager {
             }
             save_settings(&self.config_path, &next_settings)?;
 
+            let password = if next_settings.mode == ProxyMode::Pac {
+                current.password.deferred()
+            } else {
+                current.password
+            };
             let next = ProxyRuntimeState {
                 settings: next_settings.clone(),
-                password: current.password,
+                password,
                 load_warning: None,
             };
             let result = next
@@ -273,7 +516,7 @@ impl ProxyManager {
         let current_password = if input.clear_password || supplied_password {
             None
         } else {
-            current.password.password()?
+            current.password.password_async().await?
         };
         let (mut next_settings, next_password) =
             normalize_input(input, current_password.as_deref())?;
@@ -330,22 +573,14 @@ impl ProxyManager {
         Ok(result)
     }
 
-    pub fn api_client_for_origin(&self, origin: &str) -> Result<Client> {
-        self.client_for_target(origin, false, None)
-    }
-
-    pub fn oauth_client_for_origin(&self, origin: &str) -> Result<Client> {
-        self.client_for_target(origin, true, None)
-    }
-
-    pub fn test_client(&self, input: ProxySettingsInput, target: &str) -> Result<Client> {
+    pub fn test_client(&self, input: ProxySettingsInput, target: &str) -> Result<ProxyTestClient> {
         let needs_saved_password = input.mode == ProxyMode::Manual
             && !input.username.trim().is_empty()
             && !input.clear_password
-            && !input
+            && input
                 .password
                 .as_ref()
-                .is_some_and(|password| !password.is_empty());
+                .is_none_or(|password| password.is_empty());
         let current_password = if needs_saved_password {
             self.state
                 .read()
@@ -362,21 +597,25 @@ impl ProxyManager {
                 "Target matches proxy bypass rules; the manual proxy was not used"
             ));
         }
-        build_client(
+        let route_plan = resolve_route_plan(&settings, target)?;
+        let resolver = resolver_metadata(&settings, route_plan.as_ref())?;
+        let plan = build_execution_plan_with_route_plan(
             &settings,
             password.as_deref(),
             target,
             true,
             Some(Duration::from_secs(10)),
-        )
+            route_plan.as_ref(),
+        )?;
+        Ok(ProxyTestClient { plan, resolver })
     }
 
-    fn client_for_target(
+    pub(crate) fn execution_plan_for_target(
         &self,
         target: &str,
         disable_redirects: bool,
         timeout: Option<Duration>,
-    ) -> Result<Client> {
+    ) -> Result<ProxyExecutionPlan> {
         let state = self
             .state
             .read()
@@ -385,25 +624,81 @@ impl ProxyManager {
         let settings = state.settings;
         let bypasses_manual_proxy =
             settings.mode == ProxyMode::Manual && should_bypass_proxy(target, &settings.bypass);
-        let password = if settings.mode == ProxyMode::Manual
-            && !bypasses_manual_proxy
-            && !settings.username.is_empty()
-        {
-            state.password.password()?
-        } else {
-            None
-        };
+        let password = request_password(&settings, &state.password, target)?;
         if !bypasses_manual_proxy {
             validate_authentication(&settings, password.as_deref())?;
         }
-        build_client(
+        let route_plan = resolve_route_plan(&settings, target)?;
+        build_execution_plan_with_route_plan(
             &settings,
             password.as_deref(),
             target,
             disable_redirects,
             timeout,
+            route_plan.as_ref(),
         )
     }
+}
+
+fn build_execution_plan_with_route_plan(
+    settings: &StoredProxySettings,
+    password: Option<&str>,
+    target: &str,
+    disable_redirects: bool,
+    timeout: Option<Duration>,
+    route_plan: Option<&RoutePlan>,
+) -> Result<ProxyExecutionPlan> {
+    let attempts = if matches!(settings.mode, ProxyMode::System | ProxyMode::Pac) {
+        let resolved_plan;
+        let plan = match route_plan {
+            Some(plan) => plan,
+            None => {
+                resolved_plan = resolve_route_plan(settings, target)?
+                    .ok_or_else(|| anyhow!("Proxy route was not resolved"))?;
+                &resolved_plan
+            }
+        };
+        plan.routes()
+            .iter()
+            .cloned()
+            .map(|route| {
+                let route_kind = match route {
+                    ProxyDirective::Direct => ProxyRouteKind::Direct,
+                    ProxyDirective::Proxy { .. } | ProxyDirective::Unsupported { .. } => {
+                        ProxyRouteKind::Proxy
+                    }
+                };
+                let client = RoutePlan::new(plan.source(), vec![route]).and_then(|single_plan| {
+                    build_client_with_route_plan(
+                        settings,
+                        password,
+                        target,
+                        disable_redirects,
+                        timeout,
+                        Some(&single_plan),
+                    )
+                });
+                ProxyRouteAttempt {
+                    client,
+                    route: route_kind,
+                }
+            })
+            .collect()
+    } else {
+        let route = if settings.mode == ProxyMode::Manual
+            && !should_bypass_proxy(target, &settings.bypass)
+        {
+            ProxyRouteKind::Proxy
+        } else {
+            ProxyRouteKind::Direct
+        };
+        vec![ProxyRouteAttempt {
+            client: build_client(settings, password, target, disable_redirects, timeout),
+            route,
+        }]
+    };
+
+    Ok(ProxyExecutionPlan { attempts, timeout })
 }
 
 fn build_client(
@@ -413,21 +708,62 @@ fn build_client(
     disable_redirects: bool,
     timeout: Option<Duration>,
 ) -> Result<Client> {
-    // Compatibility hold: preserve the legacy TLS behavior in this change.
-    // TODO: migrate this to explicit, site-scoped trust configuration.
-    let mut builder = Client::builder().danger_accept_invalid_certs(true);
+    build_client_with_route_plan(settings, password, target, disable_redirects, timeout, None)
+}
 
-    if disable_redirects {
+fn build_client_with_route_plan(
+    settings: &StoredProxySettings,
+    password: Option<&str>,
+    target: &str,
+    disable_redirects: bool,
+    timeout: Option<Duration>,
+    route_plan: Option<&RoutePlan>,
+) -> Result<Client> {
+    let mut builder = Client::builder();
+    if !matches!(settings.mode, ProxyMode::System | ProxyMode::Pac) {
+        // Compatibility hold for existing modes. Native and custom PAC modes
+        // use strict platform trust and never inherit this legacy policy.
+        builder = builder.danger_accept_invalid_certs(true);
+    }
+
+    if disable_redirects || matches!(settings.mode, ProxyMode::System | ProxyMode::Pac) {
         builder = builder.redirect(redirect::Policy::none());
     }
+    if let Some(connect_timeout) = client_connect_timeout(settings.mode, timeout) {
+        builder = builder.connect_timeout(connect_timeout);
+    }
     if let Some(timeout) = timeout {
-        builder = builder
-            .timeout(timeout)
-            .connect_timeout(Duration::from_secs(5));
+        builder = builder.timeout(timeout);
     }
 
     builder = match settings.mode {
         ProxyMode::Direct => builder.no_proxy(),
+        ProxyMode::System | ProxyMode::Pac => {
+            let resolved_plan;
+            let plan = match route_plan {
+                Some(plan) => plan,
+                None => {
+                    resolved_plan = resolve_route_plan(settings, target)?
+                        .ok_or_else(|| anyhow!("Proxy route was not resolved"))?;
+                    &resolved_plan
+                }
+            };
+            let selected = plan.primary()?;
+            match selected.route {
+                ProxyDirective::Direct => builder.no_proxy(),
+                route @ ProxyDirective::Proxy { .. } => {
+                    let proxy_url = route.proxy_url()?.expect("proxy directive has a URL");
+                    let proxy = Proxy::all(proxy_url).context("invalid resolved proxy")?;
+                    builder.no_proxy().proxy(proxy)
+                }
+                ProxyDirective::Unsupported { reason } => {
+                    return Err(anyhow!(
+                        "Resolved proxy route is unsupported and was not downgraded: {}",
+                        reason
+                    ));
+                }
+            }
+        }
         ProxyMode::Manual => {
             if should_bypass_proxy(target, &settings.bypass) {
                 builder.no_proxy()
@@ -440,6 +776,56 @@ fn build_client(
     };
 
     builder.build().context("build HTTP client failed")
+}
+
+fn resolver_metadata(
+    settings: &StoredProxySettings,
+    route_plan: Option<&RoutePlan>,
+) -> Result<ProxyResolverKind> {
+    match settings.mode {
+        ProxyMode::Direct => Ok(ProxyResolverKind::Direct),
+        ProxyMode::Manual => Ok(ProxyResolverKind::Manual),
+        ProxyMode::System | ProxyMode::Pac => {
+            let plan = route_plan.ok_or_else(|| anyhow!("Proxy route was not resolved"))?;
+            let resolver = match settings.mode {
+                ProxyMode::Pac => ProxyResolverKind::Pac,
+                ProxyMode::System => match plan.source() {
+                    crate::service::system_proxy::RouteSource::System => ProxyResolverKind::System,
+                    crate::service::system_proxy::RouteSource::Pac => ProxyResolverKind::Pac,
+                },
+                _ => unreachable!("only resolved modes reach this branch"),
+            };
+            Ok(resolver)
+        }
+    }
+}
+
+fn client_connect_timeout(mode: ProxyMode, request_timeout: Option<Duration>) -> Option<Duration> {
+    (matches!(mode, ProxyMode::System | ProxyMode::Pac) || request_timeout.is_some())
+        .then_some(PROXY_CONNECT_TIMEOUT)
+}
+
+fn resolve_route_plan(settings: &StoredProxySettings, target: &str) -> Result<Option<RoutePlan>> {
+    match settings.mode {
+        ProxyMode::System => system_proxy::resolve(target).map(Some),
+        ProxyMode::Pac => system_proxy::resolve_pac(&settings.pac_url, target).map(Some),
+        ProxyMode::Direct | ProxyMode::Manual => Ok(None),
+    }
+}
+
+fn request_password(
+    settings: &StoredProxySettings,
+    password_state: &PasswordState,
+    target: &str,
+) -> Result<Option<String>> {
+    if settings.mode == ProxyMode::Manual
+        && !settings.username.is_empty()
+        && !should_bypass_proxy(target, &settings.bypass)
+    {
+        password_state.password()
+    } else {
+        Ok(None)
+    }
 }
 
 fn manual_proxy(settings: &StoredProxySettings, password: Option<&str>) -> Result<Proxy> {
@@ -496,6 +882,7 @@ fn normalize_input(
     input: ProxySettingsInput,
     current_password: Option<&str>,
 ) -> Result<(StoredProxySettings, Option<String>)> {
+    let pac_url = input.pac_url.trim().to_string();
     if input.mode == ProxyMode::Manual
         && input
             .password
@@ -504,9 +891,29 @@ fn normalize_input(
     {
         return Err(anyhow!("Proxy password is too long"));
     }
-    validate_bypass(&input.bypass, MAX_BYPASS_ENTRIES)?;
+    if pac_url.len() > system_proxy::MAX_PAC_URL_LEN {
+        return Err(anyhow!("PAC URL is too long"));
+    }
+    validate_bypass_limits(&input.bypass, MAX_BYPASS_ENTRIES)?;
+    if input.mode == ProxyMode::Manual {
+        validate_bypass(&input.bypass, MAX_BYPASS_ENTRIES)?;
+    }
+    let preferred_mode = match input.mode {
+        ProxyMode::Direct
+            if input.preferred_mode == ProxyPreferredMode::Pac
+                && !system_proxy::custom_pac_supported() =>
+        {
+            ProxyPreferredMode::System
+        }
+        ProxyMode::Direct => input.preferred_mode,
+        ProxyMode::System => ProxyPreferredMode::System,
+        ProxyMode::Pac => ProxyPreferredMode::Pac,
+        ProxyMode::Manual => ProxyPreferredMode::Manual,
+    };
     let settings = StoredProxySettings {
         mode: input.mode,
+        preferred_mode,
+        pac_url,
         proxy_type: input.proxy_type,
         host: input.host.trim().to_string(),
         port: input.port,
@@ -531,7 +938,6 @@ fn normalize_input(
 }
 
 fn validate_settings(settings: &StoredProxySettings) -> Result<()> {
-    validate_bypass(&settings.bypass, MAX_EFFECTIVE_BYPASS_ENTRIES)?;
     if let Some(credential_id) = settings.credential_id.as_deref() {
         validate_credential_id(credential_id)?;
     }
@@ -542,9 +948,17 @@ fn validate_settings(settings: &StoredProxySettings) -> Result<()> {
     if settings.username.len() > MAX_USERNAME_LEN {
         return Err(anyhow!("Proxy username is too long"));
     }
+    if settings.pac_url.len() > system_proxy::MAX_PAC_URL_LEN {
+        return Err(anyhow!("PAC URL is too long"));
+    }
+    if settings.mode == ProxyMode::Pac {
+        system_proxy::validate_pac_url(&settings.pac_url)?;
+        system_proxy::ensure_custom_pac_supported()?;
+    }
     if settings.mode != ProxyMode::Manual {
         return Ok(());
     }
+    validate_bypass(&settings.bypass, MAX_EFFECTIVE_BYPASS_ENTRIES)?;
 
     if host.is_empty() {
         return Err(anyhow!("Proxy host is required in manual mode"));
@@ -595,14 +1009,9 @@ fn manual_proxy_url_without_validation(settings: &StoredProxySettings) -> String
 }
 
 fn validate_bypass(entries: &[String], max_entries: usize) -> Result<()> {
-    if entries.len() > max_entries {
-        return Err(anyhow!("Too many proxy bypass entries"));
-    }
+    validate_bypass_limits(entries, max_entries)?;
     for entry in entries {
         let entry = entry.trim();
-        if entry.len() > MAX_BYPASS_ENTRY_LEN {
-            return Err(anyhow!("Proxy bypass entry is too long"));
-        }
         if entry.is_empty()
             || entry.contains(char::is_whitespace)
             || entry.contains(',')
@@ -642,6 +1051,19 @@ fn validate_bypass(entries: &[String], max_entries: usize) -> Result<()> {
         if host.is_empty() || host.starts_with('.') || !valid_host {
             return Err(anyhow!("Invalid host proxy bypass entry"));
         }
+    }
+    Ok(())
+}
+
+fn validate_bypass_limits(entries: &[String], max_entries: usize) -> Result<()> {
+    if entries.len() > max_entries {
+        return Err(anyhow!("Too many proxy bypass entries"));
+    }
+    if entries
+        .iter()
+        .any(|entry| entry.trim().len() > MAX_BYPASS_ENTRY_LEN)
+    {
+        return Err(anyhow!("Proxy bypass entry is too long"));
     }
     Ok(())
 }
@@ -812,8 +1234,10 @@ fn recover_loaded_settings(
     match result {
         Ok(settings) => (settings, None),
         Err(error) => {
-            let mut settings = StoredProxySettings::default();
-            settings.mode = ProxyMode::Direct;
+            let settings = StoredProxySettings {
+                mode: ProxyMode::Direct,
+                ..StoredProxySettings::default()
+            };
             (
                 settings,
                 Some(format!(
@@ -937,6 +1361,8 @@ mod tests {
     fn manual_input() -> ProxySettingsInput {
         ProxySettingsInput {
             mode: ProxyMode::Manual,
+            preferred_mode: ProxyPreferredMode::Manual,
+            pac_url: String::new(),
             proxy_type: ProxyType::Http,
             host: "proxy.example.com".to_string(),
             port: Some(8080),
@@ -951,11 +1377,13 @@ mod tests {
     fn defaults_to_direct_without_credentials() {
         let settings = ProxySettings::default();
         assert_eq!(settings.mode, ProxyMode::Direct);
+        assert!(settings.pac_url.is_empty());
         assert!(!settings.has_password);
         assert!(settings.bypass.contains(&"127.0.0.0/8".to_string()));
 
         let serialized = serde_json::to_string(&settings).unwrap();
         assert!(serialized.contains(r#""mode":"direct""#));
+        assert!(serialized.contains(r#""pacUrl":"""#));
         assert!(!serialized.contains("environment"));
 
         let legacy: ProxySettings = serde_json::from_str(r#"{"mode":"environment"}"#).unwrap();
@@ -1055,6 +1483,71 @@ mod tests {
     }
 
     #[test]
+    fn pac_mode_serializes_and_validates_an_independent_url() {
+        let (stored, password) = normalize_input(
+            ProxySettingsInput {
+                mode: ProxyMode::Pac,
+                preferred_mode: ProxyPreferredMode::Manual,
+                pac_url: " https://proxy.example.com/config.pac ".to_string(),
+                host: "unused manual host".to_string(),
+                username: "unused manual user".to_string(),
+                password: Some("unused manual password".to_string()),
+                ..ProxySettingsInput::default()
+            },
+            Some("existing"),
+        )
+        .unwrap();
+
+        assert_eq!(stored.mode, ProxyMode::Pac);
+        assert_eq!(stored.preferred_mode, ProxyPreferredMode::Pac);
+        assert_eq!(stored.pac_url, "https://proxy.example.com/config.pac");
+        assert_eq!(password.as_deref(), Some("existing"));
+
+        let serialized = serde_json::to_string(&stored.public(true, None)).unwrap();
+        assert!(serialized.contains(r#""mode":"pac""#));
+        assert!(serialized.contains(r#""preferredMode":"pac""#));
+        assert!(serialized.contains(r#""pacUrl":"https://proxy.example.com/config.pac""#));
+    }
+
+    #[test]
+    fn pac_url_validation_is_strict_only_when_pac_is_active() {
+        for invalid in [
+            "",
+            "file:///tmp/proxy.pac",
+            "http://alice:secret@proxy.example.com/config.pac",
+            "https://",
+        ] {
+            let input = ProxySettingsInput {
+                mode: ProxyMode::Pac,
+                pac_url: invalid.to_string(),
+                ..ProxySettingsInput::default()
+            };
+            assert!(normalize_input(input, None).is_err(), "accepted {invalid}");
+        }
+
+        let hidden_invalid = ProxySettingsInput {
+            mode: ProxyMode::Direct,
+            pac_url: "file:///tmp/proxy.pac".to_string(),
+            ..ProxySettingsInput::default()
+        };
+        assert!(normalize_input(hidden_invalid, None).is_ok());
+
+        let hidden_oversized = ProxySettingsInput {
+            mode: ProxyMode::Direct,
+            pac_url: "x".repeat(system_proxy::MAX_PAC_URL_LEN + 1),
+            ..ProxySettingsInput::default()
+        };
+        assert!(normalize_input(hidden_oversized, None).is_err());
+
+        let padded_at_limit = ProxySettingsInput {
+            mode: ProxyMode::Direct,
+            pac_url: format!("  {}  ", "x".repeat(system_proxy::MAX_PAC_URL_LEN)),
+            ..ProxySettingsInput::default()
+        };
+        assert!(normalize_input(padded_at_limit, None).is_ok());
+    }
+
+    #[test]
     fn bypass_validation_rejects_malformed_hosts_and_counts_only_user_entries() {
         for invalid in ["bad:port", "!!", "example..com", "..example.com"] {
             let input = ProxySettingsInput {
@@ -1075,6 +1568,13 @@ mod tests {
             settings.bypass.len(),
             MAX_BYPASS_ENTRIES + DEFAULT_BYPASS.len()
         );
+
+        let oversized_hidden_bypass = ProxySettingsInput {
+            mode: ProxyMode::System,
+            bypass: vec!["x".repeat(MAX_BYPASS_ENTRY_LEN + 1)],
+            ..ProxySettingsInput::default()
+        };
+        assert!(normalize_input(oversized_hidden_bypass, None).is_err());
     }
 
     #[test]
@@ -1104,17 +1604,120 @@ mod tests {
 
     #[test]
     fn non_manual_modes_ignore_credential_mutations() {
-        let (_, password) = normalize_input(
-            ProxySettingsInput {
-                mode: ProxyMode::Direct,
-                password: Some("replacement".to_string()),
-                clear_password: true,
+        for mode in [ProxyMode::Direct, ProxyMode::System, ProxyMode::Pac] {
+            let (_, password) = normalize_input(
+                ProxySettingsInput {
+                    mode,
+                    pac_url: (mode == ProxyMode::Pac)
+                        .then(|| "https://proxy.example.com/config.pac".to_string())
+                        .unwrap_or_default(),
+                    password: Some("replacement".to_string()),
+                    clear_password: true,
+                    ..ProxySettingsInput::default()
+                },
+                Some("existing"),
+            )
+            .unwrap();
+            assert_eq!(password.as_deref(), Some("existing"));
+        }
+    }
+
+    #[test]
+    fn direct_mode_preserves_the_preferred_proxy_source() {
+        for preferred_mode in [
+            ProxyPreferredMode::System,
+            ProxyPreferredMode::Pac,
+            ProxyPreferredMode::Manual,
+        ] {
+            let (settings, _) = normalize_input(
+                ProxySettingsInput {
+                    mode: ProxyMode::Direct,
+                    preferred_mode,
+                    ..ProxySettingsInput::default()
+                },
+                None,
+            )
+            .unwrap();
+            assert_eq!(settings.mode, ProxyMode::Direct);
+            assert_eq!(settings.preferred_mode, preferred_mode);
+        }
+    }
+
+    #[test]
+    fn pac_routes_report_pac_and_never_read_manual_credentials() {
+        let settings = StoredProxySettings {
+            mode: ProxyMode::Pac,
+            preferred_mode: ProxyPreferredMode::Pac,
+            pac_url: "https://proxy.example.com/config.pac".to_string(),
+            username: "alice".to_string(),
+            credential_id: Some("manual-proxy-v1-test".to_string()),
+            ..StoredProxySettings::default()
+        };
+        let unavailable_password = PasswordState::Unavailable {
+            account: settings.credential_id.clone(),
+            error: "keyring must not be accessed".to_string(),
+        };
+        assert_eq!(
+            request_password(
+                &settings,
+                &unavailable_password,
+                "https://target.example.com/api?tenant=one"
+            )
+            .unwrap(),
+            None
+        );
+
+        let plan =
+            RoutePlan::new(system_proxy::RouteSource::Pac, vec![ProxyDirective::Direct]).unwrap();
+        assert_eq!(
+            resolver_metadata(&settings, Some(&plan)).unwrap(),
+            ProxyResolverKind::Pac
+        );
+    }
+
+    #[tokio::test]
+    async fn switching_to_pac_does_not_read_an_unavailable_manual_credential() {
+        let directory = tempfile::tempdir().unwrap();
+        let current_settings = StoredProxySettings {
+            mode: ProxyMode::Manual,
+            preferred_mode: ProxyPreferredMode::Manual,
+            host: "proxy.example.com".to_string(),
+            port: Some(8080),
+            username: "alice".to_string(),
+            credential_id: Some("manual-proxy-v1-test".to_string()),
+            ..StoredProxySettings::default()
+        };
+        let manager = ProxyManager {
+            config_path: directory.path().join(PROXY_CONFIG_FILE),
+            state: Arc::new(RwLock::new(ProxyRuntimeState {
+                settings: current_settings,
+                password: PasswordState::Unavailable {
+                    account: Some("manual-proxy-v1-test".to_string()),
+                    error: "keyring must not be accessed".to_string(),
+                },
+                load_warning: None,
+            })),
+            update_lock: Arc::new(tokio::sync::Mutex::new(())),
+        };
+
+        let updated = manager
+            .update(ProxySettingsInput {
+                mode: ProxyMode::Pac,
+                preferred_mode: ProxyPreferredMode::Pac,
+                pac_url: "https://proxy.example.com/config.pac".to_string(),
                 ..ProxySettingsInput::default()
-            },
-            Some("existing"),
-        )
-        .unwrap();
-        assert_eq!(password.as_deref(), Some("existing"));
+            })
+            .await
+            .unwrap();
+        assert_eq!(updated.mode, ProxyMode::Pac);
+        assert!(matches!(
+            manager
+                .state
+                .read()
+                .expect("proxy state lock poisoned")
+                .password,
+            PasswordState::Deferred { .. }
+        ));
     }
 
     #[test]
@@ -1151,6 +1754,24 @@ mod tests {
         let (manual, _) = normalize_input(manual_input(), None).unwrap();
         assert!(build_client(&manual, None, "https://example.com", false, None).is_ok());
 
+        let pac = StoredProxySettings {
+            mode: ProxyMode::Pac,
+            preferred_mode: ProxyPreferredMode::Pac,
+            pac_url: "https://proxy.example.com/config.pac".to_string(),
+            ..StoredProxySettings::default()
+        };
+        let pac_plan =
+            RoutePlan::new(system_proxy::RouteSource::Pac, vec![ProxyDirective::Direct]).unwrap();
+        assert!(build_client_with_route_plan(
+            &pac,
+            None,
+            "https://example.com/path?query=value",
+            false,
+            None,
+            Some(&pac_plan)
+        )
+        .is_ok());
+
         let bypassed_invalid_manual = StoredProxySettings {
             mode: ProxyMode::Manual,
             host: String::new(),
@@ -1173,6 +1794,425 @@ mod tests {
             None
         )
         .is_err());
+    }
+
+    fn unused_loopback_address() -> std::net::SocketAddr {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        drop(listener);
+        address
+    }
+
+    fn spawn_http_server(
+        listener: TcpListener,
+        response: &'static [u8],
+    ) -> thread::JoinHandle<String> {
+        thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            stream
+                .set_read_timeout(Some(Duration::from_secs(5)))
+                .unwrap();
+            let mut request = Vec::new();
+            let mut chunk = [0_u8; 1024];
+            while !request.windows(4).any(|window| window == b"\r\n\r\n") {
+                let read = stream.read(&mut chunk).unwrap();
+                if read == 0 {
+                    break;
+                }
+                request.extend_from_slice(&chunk[..read]);
+            }
+            stream.write_all(response).unwrap();
+            String::from_utf8(request).unwrap()
+        })
+    }
+
+    fn pac_execution_settings() -> StoredProxySettings {
+        StoredProxySettings {
+            mode: ProxyMode::Pac,
+            preferred_mode: ProxyPreferredMode::Pac,
+            pac_url: "https://proxy.example.com/config.pac".to_string(),
+            ..StoredProxySettings::default()
+        }
+    }
+
+    #[test]
+    fn system_and_pac_always_limit_connection_setup_time() {
+        assert_eq!(
+            client_connect_timeout(ProxyMode::System, None),
+            Some(PROXY_CONNECT_TIMEOUT)
+        );
+        assert_eq!(
+            client_connect_timeout(ProxyMode::Pac, None),
+            Some(PROXY_CONNECT_TIMEOUT)
+        );
+        assert_eq!(client_connect_timeout(ProxyMode::Direct, None), None);
+        assert_eq!(client_connect_timeout(ProxyMode::Manual, None), None);
+        assert_eq!(
+            client_connect_timeout(ProxyMode::Direct, Some(Duration::from_secs(10))),
+            Some(PROXY_CONNECT_TIMEOUT)
+        );
+    }
+
+    #[tokio::test]
+    async fn pac_unusable_route_does_not_fall_back_to_direct() {
+        let target_listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        target_listener.set_nonblocking(true).unwrap();
+        let target = target_listener.local_addr().unwrap();
+        let target_url = format!("http://{target}/probe");
+        let route_plan = RoutePlan::new(
+            system_proxy::RouteSource::Pac,
+            vec![
+                ProxyDirective::Unsupported {
+                    reason: "unsupported test route".to_string(),
+                },
+                ProxyDirective::Direct,
+            ],
+        )
+        .unwrap();
+        assert_eq!(
+            resolver_metadata(&pac_execution_settings(), Some(&route_plan)).unwrap(),
+            ProxyResolverKind::Pac
+        );
+        let plan = build_execution_plan_with_route_plan(
+            &pac_execution_settings(),
+            None,
+            &target_url,
+            true,
+            Some(Duration::from_secs(5)),
+            Some(&route_plan),
+        )
+        .unwrap();
+        let request = Client::builder()
+            .no_proxy()
+            .build()
+            .unwrap()
+            .post(&target_url)
+            .body(reqwest::Body::wrap(reqwest::Body::from("single-use")))
+            .build()
+            .unwrap();
+        assert!(request.try_clone().is_none());
+
+        let error = match plan.execute(request).await {
+            Ok(_) => panic!("unusable PAC route unexpectedly fell back to direct"),
+            Err(error) => error,
+        };
+        assert_eq!(error.route, ProxyRouteKind::Proxy);
+        assert_eq!(error.fallback_attempts, 0);
+        assert_eq!(
+            target_listener.accept().unwrap_err().kind(),
+            std::io::ErrorKind::WouldBlock
+        );
+    }
+
+    #[tokio::test]
+    async fn pac_unusable_route_without_explicit_fallback_fails_closed() {
+        let target_listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        target_listener.set_nonblocking(true).unwrap();
+        let target_url = format!("http://{}/probe", target_listener.local_addr().unwrap());
+        let route_plan = RoutePlan::new(
+            system_proxy::RouteSource::Pac,
+            vec![ProxyDirective::Unsupported {
+                reason: "unsupported test route".to_string(),
+            }],
+        )
+        .unwrap();
+        let plan = build_execution_plan_with_route_plan(
+            &pac_execution_settings(),
+            None,
+            &target_url,
+            true,
+            Some(Duration::from_secs(5)),
+            Some(&route_plan),
+        )
+        .unwrap();
+        let request = Client::builder()
+            .no_proxy()
+            .build()
+            .unwrap()
+            .get(&target_url)
+            .build()
+            .unwrap();
+
+        let error = match plan.execute(request).await {
+            Ok(_) => panic!("unsupported-only PAC route unexpectedly connected"),
+            Err(error) => error,
+        };
+        assert_eq!(error.route, ProxyRouteKind::Proxy);
+        assert_eq!(error.fallback_attempts, 0);
+        assert_eq!(
+            target_listener.accept().unwrap_err().kind(),
+            std::io::ErrorKind::WouldBlock
+        );
+    }
+
+    #[tokio::test]
+    async fn pac_connection_failure_falls_back_to_the_next_proxy() {
+        let failed_proxy = unused_loopback_address();
+        let fallback_listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let fallback_proxy = fallback_listener.local_addr().unwrap();
+        let server = spawn_http_server(
+            fallback_listener,
+            b"HTTP/1.1 204 No Content\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+        );
+        let route_plan = RoutePlan::new(
+            system_proxy::RouteSource::Pac,
+            vec![
+                system_proxy::proxy_directive(
+                    system_proxy::ProxyScheme::Http,
+                    failed_proxy.ip().to_string(),
+                    failed_proxy.port(),
+                ),
+                system_proxy::proxy_directive(
+                    system_proxy::ProxyScheme::Http,
+                    fallback_proxy.ip().to_string(),
+                    fallback_proxy.port(),
+                ),
+                ProxyDirective::Direct,
+            ],
+        )
+        .unwrap();
+        let plan = build_execution_plan_with_route_plan(
+            &pac_execution_settings(),
+            None,
+            "http://upstream.invalid/api",
+            true,
+            Some(Duration::from_secs(5)),
+            Some(&route_plan),
+        )
+        .unwrap();
+        let request = Client::builder()
+            .no_proxy()
+            .build()
+            .unwrap()
+            .get("http://upstream.invalid/api")
+            .build()
+            .unwrap();
+
+        let execution = plan.execute(request).await.unwrap();
+        assert_eq!(execution.response.status(), reqwest::StatusCode::NO_CONTENT);
+        assert_eq!(execution.route, ProxyRouteKind::Proxy);
+        assert_eq!(execution.fallback_attempts, 1);
+        let request = server.join().unwrap();
+        assert!(request.starts_with("GET http://upstream.invalid/api HTTP/1.1\r\n"));
+    }
+
+    #[tokio::test]
+    async fn pac_connection_failure_can_fall_back_to_direct() {
+        let failed_proxy = unused_loopback_address();
+        let target_listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let target = target_listener.local_addr().unwrap();
+        let server = spawn_http_server(
+            target_listener,
+            b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\nok",
+        );
+        let target_url = format!("http://{target}/probe");
+        let route_plan = RoutePlan::new(
+            system_proxy::RouteSource::Pac,
+            vec![
+                system_proxy::proxy_directive(
+                    system_proxy::ProxyScheme::Http,
+                    failed_proxy.ip().to_string(),
+                    failed_proxy.port(),
+                ),
+                ProxyDirective::Direct,
+            ],
+        )
+        .unwrap();
+        let plan = build_execution_plan_with_route_plan(
+            &pac_execution_settings(),
+            None,
+            &target_url,
+            true,
+            Some(Duration::from_secs(5)),
+            Some(&route_plan),
+        )
+        .unwrap();
+        let request = Client::builder()
+            .no_proxy()
+            .build()
+            .unwrap()
+            .get(&target_url)
+            .build()
+            .unwrap();
+
+        let execution = plan.execute(request).await.unwrap();
+        assert_eq!(execution.response.status(), reqwest::StatusCode::OK);
+        assert_eq!(execution.route, ProxyRouteKind::Direct);
+        assert_eq!(execution.fallback_attempts, 1);
+        assert!(server
+            .join()
+            .unwrap()
+            .starts_with("GET /probe HTTP/1.1\r\n"));
+    }
+
+    #[tokio::test]
+    async fn pac_http_response_is_never_replayed_on_a_fallback_route() {
+        let first_listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let first_proxy = first_listener.local_addr().unwrap();
+        let first_server = spawn_http_server(
+            first_listener,
+            b"HTTP/1.1 502 Bad Gateway\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+        );
+        let fallback_listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        fallback_listener.set_nonblocking(true).unwrap();
+        let fallback_proxy = fallback_listener.local_addr().unwrap();
+        let route_plan = RoutePlan::new(
+            system_proxy::RouteSource::Pac,
+            vec![
+                system_proxy::proxy_directive(
+                    system_proxy::ProxyScheme::Http,
+                    first_proxy.ip().to_string(),
+                    first_proxy.port(),
+                ),
+                system_proxy::proxy_directive(
+                    system_proxy::ProxyScheme::Http,
+                    fallback_proxy.ip().to_string(),
+                    fallback_proxy.port(),
+                ),
+            ],
+        )
+        .unwrap();
+        let plan = build_execution_plan_with_route_plan(
+            &pac_execution_settings(),
+            None,
+            "http://upstream.invalid/api",
+            true,
+            Some(Duration::from_secs(5)),
+            Some(&route_plan),
+        )
+        .unwrap();
+        let request = Client::builder()
+            .no_proxy()
+            .build()
+            .unwrap()
+            .get("http://upstream.invalid/api")
+            .build()
+            .unwrap();
+
+        let execution = plan.execute(request).await.unwrap();
+        assert_eq!(
+            execution.response.status(),
+            reqwest::StatusCode::BAD_GATEWAY
+        );
+        assert_eq!(execution.fallback_attempts, 0);
+        first_server.join().unwrap();
+        assert_eq!(
+            fallback_listener.accept().unwrap_err().kind(),
+            std::io::ErrorKind::WouldBlock
+        );
+    }
+
+    #[tokio::test]
+    async fn pac_connect_http_response_is_never_replayed_on_a_fallback_route() {
+        let first_listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let first_proxy = first_listener.local_addr().unwrap();
+        let first_server = spawn_http_server(
+            first_listener,
+            b"HTTP/1.1 502 Bad Gateway\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+        );
+        let fallback_listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        fallback_listener.set_nonblocking(true).unwrap();
+        let fallback_proxy = fallback_listener.local_addr().unwrap();
+        let route_plan = RoutePlan::new(
+            system_proxy::RouteSource::Pac,
+            vec![
+                system_proxy::proxy_directive(
+                    system_proxy::ProxyScheme::Http,
+                    first_proxy.ip().to_string(),
+                    first_proxy.port(),
+                ),
+                system_proxy::proxy_directive(
+                    system_proxy::ProxyScheme::Http,
+                    fallback_proxy.ip().to_string(),
+                    fallback_proxy.port(),
+                ),
+            ],
+        )
+        .unwrap();
+        let plan = build_execution_plan_with_route_plan(
+            &pac_execution_settings(),
+            None,
+            "https://target.example.com/api",
+            true,
+            Some(Duration::from_secs(5)),
+            Some(&route_plan),
+        )
+        .unwrap();
+        let request = Client::builder()
+            .no_proxy()
+            .build()
+            .unwrap()
+            .get("https://target.example.com/api")
+            .build()
+            .unwrap();
+
+        let error = match plan.execute(request).await {
+            Ok(_) => panic!("CONNECT HTTP response unexpectedly succeeded"),
+            Err(error) => error,
+        };
+        assert_eq!(error.route, ProxyRouteKind::Proxy);
+        assert_eq!(error.fallback_attempts, 0);
+        assert!(first_server
+            .join()
+            .unwrap()
+            .starts_with("CONNECT target.example.com:443 HTTP/1.1\r\n"));
+        assert_eq!(
+            fallback_listener.accept().unwrap_err().kind(),
+            std::io::ErrorKind::WouldBlock
+        );
+    }
+
+    #[tokio::test]
+    async fn pac_does_not_replay_a_non_cloneable_request_body() {
+        let failed_proxy = unused_loopback_address();
+        let fallback_listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        fallback_listener.set_nonblocking(true).unwrap();
+        let fallback_proxy = fallback_listener.local_addr().unwrap();
+        let route_plan = RoutePlan::new(
+            system_proxy::RouteSource::Pac,
+            vec![
+                system_proxy::proxy_directive(
+                    system_proxy::ProxyScheme::Http,
+                    failed_proxy.ip().to_string(),
+                    failed_proxy.port(),
+                ),
+                system_proxy::proxy_directive(
+                    system_proxy::ProxyScheme::Http,
+                    fallback_proxy.ip().to_string(),
+                    fallback_proxy.port(),
+                ),
+            ],
+        )
+        .unwrap();
+        let plan = build_execution_plan_with_route_plan(
+            &pac_execution_settings(),
+            None,
+            "http://upstream.invalid/token",
+            true,
+            Some(Duration::from_secs(5)),
+            Some(&route_plan),
+        )
+        .unwrap();
+        let streaming_body = reqwest::Body::wrap(reqwest::Body::from("single-use"));
+        let request = Client::builder()
+            .no_proxy()
+            .build()
+            .unwrap()
+            .post("http://upstream.invalid/token")
+            .body(streaming_body)
+            .build()
+            .unwrap();
+        assert!(request.try_clone().is_none());
+
+        let error = match plan.execute(request).await {
+            Ok(_) => panic!("non-cloneable request unexpectedly used a fallback route"),
+            Err(error) => error,
+        };
+        assert_eq!(error.fallback_attempts, 0);
+        assert_eq!(
+            fallback_listener.accept().unwrap_err().kind(),
+            std::io::ErrorKind::WouldBlock
+        );
     }
 
     #[tokio::test]

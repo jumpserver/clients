@@ -27,8 +27,8 @@ impl ApiResponse {
 
 /// 将响应信息转换成前端统一使用的 API 结构格式
 pub async fn into_api_response(
-    url: &str,
-    result: Result<reqwest::Response, reqwest::Error>,
+    _url: &str,
+    result: anyhow::Result<reqwest::Response>,
 ) -> ApiResponse {
     match result {
         Ok(resp) => {
@@ -38,7 +38,7 @@ pub async fn into_api_response(
             ApiResponse::ok(status, data)
         }
         Err(err) => {
-            log::warn!("请求 {} 失败: {}", url, err);
+            log::warn!("请求失败: {}", err);
             ApiResponse::failed(format!("请求失败: {}", err))
         }
     }

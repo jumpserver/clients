@@ -71,7 +71,7 @@ fn raise_main_window_for_auth(handle: &tauri::AppHandle) {
 }
 
 fn process_deep_link(handle: &tauri::AppHandle, raw: &str) -> bool {
-    info!("deep link received: {}", raw);
+    info!("deep link received");
 
     if is_auth_callback(raw) {
         info!("deep link is auth callback, handling in current instance");
@@ -98,7 +98,10 @@ pub fn run() {
         .manage(AuthFlowState::default())
         .manage(ApiSessionStore::default())
         .plugin(single_instance(|app, argv, _cwd| {
-            info!("single_instance event, argv={:?}", argv);
+            info!(
+                "single_instance event received with {} argument(s)",
+                argv.len()
+            );
 
             for arg in argv {
                 if arg.starts_with("jms://") {
@@ -108,7 +111,7 @@ pub fn run() {
                         did_pull_up
                     );
                 } else {
-                    warn!("single_instance ignored non-deeplink arg: {}", arg);
+                    warn!("single_instance ignored non-deeplink argument");
                 }
             }
         }))

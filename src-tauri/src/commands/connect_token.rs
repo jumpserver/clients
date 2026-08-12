@@ -64,7 +64,11 @@ pub async fn get_connect_token(
     let url_data = token_service
         .get_local_client_url(&token_id, rdp_params.as_ref())
         .await;
-    log::info!("get_connect_token success: {:?}", url_data);
+    log::info!(
+        "get_connect_token client URL response: status={}, success={}",
+        url_data.status,
+        url_data.success
+    );
 
     let client_url = match parse_client_url(&url_data.data) {
         Ok(client_url) => client_url,

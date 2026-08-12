@@ -1,4 +1,4 @@
-use crate::api::client::oauth_client_for_origin;
+use crate::api::client::OAuthProxyClient;
 use crate::api::endpoint;
 use crate::service::proxy::ProxyManager;
 use crate::service::token::TokenService;
@@ -9,7 +9,6 @@ use oauth2::{
     EndpointSet, ErrorResponse, PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, RefreshToken,
     RequestTokenError, RevocationUrl, Scope, StandardRevocableToken, TokenResponse, TokenUrl,
 };
-use reqwest::Client;
 use serde::Deserialize;
 use std::sync::Mutex;
 use tokio::sync::oneshot;
@@ -179,10 +178,10 @@ impl AuthFlowState {
 }
 
 /// 从 JumpServer 获取 OAuth 服务端配置。
-pub async fn fetch_oauth_config(site: &str, client: &Client) -> Result<OAuthConfig> {
+pub async fn fetch_oauth_config(site: &str, client: &OAuthProxyClient) -> Result<OAuthConfig> {
     let config_url = format!("{}{}", site, endpoint::oauth::WELL_KNOWN);
 
-    let response = client.get(config_url).send().await?;
+    let response = client.get(config_url).await?;
     let status = response.status();
     let text = response.text().await?;
 
@@ -248,12 +247,8 @@ where
         RequestTokenError::Request(req_err) => {
             format!("Token exchange request failed: {}", req_err)
         }
-        RequestTokenError::Parse(parse_err, body) => {
-            let body_text = String::from_utf8_lossy(body);
-            format!(
-                "Failed to parse server response: {}; raw body: {}",
-                parse_err, body_text
-            )
+        RequestTokenError::Parse(parse_err, _) => {
+            format!("Failed to parse OAuth server response: {}", parse_err)
         }
         RequestTokenError::Other(msg) => format!("Token exchange error: {}", msg),
     }
@@ -270,7 +265,7 @@ where
 /// 使用 OAuth callback 中的 code + PKCE verifier 换取 token。
 pub async fn exchange_authorization_code(
     client: &JumpServerOAuthClient,
-    http_client: &Client,
+    http_client: &OAuthProxyClient,
     callback: CallbackParams,
 ) -> Result<OAuthTokenSet> {
     // 校验 state，防止 CSRF。
@@ -308,10 +303,10 @@ pub async fn revoke_and_clear_tokens(site: &str, proxy_manager: &ProxyManager) -
     if let Some(entry) = token_service.load().await? {
         if let Some(refresh_token) = entry.refresh_token {
             let client_id = entry.client_id.unwrap_or_default();
-            let http_client = oauth_client_for_origin(proxy_manager, site)?;
+            let http_client = OAuthProxyClient::new(proxy_manager)?;
 
             if let Err(error) =
-                revoke_refresh_token(&site, &client_id, &refresh_token, &http_client).await
+                revoke_refresh_token(site, &client_id, &refresh_token, &http_client).await
             {
                 log::error!("revocation request failed: {}", error);
             }
@@ -347,7 +342,7 @@ pub async fn ensure_fresh_token(
             .as_ref()
             .ok_or_else(|| anyhow::anyhow!("refresh_token missing for site {}", site))?;
 
-        let http_client = oauth_client_for_origin(proxy_manager, site)?;
+        let http_client = OAuthProxyClient::new(proxy_manager)?;
         let tokens = refresh_access_token(site, &client_id, refresh_token, &http_client).await?;
 
         tokens.persist(site, &client_id).await?;
@@ -388,7 +383,7 @@ async fn refresh_access_token(
     site: &str,
     client_id: &str,
     refresh_token: &str,
-    http_client: &Client,
+    http_client: &OAuthProxyClient,
 ) -> Result<OAuthTokenSet> {
     let client = BasicClient::new(ClientId::new(client_id.to_string())).set_token_uri(
         TokenUrl::new(format!("{}{}", site, endpoint::oauth::TOKEN))?,
@@ -418,7 +413,7 @@ async fn revoke_refresh_token(
     site: &str,
     client_id: &str,
     refresh_token: &str,
-    http_client: &Client,
+    http_client: &OAuthProxyClient,
 ) -> Result<()> {
     let client = BasicClient::new(ClientId::new(client_id.to_string())).set_revocation_url(
         RevocationUrl::new(format!("{}{}", site, endpoint::oauth::REVOKE))?,

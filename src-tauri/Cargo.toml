@@ -102,15 +102,20 @@ tauri-plugin-window-state = "2.4.0"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 libc = "0.2"
+core-foundation = "0.10"
+core-foundation-sys = "0.8"
 shiguredo_video_toolbox = { git = "https://github.com/shiguredo/video-toolbox-rs", branch = "develop" }
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.58", features = [
+  "Win32_Foundation",
   "Win32_Media_MediaFoundation",
+  "Win32_Networking_WinHttp",
   "Win32_System_Com",
 ] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
+gio = "0.18"
 openh264 = "0.7"
 
 [profile.release]

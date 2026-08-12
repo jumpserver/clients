@@ -1,7 +1,7 @@
 use serde_json::Value;
 use tauri::{AppHandle, Emitter, State};
 
-use crate::api::client::{api_client_for_origin, oauth_client_for_origin};
+use crate::api::client::OAuthProxyClient;
 use crate::service::oauth::{
     build_oauth_client, create_authorization_request, exchange_authorization_code,
     fetch_oauth_config, AuthFlowState,
@@ -17,9 +17,8 @@ pub async fn auth_login(
     site: String,
 ) -> Result<(), String> {
     // 获取 OAuth 配置
-    let config_http_client =
-        api_client_for_origin(&proxy_manager, &site).map_err(|e| e.to_string())?;
-    let oauth_config = match fetch_oauth_config(&site, &config_http_client).await {
+    let proxy_http_client = OAuthProxyClient::new(&proxy_manager).map_err(|e| e.to_string())?;
+    let oauth_config = match fetch_oauth_config(&site, &proxy_http_client).await {
         Ok(config) => config,
         Err(e) => {
             let msg = format!("Failed to fetch OAuth config: {}", e);
@@ -62,8 +61,7 @@ pub async fn auth_login(
         };
 
         // The user may update proxy settings while the system browser is open.
-        let http_client = oauth_client_for_origin(&proxy_manager, &site)?;
-        let tokens = exchange_authorization_code(&client, &http_client, callback).await?;
+        let tokens = exchange_authorization_code(&client, &proxy_http_client, callback).await?;
 
         // 保存 OAuth token，供后续请求自动刷新使用。
         if let Err(e) = tokens.persist(&site, &client_id).await {

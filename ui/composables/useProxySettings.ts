@@ -1,4 +1,11 @@
-import type { ProxyMode, ProxySettings, ProxySettingsInput, ProxyTestResult, ProxyType } from "~/types/proxy-settings";
+import type {
+  ProxyMode,
+  ProxySettings,
+  ProxySettingsInput,
+  ProxySource,
+  ProxyTestResult,
+  ProxyType
+} from "~/types/proxy-settings";
 
 export type ProxyOperationStatus = {
   kind: "success" | "error"
@@ -7,6 +14,7 @@ export type ProxyOperationStatus = {
 } | null;
 
 interface ProxyFieldErrors {
+  pacUrl: string
   host: string
   port: string
   username: string
@@ -20,6 +28,8 @@ const DEFAULT_BYPASS = ["localhost", "127.0.0.0/8", "::1"];
 function createDefaultSettings(): ProxySettings {
   return {
     mode: "direct",
+    preferredMode: "system",
+    pacUrl: "",
     proxyType: "http",
     host: "",
     port: null,
@@ -32,6 +42,7 @@ function createDefaultSettings(): ProxySettings {
 
 function createEmptyErrors(): ProxyFieldErrors {
   return {
+    pacUrl: "",
     host: "",
     port: "",
     username: "",
@@ -42,16 +53,26 @@ function createEmptyErrors(): ProxyFieldErrors {
 }
 
 function normalizeSettings(value: ProxySettings): ProxySettings {
-  const mode: ProxyMode = value?.mode === "manual" ? "manual" : "direct";
+  const mode: ProxyMode = ["direct", "system", "pac", "manual"].includes(value?.mode) ? value.mode : "direct";
   const proxyType: ProxyType = value?.proxyType === "socks5" ? "socks5" : "http";
   const rawPort = value?.port;
   const port = Number.isInteger(rawPort) && Number(rawPort) >= 1 && Number(rawPort) <= 65535 ? Number(rawPort) : null;
+  const hasLegacyManualConfig = typeof value?.host === "string" && Boolean(value.host.trim()) && port != null;
+  const preferredMode: ProxySource = ["system", "pac", "manual"].includes(value?.preferredMode)
+    ? value.preferredMode
+    : mode === "pac"
+      ? "pac"
+      : mode === "manual" || hasLegacyManualConfig
+        ? "manual"
+        : "system";
   const bypass = Array.isArray(value?.bypass)
     ? value.bypass.map((entry) => String(entry).trim()).filter(Boolean)
     : [...DEFAULT_BYPASS];
 
   return {
     mode,
+    preferredMode,
+    pacUrl: typeof value?.pacUrl === "string" ? value.pacUrl : "",
     proxyType,
     host: typeof value?.host === "string" ? value.host : "",
     port,
@@ -100,6 +121,24 @@ export function validateJumpServerOrigin(value: string): boolean {
   }
 }
 
+export function validatePacUrl(value: string): boolean {
+  const trimmed = value.trim();
+  try {
+    const url = new URL(trimmed);
+    const authority = trimmed.match(/^[^:]+:\/\/([^/?#]*)/)?.[1];
+    return (
+      ["http:", "https:"].includes(url.protocol)
+      && Boolean(url.hostname)
+      && Boolean(authority)
+      && !authority?.includes("@")
+      && !url.username
+      && !url.password
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function useProxySettings() {
   const settings = reactive<ProxySettings>(createDefaultSettings());
   const password = shallowRef("");
@@ -132,6 +171,8 @@ export function useProxySettings() {
     const canChangePassword = settings.mode === "manual";
     const input: ProxySettingsInput = {
       mode: settings.mode,
+      preferredMode: settings.preferredMode,
+      pacUrl: settings.pacUrl.trim(),
       proxyType: settings.proxyType,
       host: settings.host.trim(),
       port: rawPort ? Number(rawPort) : null,

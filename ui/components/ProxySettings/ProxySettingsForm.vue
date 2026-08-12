@@ -1,9 +1,15 @@
 <script setup lang="ts">
-import type { ProxyType } from "~/types/proxy-settings";
+import type { ProxyResolver, ProxySource, ProxyType } from "~/types/proxy-settings";
 
-import { parseBypassEntries, useProxySettings, validateJumpServerOrigin } from "~/composables/useProxySettings";
+import {
+  parseBypassEntries,
+  useProxySettings,
+  validateJumpServerOrigin,
+  validatePacUrl
+} from "~/composables/useProxySettings";
 
 const { t } = useI18n();
+const { isLinux, isLoading: isPlatformLoading } = usePlatform();
 const { recentSites, hydrationPromise } = useSettingManager();
 const {
   settings,
@@ -28,17 +34,50 @@ const proxyTypeItems = computed(() => [
   { label: "HTTP", value: "http" as ProxyType },
   { label: "SOCKS5", value: "socks5" as ProxyType }
 ]);
+const proxySourceItems = computed(() => [
+  { label: t("Proxy.SystemProxy"), value: "system" as ProxySource },
+  {
+    label: t(isLinux.value ? "Proxy.PacProxyUnavailableLinux" : "Proxy.PacProxy"),
+    value: "pac" as ProxySource,
+    disabled: isLinux.value
+  },
+  { label: t("Proxy.ManualProxy"), value: "manual" as ProxySource }
+]);
 
 const proxyEnabled = computed({
-  get: () => settings.mode === "manual",
+  get: () => settings.mode !== "direct",
   set: (enabled: boolean) => {
-    settings.mode = enabled ? "manual" : "direct";
+    if (enabled) {
+      settings.mode = settings.preferredMode;
+      return;
+    }
+    if (settings.mode !== "direct") settings.preferredMode = settings.mode;
+    settings.mode = "direct";
+  }
+});
+const proxySource = computed({
+  get: (): ProxySource => (settings.mode === "direct" ? settings.preferredMode : settings.mode),
+  set: (source: ProxySource) => {
+    settings.preferredMode = source;
+    if (settings.mode !== "direct") settings.mode = source;
   }
 });
 const proxyEnableDescription = computed(() =>
   proxyEnabled.value ? t("Proxy.EnabledDescription") : t("Proxy.DisabledDescription")
 );
-const isBusy = computed(() => isLoading.value || isSaving.value || isTesting.value);
+const proxySourceDescription = computed(() => {
+  if (proxySource.value === "system") return t("Proxy.SystemProxyDescription");
+  if (proxySource.value === "pac" && isLinux.value) return t("Proxy.PacProxyUnsupportedLinuxDescription");
+  if (proxySource.value === "pac") return t("Proxy.PacProxyDescription");
+  return t("Proxy.ManualProxyDescription");
+});
+const testDescription = computed(() => {
+  if (settings.mode === "system") return t("Proxy.TestDescriptionSystem");
+  if (settings.mode === "pac") return t("Proxy.TestDescriptionPac");
+  if (settings.mode === "manual") return t("Proxy.TestDescriptionManual");
+  return t("Proxy.TestDescriptionDirect");
+});
+const isBusy = computed(() => isPlatformLoading.value || isLoading.value || isSaving.value || isTesting.value);
 const passwordHelp = computed(() => {
   if (clearPassword.value) return t("Proxy.PasswordWillClear");
   if (settings.hasPassword && !password.value) return t("Proxy.PasswordKeepHint");
@@ -49,6 +88,30 @@ const testDetailMessage = computed(() => {
   const result = testResult.value;
   if (!result?.message || result.message === `HTTP ${result.status}`) return "";
   return result.message;
+});
+const resolverLabels: Record<ProxyResolver, string> = {
+  direct: "Proxy.ResolverDirect",
+  system: "Proxy.ResolverSystem",
+  pac: "Proxy.ResolverPac",
+  manual: "Proxy.ResolverManual",
+  bypass: "Proxy.ResolverBypass"
+};
+const testResultDetails = computed(() => {
+  const result = testResult.value;
+  if (!result) return [];
+
+  const details: string[] = [];
+  if (result.resolver && !(result.resolver === "direct" && result.route === "direct")) {
+    details.push(t(resolverLabels[result.resolver]));
+  }
+  if (result.route) details.push(t(result.route === "proxy" ? "Proxy.RouteProxy" : "Proxy.RouteDirect"));
+  if (result.fallbackAttempts) {
+    details.push(t("Proxy.FallbackRoutesUsed", { count: result.fallbackAttempts }));
+  }
+  if (result.status) details.push(`HTTP ${result.status}`);
+  details.push(`${result.elapsedMs} ms`);
+  if (testDetailMessage.value) details.push(testDetailMessage.value);
+  return details;
 });
 
 function validateBypass() {
@@ -64,8 +127,8 @@ function validateBypass() {
 }
 
 function validateManualSettings() {
-  validateBypass();
   if (settings.mode !== "manual") return;
+  validateBypass();
 
   const host = settings.host.trim();
   if (!host) errors.host = t("Proxy.Errors.HostRequired");
@@ -84,6 +147,15 @@ function validateManualSettings() {
   if (!errors.username && !hasUsername && hasEffectivePassword) errors.username = t("Proxy.Errors.UsernameRequired");
 }
 
+function validatePacSettings() {
+  if (settings.mode !== "pac") return;
+
+  const pacUrl = settings.pacUrl.trim();
+  if (!pacUrl) errors.pacUrl = t("Proxy.Errors.PacUrlRequired");
+  else if (pacUrl.length > 2048) errors.pacUrl = t("Proxy.Errors.PacUrlTooLong");
+  else if (!validatePacUrl(pacUrl)) errors.pacUrl = t("Proxy.Errors.InvalidPacUrl");
+}
+
 function validateTarget() {
   const value = targetUrl.value.trim();
   if (!value) errors.targetUrl = t("Proxy.Errors.TargetRequired");
@@ -93,19 +165,21 @@ function validateTarget() {
 
 function validateForSave() {
   clearErrors();
+  validatePacSettings();
   validateManualSettings();
-  return !errors.host && !errors.port && !errors.username && !errors.password && !errors.bypass;
+  return validateForSaveFields();
 }
 
 function validateForTest() {
   clearErrors();
+  validatePacSettings();
   validateManualSettings();
   validateTarget();
   return validateForSaveFields() && !errors.targetUrl;
 }
 
 function validateForSaveFields() {
-  return !errors.host && !errors.port && !errors.username && !errors.password && !errors.bypass;
+  return !errors.pacUrl && !errors.host && !errors.port && !errors.username && !errors.password && !errors.bypass;
 }
 
 async function handleSave() {
@@ -129,6 +203,7 @@ async function handleTest() {
 watch(
   [
     () => settings.mode,
+    () => settings.pacUrl,
     () => settings.proxyType,
     () => settings.host,
     () => settings.port,
@@ -255,6 +330,63 @@ onMounted(async () => {
           </template>
         </USwitch>
       </section>
+
+      <section v-if="proxyEnabled" class="space-y-2">
+        <URadioGroup
+          v-model="proxySource"
+          :items="proxySourceItems"
+          value-key="value"
+          :legend="t('Proxy.ProxySource')"
+          variant="table"
+          indicator="hidden"
+          orientation="horizontal"
+          :disabled="isBusy"
+          aria-describedby="proxy-source-description"
+          class="max-w-md"
+          :ui="{
+            legend: 'mb-1.5 text-xs',
+            fieldset: 'w-full',
+            item: 'flex-1 justify-center px-3 py-2 has-data-[state=checked]:bg-primary/10',
+            label: 'text-center'
+          }"
+        />
+        <p id="proxy-source-description" class="text-xs leading-5 text-muted">
+          {{ proxySourceDescription }}
+        </p>
+      </section>
+
+      <template v-if="settings.mode === 'pac'">
+        <USeparator />
+
+        <section class="space-y-3" aria-labelledby="pac-proxy-heading">
+          <h2 id="pac-proxy-heading" class="text-sm font-medium text-highlighted">
+            {{ t("Proxy.PacSettings") }}
+          </h2>
+
+          <UFormField
+            name="pacUrl"
+            :label="t('Proxy.PacUrl')"
+            :description="t('Proxy.PacUrlDescription')"
+            :error="errors.pacUrl || false"
+            required
+          >
+            <UInput
+              id="proxy-pac-url"
+              v-model="settings.pacUrl"
+              type="url"
+              inputmode="url"
+              autocomplete="url"
+              spellcheck="false"
+              maxlength="2048"
+              required
+              :placeholder="t('Proxy.PacUrlPlaceholder')"
+              :disabled="isBusy"
+              :aria-invalid="Boolean(errors.pacUrl)"
+              @input="errors.pacUrl = ''"
+            />
+          </UFormField>
+        </section>
+      </template>
 
       <template v-if="settings.mode === 'manual'">
         <USeparator />
@@ -399,7 +531,7 @@ onMounted(async () => {
             {{ t("Proxy.TestTitle") }}
           </h2>
           <p class="text-xs leading-5 text-muted">
-            {{ t("Proxy.TestDescription") }}
+            {{ testDescription }}
           </p>
         </div>
 
@@ -458,9 +590,7 @@ onMounted(async () => {
               <span class="font-medium">
                 {{ testResult.success ? t("Proxy.TestSucceeded") : t("Proxy.TestFailed") }}
               </span>
-              <span v-if="testResult.status">HTTP {{ testResult.status }}</span>
-              <span>{{ testResult.elapsedMs }} ms</span>
-              <span v-if="testDetailMessage">{{ testDetailMessage }}</span>
+              <span v-for="(detail, index) in testResultDetails" :key="`${index}-${detail}`">· {{ detail }}</span>
             </p>
           </div>
         </div>

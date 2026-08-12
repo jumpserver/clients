@@ -1,6 +1,6 @@
 use crate::{
     api::{
-        client::api_client_for_origin,
+        client::{execute_api_request, request_builder_client},
         context::{apply_org_header, ApiContext},
         response::into_api_response,
     },
@@ -18,6 +18,7 @@ use crate::service::proxy::ProxyManager;
 
 pub struct ApiRequestClient {
     client: Client,
+    proxy_manager: ProxyManager,
     origin: String,
     bearer_token: String,
     org_id: String,
@@ -32,7 +33,8 @@ impl ApiRequestClient {
         proxy_manager: &ProxyManager,
     ) -> Result<Self> {
         Ok(Self {
-            client: api_client_for_origin(proxy_manager, &origin)?,
+            client: request_builder_client()?,
+            proxy_manager: proxy_manager.clone(),
             origin,
             bearer_token,
             org_id,
@@ -56,7 +58,7 @@ impl ApiRequestClient {
 
     /// 发送 GET 请求并转换为统一 ApiResponse
     pub async fn get_with_response(&self, url: &str) -> ApiResponse {
-        info!("GET {}", url);
+        log_request("GET", url);
 
         self.send_with_response(Method::GET, url, |request| request)
             .await
@@ -67,7 +69,7 @@ impl ApiRequestClient {
     where
         T: Serialize + ?Sized,
     {
-        info!("GET WITH QUERY {}", url);
+        log_request("GET WITH QUERY", url);
         self.send_with_response(Method::GET, url, |request| request.query(query))
             .await
     }
@@ -77,8 +79,7 @@ impl ApiRequestClient {
     where
         T: Serialize + ?Sized,
     {
-        info!("POST WITH BODY {}", url);
-        log_json_body(body);
+        log_request("POST WITH BODY", url);
 
         self.send_with_response(Method::POST, url, |request| request.json(body))
             .await
@@ -86,18 +87,18 @@ impl ApiRequestClient {
 
     /// 发送 DELETE 请求并转换为统一 ApiResponse
     pub async fn delete_with_response(&self, url: &str) -> ApiResponse {
-        info!("DELETE {}", url);
+        log_request("DELETE", url);
         self.send_with_response(Method::DELETE, url, |request| request)
             .await
     }
 
     /// 构建并执行底层 reqwest 请求
-    async fn send<F>(&self, method: Method, url: &str, apply: F) -> Result<Response, reqwest::Error>
+    async fn send<F>(&self, method: Method, url: &str, apply: F) -> anyhow::Result<Response>
     where
         F: FnOnce(RequestBuilder) -> RequestBuilder,
     {
-        let request = apply(self.base_request(method, url)).build()?;
-        self.client.execute(request).await // execute 表示把已经构建好的请求发出去
+        let request = apply(self.base_request(&self.client, method, url)).build()?;
+        execute_api_request(&self.proxy_manager, request).await
     }
 
     /// 把客户端内部保存的 Token 和组织信息转换为请求上下文
@@ -109,10 +110,9 @@ impl ApiRequestClient {
     }
 
     /// 创建带有公共 header 的基础请求
-    fn base_request(&self, method: Method, url: &str) -> RequestBuilder {
+    fn base_request(&self, client: &Client, method: Method, url: &str) -> RequestBuilder {
         let context = self.context();
-        let mut request = self
-            .client
+        let mut request = client
             .request(method, url)
             .header("X-TZ", tz_offset_string());
 
@@ -158,12 +158,97 @@ fn referer_from(url: &str) -> Option<String> {
     })
 }
 
-/// 输出请求体内容
-fn log_json_body<T>(body: &T)
-where
-    T: Serialize + ?Sized,
-{
-    if let Ok(body) = serde_json::to_string(body) {
-        info!("request body: {}", body);
+fn log_request(operation: &str, url: &str) {
+    match referer_from(url) {
+        Some(origin) => info!("{} {}", operation, origin),
+        None => info!("{} request", operation),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::service::proxy::{ProxyPreferredMode, ProxySettingsInput, ProxyType};
+    use std::io::{Read, Write};
+    use std::net::TcpListener;
+    use std::time::Duration;
+
+    #[test]
+    fn request_url_contains_query_before_per_request_proxy_resolution() {
+        let client = Client::builder().no_proxy().build().unwrap();
+        let request = client
+            .get("http://example.com/api/assets")
+            .query(&[("offset", "10"), ("search", "db server")])
+            .build()
+            .unwrap();
+        assert_eq!(
+            request.url().as_str(),
+            "http://example.com/api/assets?offset=10&search=db+server"
+        );
+    }
+
+    #[tokio::test]
+    async fn existing_api_client_uses_proxy_settings_updated_after_construction() {
+        let directory = tempfile::tempdir().unwrap();
+        let manager = ProxyManager::for_test(
+            directory.path().join("proxy.json"),
+            ProxySettingsInput::default(),
+        )
+        .unwrap();
+        let client = ApiRequestClient::with_origin(
+            "http://upstream.invalid".to_string(),
+            String::new(),
+            String::new(),
+            &manager,
+        )
+        .unwrap();
+
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let proxy = listener.local_addr().unwrap();
+        let server = std::thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            stream
+                .set_read_timeout(Some(Duration::from_secs(5)))
+                .unwrap();
+            let mut request = Vec::new();
+            let mut chunk = [0_u8; 1024];
+            while !request.windows(4).any(|window| window == b"\r\n\r\n") {
+                let read = stream.read(&mut chunk).unwrap();
+                if read == 0 {
+                    break;
+                }
+                request.extend_from_slice(&chunk[..read]);
+            }
+            stream
+                .write_all(
+                    b"HTTP/1.1 204 No Content\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+                )
+                .unwrap();
+            String::from_utf8(request).unwrap()
+        });
+
+        manager
+            .update(ProxySettingsInput {
+                mode: crate::service::proxy::ProxyMode::Manual,
+                preferred_mode: ProxyPreferredMode::Manual,
+                proxy_type: ProxyType::Http,
+                host: proxy.ip().to_string(),
+                port: Some(proxy.port()),
+                ..ProxySettingsInput::default()
+            })
+            .await
+            .unwrap();
+
+        let response = client
+            .send(Method::GET, "http://upstream.invalid/api", |request| {
+                request
+            })
+            .await
+            .unwrap();
+        assert_eq!(response.status(), reqwest::StatusCode::NO_CONTENT);
+        assert!(server
+            .join()
+            .unwrap()
+            .starts_with("GET http://upstream.invalid/api HTTP/1.1\r\n"));
     }
 }

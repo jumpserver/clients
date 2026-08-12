@@ -160,7 +160,7 @@ pub fn pull_up(app: AppHandle, url: String) -> Result<(), String> {
         }
     }
 
-    info!("Launching client: {:?} {}", exe_path, url);
+    info!("Launching client executable: {:?}", exe_path);
 
     // 使用管道捕获 stderr，以便检测子进程的错误输出
     let mut child = Command::new(&exe_path)

@@ -2,7 +2,11 @@ use serde::Serialize;
 use std::time::Instant;
 use tauri::State;
 
-use crate::service::proxy::{proxy_test_url, ProxyManager, ProxySettings, ProxySettingsInput};
+use crate::api::client::request_builder_client;
+use crate::service::proxy::{
+    proxy_test_url, ProxyManager, ProxyResolverKind, ProxyRouteKind, ProxySettings,
+    ProxySettingsInput,
+};
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -12,6 +16,11 @@ pub struct ProxyTestResult {
     status: Option<u16>,
     elapsed_ms: u64,
     message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    route: Option<ProxyRouteKind>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    resolver: Option<ProxyResolverKind>,
+    fallback_attempts: usize,
 }
 
 #[tauri::command]
@@ -45,36 +54,69 @@ pub async fn test_proxy_settings(
                 status: None,
                 elapsed_ms: elapsed_millis(started),
                 message: error.to_string(),
+                route: None,
+                resolver: None,
+                fallback_attempts: 0,
             });
         }
     };
-    let client = match manager.test_client(settings, probe_url.as_str()) {
-        Ok(client) => client,
-        Err(error) => {
+    let resolver_manager = manager.inner().clone();
+    let resolver_target = probe_url.as_str().to_string();
+    let test_client = match tokio::task::spawn_blocking(move || {
+        resolver_manager.test_client(settings, &resolver_target)
+    })
+    .await
+    {
+        Ok(Ok(client)) => client,
+        Ok(Err(error)) => {
             return Ok(ProxyTestResult {
                 success: false,
                 status: None,
                 elapsed_ms: elapsed_millis(started),
                 message: error.to_string(),
+                route: None,
+                resolver: None,
+                fallback_attempts: 0,
+            });
+        }
+        Err(error) => {
+            return Ok(ProxyTestResult {
+                success: false,
+                status: None,
+                elapsed_ms: elapsed_millis(started),
+                message: format!("Proxy resolver task failed: {error}"),
+                route: None,
+                resolver: None,
+                fallback_attempts: 0,
             });
         }
     };
 
-    let result = match client.get(probe_url).send().await {
-        Ok(response) => {
+    let request = request_builder_client()
+        .and_then(|client| client.get(probe_url).build().map_err(Into::into))
+        .map_err(|error| error.to_string())?;
+    let result = match test_client.plan.execute(request).await {
+        Ok(execution) => {
+            let response = execution.response;
             let status = response.status();
             ProxyTestResult {
-                success: status.as_u16() != 407,
+                success: status.is_success(),
                 status: Some(status.as_u16()),
                 elapsed_ms: elapsed_millis(started),
                 message: format!("HTTP {}", status.as_u16()),
+                route: Some(execution.route),
+                resolver: Some(test_client.resolver),
+                fallback_attempts: execution.fallback_attempts,
             }
         }
         Err(error) => ProxyTestResult {
             success: false,
-            status: error.status().map(|status| status.as_u16()),
+            status: None,
             elapsed_ms: elapsed_millis(started),
             message: format!("Proxy test request failed: {}", error),
+            route: Some(error.route),
+            resolver: Some(test_client.resolver),
+            fallback_attempts: error.fallback_attempts,
         },
     };
     Ok(result)

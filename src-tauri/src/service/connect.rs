@@ -5,7 +5,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 use url::Url;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct TokenRequestBody {
     pub asset: String,
     pub account: String,
