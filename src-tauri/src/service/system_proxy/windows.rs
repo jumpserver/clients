@@ -52,7 +52,7 @@ unsafe fn take_winhttp_string(value: PWSTR) -> Option<String> {
         return None;
     }
     let result = value.to_string().ok();
-    let _ = GlobalFree(HGLOBAL(value.as_ptr().cast_mut().cast()));
+    let _ = GlobalFree(HGLOBAL(value.as_ptr().cast()));
     result.filter(|value| !value.trim().is_empty())
 }
 
