@@ -62,20 +62,11 @@ const proxySource = computed({
     if (settings.mode !== "direct") settings.mode = source;
   }
 });
-const proxyEnableDescription = computed(() =>
-  proxyEnabled.value ? t("Proxy.EnabledDescription") : t("Proxy.DisabledDescription")
-);
 const proxySourceDescription = computed(() => {
   if (proxySource.value === "system") return t("Proxy.SystemProxyDescription");
   if (proxySource.value === "pac" && isLinux.value) return t("Proxy.PacProxyUnsupportedLinuxDescription");
   if (proxySource.value === "pac") return t("Proxy.PacProxyDescription");
   return t("Proxy.ManualProxyDescription");
-});
-const testDescription = computed(() => {
-  if (settings.mode === "system") return t("Proxy.TestDescriptionSystem");
-  if (settings.mode === "pac") return t("Proxy.TestDescriptionPac");
-  if (settings.mode === "manual") return t("Proxy.TestDescriptionManual");
-  return t("Proxy.TestDescriptionDirect");
 });
 const isBusy = computed(() => isPlatformLoading.value || isLoading.value || isSaving.value || isTesting.value);
 const passwordHelp = computed(() => {
@@ -265,9 +256,6 @@ onMounted(async () => {
       <p class="text-sm leading-5 text-muted">
         {{ t("Proxy.ScopeIncluded") }}
       </p>
-      <p class="text-xs leading-5 text-dimmed">
-        {{ t("Proxy.ScopeExcluded") }}
-      </p>
     </header>
 
     <div v-if="loadError" class="space-y-3">
@@ -313,20 +301,15 @@ onMounted(async () => {
           name="proxy-enabled"
           :label="t('Proxy.EnableProxy')"
           :disabled="isBusy"
-          aria-describedby="proxy-enabled-description"
           class="w-full"
           :ui="{
             root: 'w-full',
             wrapper: 'min-w-0',
-            label: 'text-sm font-medium',
-            description: 'leading-5'
+            label: 'text-sm font-medium'
           }"
         >
           <template #label>
             <span id="proxy-enabled-label">{{ t("Proxy.EnableProxy") }}</span>
-          </template>
-          <template #description>
-            <span id="proxy-enabled-description">{{ proxyEnableDescription }}</span>
           </template>
         </USwitch>
       </section>
@@ -526,14 +509,9 @@ onMounted(async () => {
       <USeparator />
 
       <section class="space-y-3" aria-labelledby="proxy-test-heading">
-        <div class="space-y-1">
-          <h2 id="proxy-test-heading" class="text-sm font-medium text-highlighted">
-            {{ t("Proxy.TestTitle") }}
-          </h2>
-          <p class="text-xs leading-5 text-muted">
-            {{ testDescription }}
-          </p>
-        </div>
+        <h2 id="proxy-test-heading" class="text-sm font-medium text-highlighted">
+          {{ t("Proxy.TestTitle") }}
+        </h2>
 
         <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-start">
           <UFormField
