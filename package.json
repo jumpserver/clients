@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "@ai-sdk/vue": "4.0.44",
+    "@codemirror/autocomplete": "^6.20.3",
     "@codemirror/commands": "^6.10.4",
     "@codemirror/lang-cpp": "^6.0.3",
     "@codemirror/lang-css": "^6.3.1",

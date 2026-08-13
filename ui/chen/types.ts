@@ -170,8 +170,6 @@ export interface ChenDataViewEditState {
 
 export type ChenDataViewEditMode = "none" | "update" | "full";
 
-export type ChenSqlHints = Record<string, string[]>;
-
 export interface ChenSqlEditorSnapshot {
   documentSql: string;
   selectedSql: string;
@@ -252,10 +250,6 @@ export interface ChenQueryConsoleTab extends ChenTabDefinition {
   aiRevision: number;
   lastSqlError: ChenSqlExecutionError | null;
   uploadingSql: boolean;
-  sqlHints: ChenSqlHints;
-  hintsContext: string;
-  hintsLoading: boolean;
-  hintsRequestGeneration: number;
   state: ChenConsoleState;
   logs: string[];
   message: ChenConsoleMessage | null;
