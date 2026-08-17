@@ -21,6 +21,10 @@ const bindProxyErrorHandler = (name: string) => (proxy: any) => {
     console.warn(`[proxy:${name}]`, error?.message || error);
   });
 };
+const configureHttpProxy = (name: string, target: string) => (proxy: any) => {
+  rewriteProxyOrigin(target)(proxy);
+  bindProxyErrorHandler(name)(proxy);
+};
 
 export default defineNuxtConfig({
   extends: ["@jumpserver/koko/nuxt"],
@@ -169,7 +173,7 @@ export default defineNuxtConfig({
           secure: false,
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/luna/, ""),
-          configure: bindProxyErrorHandler("luna-lion-api")
+          configure: configureHttpProxy("luna-lion-api", lionTarget)
         },
         "/luna/lion/token/": {
           target: lionTarget,
@@ -196,7 +200,7 @@ export default defineNuxtConfig({
           target: lionTarget,
           secure: false,
           changeOrigin: true,
-          configure: bindProxyErrorHandler("lion-api")
+          configure: configureHttpProxy("lion-api", lionTarget)
         },
         "/lion/token/": {
           target: lionTarget,
