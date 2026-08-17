@@ -160,35 +160,6 @@ export default defineNuxtConfig({
           changeOrigin: true,
           configure: rewriteProxyOrigin(jumpServerTarget)
         },
-        "/luna/lion/ws/": {
-          target: lionTarget.replace(/^http/i, "ws"),
-          secure: false,
-          ws: true,
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/luna/, ""),
-          configure: bindProxyErrorHandler("luna-lion-ws")
-        },
-        "/luna/lion/api/": {
-          target: lionTarget,
-          secure: false,
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/luna/, ""),
-          configure: configureHttpProxy("luna-lion-api", lionTarget)
-        },
-        "/luna/lion/token/": {
-          target: lionTarget,
-          secure: false,
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/luna/, ""),
-          configure: bindProxyErrorHandler("luna-lion-token")
-        },
-        "/luna/lion/health/": {
-          target: lionTarget,
-          secure: false,
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/luna/, ""),
-          configure: bindProxyErrorHandler("luna-lion-health")
-        },
         "/lion/ws/": {
           target: lionTarget.replace(/^http/i, "ws"),
           secure: false,
