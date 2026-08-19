@@ -24,15 +24,51 @@ impl ConfigService {
         Ok(config_dir.join("config.json"))
     }
 
+    /// Bundled default template. Used when filesystem lookup fails
+    /// (common on Windows when the process cwd is not the install dir).
+    const EMBEDDED_CONFIG_TEMPLATE: &'static str =
+        include_str!("../../resources/bin/config.json");
+
     /// 获取资源目录中的 config.json 路径（作为默认模板）
     fn resolve_resource_path(app: &tauri::AppHandle) -> Option<PathBuf> {
-        app.path()
-            .resolve(
-                "resources/bin/config.json",
-                tauri::path::BaseDirectory::Resource,
-            )
-            .ok()
-            .filter(|p| p.is_file())
+        let mut candidates: Vec<PathBuf> = Vec::new();
+
+        // Tauri resource dir: path layout differs by platform/packager.
+        for rel in [
+            "resources/bin/config.json",
+            "bin/config.json",
+            "config.json",
+        ] {
+            if let Ok(p) = app
+                .path()
+                .resolve(rel, tauri::path::BaseDirectory::Resource)
+            {
+                candidates.push(p);
+            }
+        }
+
+        // Same layout pull_up uses: next to the executable, independent of cwd.
+        if let Ok(exe) = std::env::current_exe() {
+            if let Some(base) = exe.parent() {
+                candidates.push(base.join("resources").join("bin").join("config.json"));
+                candidates.push(base.join("bin").join("config.json"));
+                candidates.push(base.join("config.json"));
+
+                // macOS app bundle: Contents/MacOS -> Contents/Resources
+                if cfg!(target_os = "macos") {
+                    if let Some(contents) = base.parent() {
+                        let resources = contents.join("Resources");
+                        candidates
+                            .push(resources.join("resources").join("bin").join("config.json"));
+                        candidates.push(resources.join("bin").join("config.json"));
+                    }
+                }
+            }
+        }
+
+        let result = candidates.into_iter().find(|p| p.is_file());
+        log::info!("Selected resource config path: {:?}", result);
+        result
     }
 
     /// 开发环境下的配置路径
@@ -42,13 +78,28 @@ impl ConfigService {
 
         let candidates = [
             cwd.join("resources/bin/config.json"),
+            cwd.join("src-tauri/resources/bin/config.json"),
+            cwd.join("go-client/config.json"),
             cwd.join("../config.json"),
             cwd.join("../../config.json"),
             cwd.join("../../../config.json"),
+            cwd.join("../../../go-client/config.json"),
         ];
         let result = candidates.into_iter().find(|p| p.is_file());
         log::info!("Selected dev config path: {:?}", result);
         result
+    }
+
+    /// Write the embedded template into the user config path.
+    fn materialize_embedded_template(user_config_path: &std::path::Path) -> Result<(), String> {
+        if let Some(parent) = user_config_path.parent() {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| format!("Failed to create config directory: {}", e))?;
+        }
+        std::fs::write(user_config_path, Self::EMBEDDED_CONFIG_TEMPLATE)
+            .map_err(|e| format!("Failed to write embedded config template: {}", e))?;
+        log::info!("Wrote embedded config template to {:?}", user_config_path);
+        Ok(())
     }
 
     /// 获取配置版本号
@@ -228,29 +279,42 @@ impl ConfigService {
     /// 确保用户配置文件存在，如果不存在则从模板复制
     fn ensure_user_config(app: &tauri::AppHandle) -> Result<PathBuf, String> {
         let user_config_path = Self::get_user_config_path(app)?;
-        let template_path = Self::resolve_resource_path(app)
-            .or_else(Self::resolve_dev_path)
-            .ok_or_else(|| "config.json template not found (resource/dev)".to_string())?;
+        let template_path = Self::resolve_resource_path(app).or_else(Self::resolve_dev_path);
 
-        // 如果用户配置文件不存在，从模板复制
+        // 如果用户配置文件不存在，从模板复制；模板缺失时回退到编译期嵌入的默认配置
         if !user_config_path.exists() {
-            log::info!(
-                "Copying config template from {:?} to {:?}",
-                template_path,
-                user_config_path
-            );
-            std::fs::copy(&template_path, &user_config_path)
-                .map_err(|e| format!("Failed to copy config template: {}", e))?;
-            log::info!("Initial config created successfully");
+            if let Some(ref template_path) = template_path {
+                log::info!(
+                    "Copying config template from {:?} to {:?}",
+                    template_path,
+                    user_config_path
+                );
+                std::fs::copy(template_path, &user_config_path)
+                    .map_err(|e| format!("Failed to copy config template: {}", e))?;
+                log::info!("Initial config created successfully");
+            } else {
+                log::warn!(
+                    "config.json template not found on disk; using embedded fallback"
+                );
+                Self::materialize_embedded_template(&user_config_path)?;
+            }
         } else {
             // 如果用户配置已存在，检查是否需要更新
             log::info!(
                 "User config exists at {:?}, checking for updates",
                 user_config_path
             );
-            if let Err(e) = Self::update_user_config_if_needed(&user_config_path, &template_path) {
-                log::warn!("Failed to update user config: {}", e);
-                // 不阻断流程，即使更新失败也继续使用现有配置
+            if let Some(ref template_path) = template_path {
+                if let Err(e) =
+                    Self::update_user_config_if_needed(&user_config_path, template_path)
+                {
+                    log::warn!("Failed to update user config: {}", e);
+                    // 不阻断流程，即使更新失败也继续使用现有配置
+                }
+            } else {
+                log::warn!(
+                    "config.json template not found on disk; skip version upgrade check"
+                );
             }
         }
 
@@ -263,11 +327,6 @@ impl ConfigService {
 
         log::info!("Reading config from: {:?}", path);
 
-        let content = std::fs::read_to_string(&path)
-            .map_err(|e| format!("read config.json failed: {}", e))?;
-        let json: Value = serde_json::from_str(&content)
-            .map_err(|e| format!("parse config.json failed: {}", e))?;
-
         let os_key = match std::env::consts::OS {
             "macos" => "macos",
             "windows" => "windows",
@@ -275,12 +334,35 @@ impl ConfigService {
             other => other,
         };
 
-        let per_os = json
-            .get(os_key)
-            .cloned()
-            .ok_or_else(|| format!("config.json missing key for current OS: {}", os_key))?;
+        let read_per_os = |path: &PathBuf| -> Result<Value, String> {
+            let content = std::fs::read_to_string(path)
+                .map_err(|e| format!("read config.json failed: {}", e))?;
+            let json: Value = serde_json::from_str(&content)
+                .map_err(|e| format!("parse config.json failed: {}", e))?;
+            json.get(os_key)
+                .cloned()
+                .ok_or_else(|| format!("config.json missing key for current OS: {}", os_key))
+        };
 
-        Ok(per_os)
+        match read_per_os(&path) {
+            Ok(per_os) => Ok(per_os),
+            Err(err) => {
+                // Recover from corrupt/empty user config that previously left settings blank.
+                log::warn!(
+                    "User config unusable ({}); resetting from template at {:?}",
+                    err,
+                    path
+                );
+                if let Some(template_path) = Self::resolve_resource_path(app).or_else(Self::resolve_dev_path)
+                {
+                    std::fs::copy(&template_path, &path)
+                        .map_err(|e| format!("Failed to reset config from template: {}", e))?;
+                } else {
+                    Self::materialize_embedded_template(&path)?;
+                }
+                read_per_os(&path)
+            }
+        }
     }
 
     pub fn update_selection(

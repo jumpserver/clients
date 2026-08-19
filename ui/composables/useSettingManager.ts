@@ -178,16 +178,16 @@ export const useSettingManager = () => {
     persist({ sort: s });
   };
 
-  const setAppConfig = (config: AppConfigType | undefined) => {
+  const setAppConfig = async (config: AppConfigType | undefined) => {
     // 确保从 store 加载完成，避免默认值覆盖刚写入的配置
-    ensureHydration()
-      .then(() => {
-        state.appConfig = config ?? null;
-        enqueuePersist({ appConfig: state.appConfig });
-      })
-      .catch((err) => {
-        console.error("setAppConfig hydration failed", err);
-      });
+    try {
+      await ensureHydration();
+      state.appConfig = config ?? null;
+      enqueuePersist({ appConfig: state.appConfig });
+    } catch (err) {
+      console.error("setAppConfig hydration failed", err);
+      throw err;
+    }
   };
 
   const setCharsetPreference = (charset: CharsetType) => {

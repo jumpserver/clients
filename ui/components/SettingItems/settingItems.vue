@@ -92,7 +92,7 @@ const selectExecutablePath = async () => {
       });
 
       if (updated) {
-        setAppConfig(updated as any);
+        await setAppConfig(updated as any);
       }
     }
   } catch (e) {
