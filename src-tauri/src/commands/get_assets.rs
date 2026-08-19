@@ -78,12 +78,17 @@ pub async fn get_assets(
     bearer_token: String,
     query: AssetQuery,
     favorite: Option<bool>,
+    request_id: String,
 ) {
+    // 资产结果通过全局事件广播，所有成功和失败分支都必须原样回传该请求 ID。
     let bearer = match ensure_fresh_token(&app, &site, Some(&bearer_token)).await {
         Ok(b) => b,
         Err(e) => {
             error!("refresh bearer failed: {}", e);
-            let _ = app.emit("get-asset-failure", json!({ "status": 401 }));
+            let _ = app.emit(
+                "get-asset-failure",
+                json!({ "status": 401, "request_id": request_id }),
+            );
             return;
         }
     };
@@ -96,7 +101,10 @@ pub async fn get_assets(
     if !assets_data.success {
         error!("获取 Asset 数据失败");
 
-        let _ = app.emit("get-asset-failure", json!({ "status": assets_data.status }));
+        let _ = app.emit(
+            "get-asset-failure",
+            json!({ "status": assets_data.status, "request_id": request_id }),
+        );
         return;
     }
 
@@ -125,6 +133,7 @@ pub async fn get_assets(
                 json!({
                     "status": assets_data.status,
                     "data": json_message,
+                    "request_id": request_id,
                 }),
             );
         }
@@ -133,7 +142,10 @@ pub async fn get_assets(
                 "解析资产列表 JSON 失败，返回数据不是合法 JSON 字符串: {}",
                 e
             );
-            let _ = app.emit("get-asset-failure", json!({ "status": assets_data.status }));
+            let _ = app.emit(
+                "get-asset-failure",
+                json!({ "status": assets_data.status, "request_id": request_id }),
+            );
         }
     }
 
