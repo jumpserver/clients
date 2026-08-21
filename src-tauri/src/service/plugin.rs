@@ -196,7 +196,7 @@ impl PluginService {
                 .and_then(|v| v.as_object_mut())
             {
                 match selections.get("remotedesktop:rdp").and_then(|v| v.as_str()) {
-                    Some("linux.mstsc") | Some("linux.remmina") => {
+                    Some("linux.mstsc") => {
                         selections.insert(
                             "remotedesktop:rdp".to_string(),
                             Value::String("linux.xfreerdp".to_string()),
