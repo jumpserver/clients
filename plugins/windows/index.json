@@ -12,6 +12,11 @@
       "category": "databases"
     },
     {
+      "id": "windows.dbx",
+      "name": "dbx",
+      "category": "databases"
+    },
+    {
       "id": "windows.mobaxterm",
       "name": "mobaxterm",
       "category": "terminal"
@@ -26,11 +31,6 @@
       "name": "mstsc",
       "category": "remotedesktop"
     },
-//    {
-//      "id": "windows.navicat17",
-//      "name": "navicat17",
-//      "category": "databases"
-//    },
     {
       "id": "windows.plsql",
       "name": "plsql",

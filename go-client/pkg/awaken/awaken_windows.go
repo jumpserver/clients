@@ -338,6 +338,16 @@ func handleDB(r *Rouse, cfg *config.AppConfig) (*exec.Cmd, error) {
 			connectMap["library"] = "SQLOLEDB"
 		}
 	}
+	if appItem.Name == "dbx" {
+		switch r.Protocol {
+		case "postgresql":
+			connectMap["protocol"] = "postgres"
+		case "sqlserver":
+			connectMap["protocol"] = "mssql"
+		default:
+			connectMap["protocol"] = r.Protocol
+		}
+	}
 	if r.Protocol == "redis" && appItem.Name == "resp" {
 		var conList []map[string]string
 		ss := make(map[string]string)
@@ -367,10 +377,6 @@ func handleDB(r *Rouse, cfg *config.AppConfig) (*exec.Cmd, error) {
 		connectMap["config_file"] = currentPath
 
 	}
-// 	if appItem.Name == "navicat17" {
-// 		url := getNavicatURL(connectMap)
-// 		connectMap["url"] = url
-// 	}
 	if len(appItem.AutoIt) == 0 {
 		commands := getCommandFromArgs(connectMap, appItem.ArgFormat)
 		if appItem.Name == "heidisql" && r.Protocol == "postgresql" {
