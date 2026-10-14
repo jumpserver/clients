@@ -318,7 +318,7 @@ func awakenDBCommand(r *Rouse, cfg *config.AppConfig) (*exec.Cmd, error) {
 		case "sqlserver":
 			argFormat = "sqlcmd -S {host},{port} -U {username} -P {value} -d {dbname}"
 		case "mongodb":
-			argFormat = "mongosh mongodb://{username}:{value}@{host}:{port}/{dbname}"
+			argFormat = "mongosh 'mongodb://{username}:{value}@{host}:{port}/{dbname}?authSource=admin'"
 		}
 		commands := getCommandFromArgs(connectMap, argFormat)
 
