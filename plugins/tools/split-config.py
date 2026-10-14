@@ -51,7 +51,7 @@ PLUGIN_IDS: dict[tuple[str, str], str] = {
     ("windows_rdm", "remotedesktop"): "windows-rdm",
     ("another_redis", "databases"): "another-redis",
     ("mongo_compass", "databases"): "mongo-compass",
-    ("navicat17", "databases"): "navicat17",
+    # ("navicat17", "databases"): "navicat17",
     ("ssms17", "databases"): "ssms17",
 }
 
