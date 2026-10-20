@@ -21,6 +21,7 @@ const { setAppConfig } = useSettingManager();
 const imagesMap: Record<string, string | undefined> = {
   iterm: getImageByName("item2"),
   dbeaver: getImageByName("dbeaver"),
+  dbx: getImageByName("dbx"),
   heidisql: getImageByName("heidisql"),
   mstsc: getImageByName("mstsc"),
   terminal: getImageByName("terminal"),
@@ -41,7 +42,6 @@ const imagesMap: Record<string, string | undefined> = {
   plsql: getImageByName("plsql"),
   ssms17: getImageByName("ssms17"),
   resp: getImageByName("resp"),
-  // navicat17: getImageByName("navicat17"),
   royalts: getImageByName("royalts"),
   windows_rdm: getImageByName("windows_rdm"),
   toad: getImageByName("toad")
