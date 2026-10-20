@@ -50,6 +50,12 @@ const sideBarItems = computed<NavigationMenuItem[]>(() => {
       icon: "lucide:boxes",
       to: localePath("other"),
       disabled: isLoading.value
+    },
+    {
+      label: t("Menu.Favorite"),
+      icon: "gravity-ui:star",
+      to: localePath("favorite"),
+      disabled: isLoading.value
     }
   ];
 });
