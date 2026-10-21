@@ -320,7 +320,7 @@ func awakenDBCommand(r *Rouse, cfg *config.AppConfig) (*exec.Cmd, error) {
 		case "redis":
 			argFormat = "redis-cli -h {host} -p {port} -a {username}@{value}"
 		case "oracle":
-			argFormat = "sqlplus {username}/{value}@{host}:{port}/{dbname}"
+			argFormat = getOracleCLIArgFormat(r)
 		case "postgresql":
 			argFormat = "psql 'user={username} password={value} host={host} dbname={dbname} port={port}'"
 		case "mysql", "mariadb":

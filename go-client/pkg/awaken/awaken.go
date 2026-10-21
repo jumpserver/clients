@@ -73,7 +73,15 @@ type Info struct {
 func getDatabaseArgFormat(r *Rouse, appItem *config.AppItem) string {
 	argFormat := appItem.ArgFormat
 	if appItem.Name == "dbeaver" && r.Protocol == "oracle" && r.ConnectOptions.UseSysDBA {
-		argFormat += "|authProp.oracle.logon-as=sysdba"
+		argFormat += "|auth=oracle_native|authProp.oracle.logon-as=SYSDBA"
+	}
+	return argFormat
+}
+
+func getOracleCLIArgFormat(r *Rouse) string {
+	argFormat := "sqlplus {username}/{value}@{host}:{port}/{dbname}"
+	if r.ConnectOptions.UseSysDBA {
+		argFormat += " as sysdba"
 	}
 	return argFormat
 }
