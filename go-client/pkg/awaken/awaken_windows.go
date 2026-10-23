@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -23,34 +22,6 @@ func EnsureDirExist(path string) {
 	if err := os.MkdirAll(path, os.ModePerm); err != nil {
 		global.LOG.Error(err.Error())
 	}
-}
-
-func getNavicatURL(connectInfo map[string]string) string {
-	re := regexp.MustCompile(`@(.+)$`)
-	matches := re.FindStringSubmatch(connectInfo["name"])
-	name := connectInfo["username"]
-	if len(matches) > 1 {
-		name = matches[1]
-	}
-	url := fmt.Sprintf("navicat://conn.%s?Conn.Host=%s&Conn.Name=%s&Conn.Port=%s&Conn.Username=%s",
-		connectInfo["protocol"], connectInfo["host"], name, connectInfo["port"], connectInfo["username"])
-	switch connectInfo["protocol"] {
-	case "oracle":
-		url = strings.Replace(url, "conn.oracle", "conn.ora", 1)
-		url += fmt.Sprintf("&Conn.ServiceName=%s&Conn.ServiceNameType=ServiceName&Conn.ConnectionMode=Basic", connectInfo["dbname"])
-	case "sqlserver":
-		url = strings.Replace(url, "conn.sqlserver", "conn.mssql", 1)
-		url += fmt.Sprintf("&Conn.AuthenticationType=Default&Conn.InitialDatabase=%s", connectInfo["dbname"])
-	case "postgresql":
-		url = strings.Replace(url, "conn.postgresql", "conn.pgsql", 1)
-		url += fmt.Sprintf("&Conn.InitialDatabase=%s", connectInfo["dbname"])
-	}
-
-	pattern := regexp.MustCompile(`[\^(){}~]`)
-	url = pattern.ReplaceAllStringFunc(url, func(match string) string {
-		return fmt.Sprintf("{%s}", match)
-	})
-	return url
 }
 
 func getCommandFromArgs(connectInfo map[string]string, argFormat string) string {
