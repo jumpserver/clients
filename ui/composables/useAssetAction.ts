@@ -57,7 +57,7 @@ export const useAssetAction = () => {
   const toast = useToast();
   const userInfoStore = useUserInfoStore();
   const settingManager = useSettingManager();
-  const { getMethodsForProtocol, getDefaultMethodForProtocol } = useConnectMethods();
+  const { getMethodsForProtocol } = useConnectMethods();
   // prettier-ignore
   const { currentSite, currentConnectionInfoMap, currentRdpClientOption } = storeToRefs(userInfoStore);
   const { charset, rdpResolution, backspaceAsCtrlH, keyboardLayout, rdpClientOption, rdpColorQuality, rdpSmartSize }
@@ -194,53 +194,13 @@ export const useAssetAction = () => {
     });
   };
 
-  /**
-   * @description 根据协议分发连接方法
-   * @param protocol
-   */
-  const dispatchConnectMethod = (protocol: string) => {
-    let method = "";
-
-    switch (protocol) {
-      case "ssh":
-      case "telnet":
-        method = "ssh_client";
-        break;
-      case "sftp":
-        method = "sftp_client";
-        break;
-      case "vnc":
-        method = "vnc_client";
-        break;
-      case "http":
-        method = "chrome";
-        break;
-      default:
-        method = "db_client";
-    }
-
-    return method;
-  };
-
   const resolveConnectMethod = async (protocol: string, preferred?: string) => {
+    const methods = await getMethodsForProtocol(protocol);
     const preferredMethod = preferred?.trim() || "";
-
-    try {
-      const methods = await getMethodsForProtocol(protocol);
-
-      if (preferredMethod && methods.some((method) => method.value === preferredMethod)) {
-        return preferredMethod;
-      }
-
-      const defaultMethod = await getDefaultMethodForProtocol(protocol);
-      if (defaultMethod) {
-        return defaultMethod;
-      }
-    } catch (error) {
-      console.debug(`Failed to resolve connect method for ${protocol}:`, error);
+    if (preferredMethod) {
+      return methods.some((method) => method.value === preferredMethod) ? preferredMethod : "";
     }
-
-    return preferredMethod || dispatchConnectMethod(protocol);
+    return methods[0]?.value || "";
   };
 
   const generateConnectOptions = (protocol: string) => {
@@ -349,10 +309,30 @@ export const useAssetAction = () => {
     })();
 
     // 当前连接显式选择优先；仅在协议一致时复用已保存连接方法，避免跨协议复用错误的客户端
-    const connectMethod = await resolveConnectMethod(
-      protocol,
-      ephemeral?.connectMethod?.trim() || (saved?.protocol === protocol ? saved?.connectMethod?.trim() : "")
-    );
+    let connectMethod: string;
+    try {
+      connectMethod = await resolveConnectMethod(
+        protocol,
+        ephemeral?.connectMethod?.trim() || (saved?.protocol === protocol ? saved?.connectMethod?.trim() : "")
+      );
+    } catch (error) {
+      console.debug(`Failed to resolve connect method for ${protocol}:`, error);
+      toast.add({
+        title: t("ConnectError.ConnectFailed"),
+        description: t("ConnectError.ConnectMethodsFailed"),
+        color: "error"
+      });
+      return;
+    }
+
+    if (!connectMethod) {
+      toast.add({
+        title: t("ConnectError.ConnectFailed"),
+        description: t("ConnectError.ConnectMethodUnavailable"),
+        color: "error"
+      });
+      return;
+    }
 
     const accountId
       = effectiveMode === "hosted"
@@ -460,6 +440,16 @@ export const useAssetAction = () => {
         const payload = event.payload as eventPayload;
         const errorData = JSON.parse(payload.data);
         const errorCode = errorData?.code as string;
+
+        if (errorCode === "connect_method_not_allowed" || errorCode === "connect_methods_unavailable") {
+          return toast.add({
+            title: t("ConnectError.ConnectFailed"),
+            description: t(errorCode === "connect_method_not_allowed"
+              ? "ConnectError.ConnectMethodUnavailable"
+              : "ConnectError.ConnectMethodsFailed"),
+            color: "error"
+          });
+        }
 
         if (errorCode && errorCode.includes("acl")) {
           return toast.add({

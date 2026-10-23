@@ -297,6 +297,9 @@
     "CopyPathSuccess": "路径已复制"
   },
   "ConnectError": {
+    "NoAvailableConnectMethod": "当前协议没有可用的连接方式",
+    "ConnectMethodUnavailable": "所选连接方式已不可用，请重新配置连接方式",
+    "ConnectMethodsFailed": "无法获取连接方式权限，请稍后重试",
     "ConnectFailed": "连接失败",
     "AclFailed": "当前资产受到 ACL 访问限制，无法通过客户端连接，请前往 Web 端进行访问",
     "ClientNotFound": "未找到桌面客户端，请安装或在设置中配置路径",

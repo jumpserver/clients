@@ -297,6 +297,9 @@
     "CopyPathSuccess": "Path copied"
   },
   "ConnectError": {
+    "NoAvailableConnectMethod": "No connection methods are available for this protocol",
+    "ConnectMethodUnavailable": "The selected connection method is no longer available. Please update the connection settings.",
+    "ConnectMethodsFailed": "Unable to check connection method permissions. Please try again later.",
     "ConnectFailed": "Connection failed",
     "AclFailed": "The current asset is restricted by ACL policies and cannot be accessed via the client. Please use the Web console to connect.",
     "ClientNotFound": "Desktop client not found. Please install or configure the client path.",

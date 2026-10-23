@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { SelectMenuItem } from "@nuxt/ui";
+import type { ConnectMethod } from "~/composables/useConnectMethods";
 import type { AssetPageType, PermedAccount, PermedProtocol } from "~/types/index";
 import { useConnectMethods } from "~/composables/useConnectMethods";
+import { useUserInfoStore } from "~/store/modules/userInfo";
 
 const props = defineProps<{
   account: string
@@ -24,16 +26,24 @@ const emits = defineEmits<{
   (e: "update:dynamicPassword", v: string): void
   (e: "update:rememberSecret", v: boolean): void
   (e: "update:connectMethod", v: string): void
+  (e: "update:connectMethodValid", v: boolean): void
 }>();
 
 const { t, te } = useI18n();
-const { getMethodsForProtocol, getDefaultMethodForProtocol } = useConnectMethods();
+const { getMethodsForProtocol } = useConnectMethods();
+const { currentSite, currentUser, orgId } = storeToRefs(useUserInfoStore());
 // prettier-ignore
 const trailingIcon = "group-data-[state=open]:rotate-180 transition-transform duration-200";
 
 const showManualInputArea = ref(false);
 const showDynamicUserArea = ref(false);
-const availableConnectMethods = ref<any[]>([]);
+const availableConnectMethods = ref<ConnectMethod[]>([]);
+const methodsLoading = ref(true);
+const methodsError = ref("");
+const connectMethodValid = computed(() => !methodsLoading.value
+  && availableConnectMethods.value.some((method) => method.value === props.connectMethod));
+
+watch(connectMethodValid, (valid) => emits("update:connectMethodValid", valid), { immediate: true, flush: "sync" });
 const connectMethodItems = computed<SelectMenuItem[]>(() => {
   return availableConnectMethods.value.map((method) => ({
     label: getConnectMethodLabel(method),
@@ -80,20 +90,33 @@ watch(
 );
 
 watch(
-  () => props.protocol,
-  async (newProtocol) => {
-    if (!newProtocol) return;
+  [() => props.protocol, currentSite, orgId, () => currentUser.value?.bearerToken],
+  async ([newProtocol], _oldValues, onCleanup) => {
+    let cancelled = false;
+    onCleanup(() => {
+      cancelled = true;
+    });
+    methodsLoading.value = true;
+    methodsError.value = "";
+    availableConnectMethods.value = [];
 
-    const methods = await getMethodsForProtocol(newProtocol);
-    availableConnectMethods.value = methods;
-
-    if (!props.connectMethod || !methods.some((m) => m.value === props.connectMethod)) {
-      const defaultMethod = await getDefaultMethodForProtocol(newProtocol);
-      if (defaultMethod) {
-        emits("update:connectMethod", defaultMethod);
+    try {
+      const methods = newProtocol ? await getMethodsForProtocol(newProtocol) : [];
+      if (cancelled) return;
+      availableConnectMethods.value = methods;
+      if (!methods.some((method) => method.value === props.connectMethod)) {
+        emits("update:connectMethod", methods[0]?.value || "");
       }
+    } catch (error) {
+      if (cancelled) return;
+      console.debug("Failed to load connect methods:", error);
+      emits("update:connectMethod", "");
+      methodsError.value = t("ConnectError.ConnectMethodsFailed");
+    } finally {
+      if (!cancelled) methodsLoading.value = false;
     }
   },
+  // 会话切换先同步到 Rust，再获取新会话的连接方式。
   { immediate: true }
 );
 
@@ -181,7 +204,11 @@ function handleSpecialAccount(v: string) {
       />
     </UFormField>
 
-    <UFormField :label="t('EditModal.ConnectMethod')" size="md">
+    <UFormField
+      :label="t('EditModal.ConnectMethod')"
+      :error="methodsError || (!methodsLoading && !connectMethodItems.length ? t('ConnectError.NoAvailableConnectMethod') : undefined)"
+      size="md"
+    >
       <USelect
         v-model="localConnectMethod"
         :items="connectMethodItems"
@@ -190,7 +217,8 @@ function handleSpecialAccount(v: string) {
         }"
         icon="lucide:zap"
         class="w-full"
-        :disabled="connectMethodItems.length === 0"
+        :loading="methodsLoading"
+        :disabled="methodsLoading || connectMethodItems.length === 0"
       />
     </UFormField>
 

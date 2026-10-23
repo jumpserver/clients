@@ -1,6 +1,6 @@
 import { useUserInfoStore } from "~/store/modules/userInfo";
 
-interface ConnectMethod {
+export interface ConnectMethod {
   value: string
   label: string
   type: string
@@ -12,81 +12,28 @@ interface ConnectMethod {
 
 interface ConnectMethodsResponse {
   [protocol: string]: ConnectMethod[]
-  originals: ConnectMethod[]
 }
 
-const connectMethodsCache = new Map<string, ConnectMethodsResponse>();
-const fetchPromise = new Map<string, Promise<ConnectMethodsResponse>>();
-
 export const useConnectMethods = () => {
-  const { currentSite, orgId } = storeToRefs(useUserInfoStore());
+  const { currentSite, currentUser, orgId } = storeToRefs(useUserInfoStore());
+  const getSessionKey = () => JSON.stringify([
+    currentSite.value,
+    orgId.value,
+    currentUser.value?.bearerToken
+  ]);
 
   const fetchConnectMethods = async (): Promise<ConnectMethodsResponse> => {
-    const key = `${currentSite.value || ""}:${orgId.value || ""}`;
-    const cached = connectMethodsCache.get(key);
-
-    if (cached) {
-      return cached;
+    // 连接方式属于实时权限，不复用之前登录或规则变更前的结果。
+    const sessionKey = getSessionKey();
+    const data = await useTauriCoreInvoke<string>("get_connect_methods", {});
+    if (sessionKey !== getSessionKey()) {
+      throw new Error("Session changed while fetching connect methods");
     }
-
-    const running = fetchPromise.get(key);
-
-    if (running) {
-      return running;
+    const methods = JSON.parse(data) as ConnectMethodsResponse;
+    if (!methods || typeof methods !== "object" || Array.isArray(methods)) {
+      throw new Error("Invalid connect methods response");
     }
-
-    const promise = new Promise<ConnectMethodsResponse>((resolve, reject) => {
-      let unlistenSuccess: (() => void) | undefined;
-      let unlistenFailure: (() => void) | undefined;
-      const cleanup = () => {
-        unlistenSuccess?.();
-        unlistenFailure?.();
-      };
-
-      interface EventPayload {
-        status: number
-        data: string
-      }
-
-      Promise.all([
-        useTauriEventListen("get-connect-methods-success", (event) => {
-          const payload = event.payload as EventPayload;
-          if (payload.status === 200) {
-            try {
-              const methods = JSON.parse(payload.data) as ConnectMethodsResponse;
-              connectMethodsCache.set(key, methods);
-              resolve(methods);
-            } catch (error) {
-              reject(error);
-            }
-          }
-          cleanup();
-        }),
-        useTauriEventListen("get-connect-methods-failure", () => {
-          reject(new Error("Failed to fetch connect methods"));
-          cleanup();
-        })
-      ])
-        .then(([success, failure]) => {
-          unlistenSuccess = success;
-          unlistenFailure = failure;
-
-          useTauriCoreInvoke("get_connect_methods", {}).catch((error) => {
-            cleanup();
-            reject(error);
-          });
-        })
-        .catch(reject);
-    });
-
-    fetchPromise.set(key, promise);
-
-    try {
-      const result = await promise;
-      return result;
-    } finally {
-      fetchPromise.delete(key);
-    }
+    return methods;
   };
 
   const getMethodsForProtocol = async (protocol: string): Promise<ConnectMethod[]> => {
@@ -103,9 +50,6 @@ export const useConnectMethods = () => {
 
   const getDefaultMethodForProtocol = async (protocol: string): Promise<string> => {
     const methods = await getMethodsForProtocol(protocol);
-    if (methods.length === 0) {
-      return "";
-    }
     return methods[0]?.value || "";
   };
 
@@ -115,15 +59,10 @@ export const useConnectMethods = () => {
     return method?.label ?? methodValue;
   };
 
-  const clearCache = () => {
-    connectMethodsCache.clear();
-  };
-
   return {
     fetchConnectMethods,
     getMethodsForProtocol,
     getDefaultMethodForProtocol,
-    getMethodDisplayName,
-    clearCache
+    getMethodDisplayName
   };
 };

@@ -19,6 +19,7 @@ const draftManualPassword = ref<string>("");
 const draftDynamicPassword = ref<string>("");
 const draftRememberSecret = ref<boolean>(false);
 const draftConnectMethod = ref<string>("");
+const connectMethodValid = ref(false);
 
 let pendingResolve: ((info: any) => void) | null = null;
 let pendingReject: ((reason?: any) => void) | null = null;
@@ -139,6 +140,7 @@ const close = () => {
  * @description 点击确认
  */
 const onConfirm = () => {
+  if (!connectMethodValid.value) return;
   const info = buildConnectionInfo();
 
   pendingResolve?.(info);
@@ -192,6 +194,7 @@ async function ensureDetails(asset: AssetItem) {
  * @param asset
  */
 async function openModal(asset: AssetItem, preferredProtocol?: string): Promise<any> {
+  connectMethodValid.value = false;
   currentAsset.value = asset;
   await ensureDetails(asset);
   initDraft(currentAsset.value!, preferredProtocol);
@@ -211,11 +214,12 @@ defineExpose({ open: openModal, close });
     :open="open"
     :title="modalTitle"
     :description="t('EditModal.Description')"
+    :disabled="!connectMethodValid"
     @confirm="onConfirm"
     @update:open="(v) => (v ? (open = true) : onCancel())"
   >
     <EditForm
-      v-if="currentAsset"
+      v-if="open && currentAsset"
       v-model:protocol="draftProtocol"
       v-model:account="draftAccount"
       v-model:manual-username="draftManualUsername"
@@ -226,6 +230,7 @@ defineExpose({ open: openModal, close });
       :accounts="currentAsset.permedAccounts || []"
       :protocols="currentAsset.permedProtocols || []"
       :asset-type="props.assetType"
+      @update:connect-method-valid="connectMethodValid = $event"
     />
   </Modal>
 </template>

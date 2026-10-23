@@ -16,6 +16,7 @@
     "preinstall": "npx only-allow pnpm",
     "postinstall": "nuxt prepare",
     "lint": "eslint . --fix",
+    "test": "node --test tests/*.test.mjs",
     "bump": "bumpp",
     "set_version": "node scripts/set-version.js",
     "setup_apple_cert": "bash scripts/setup-apple-cert.sh",
